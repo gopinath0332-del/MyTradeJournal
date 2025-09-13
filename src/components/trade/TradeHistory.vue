@@ -90,7 +90,7 @@
                             <button class="action-btn view-btn" @click="viewTradeDetails(trade)">
                                 View
                             </button>
-                            <button class="action-btn edit-btn" @click="editTrade(trade)">
+                            <button class="action-btn edit-btn" @click="handleEdit(trade)">
                                 Edit
                             </button>
                             <button class="action-btn delete-btn" @click="deleteTrade(trade)">
@@ -254,10 +254,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject } from 'vue'
 
-const showEditModal = ref(false)
-const editedTrade = ref({})
+// Get the shared editing function from App.vue
+const startEditingTrade = inject('startEditingTrade')
+
 const selectedTrade = ref(null)
 const trades = ref([])
 const sortKey = ref('entryDate')
@@ -307,19 +308,15 @@ const formatCurrency = (amount) => {
     }).format(amount)
 }
 
-// Edit functions
-const editTrade = (trade) => {
-    editedTrade.value = {
+// Function to edit a trade
+const handleEdit = (trade) => {
+    // Format dates for the form inputs
+    const formattedTrade = {
         ...trade,
         entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 16) : '',
         exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 16) : ''
     }
-    showEditModal.value = true
-}
-
-const closeEditModal = () => {
-    showEditModal.value = false
-    editedTrade.value = {}
+    startEditingTrade(formattedTrade)
 }
 
 const calculatePnL = (trade) => {

@@ -1,7 +1,7 @@
 <!-- TradeForm.vue -->
 <template>
     <div class="trade-form">
-        <h2>Log New Trade</h2>
+        <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
         <form @submit.prevent="handleSubmit">
             <div class="form-row">
                 <div class="form-group">
@@ -125,15 +125,19 @@
                     placeholder="What did you learn from this trade?"></textarea>
             </div>
 
-            <button type="submit" class="submit-button">Log Trade</button>
+            <button type="submit" class="submit-button">{{ trade.id ? 'Save Changes' : 'Log Trade' }}</button>
         </form>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, watch, onMounted } from 'vue'
+
+const editingTrade = inject('editingTrade')
+const activeTab = inject('activeTab')
 
 const trade = ref({
+    id: null,
     symbol: '',
     contract: '',
     type: '',
@@ -150,6 +154,20 @@ const trade = ref({
     lessonsLearned: ''
 })
 
+// Watch for changes in editingTrade and update form
+watch(editingTrade, (newTrade) => {
+    if (newTrade) {
+        trade.value = { ...newTrade }
+    }
+})
+
+// Clear form when switching tabs
+watch(activeTab, (newTab) => {
+    if (newTab === 'trade' && !editingTrade.value) {
+        resetForm()
+    }
+})
+
 // Currency formatter for Indian Rupees
 const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return ''
@@ -159,21 +177,6 @@ const formatCurrency = (amount) => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount)
-}
-
-const resetForm = () => {
-    trade.value = {
-        symbol: '',
-        contract: '',
-        type: '',
-        entryPrice: null,
-        exitPrice: null,
-        entryDate: '',
-        exitDate: '',
-        lots: 2,
-        daysHeld: 0,
-        capitalUsed: null
-    }
 }
 
 const pnl = ref({
@@ -193,7 +196,7 @@ const calculateHoldingDays = () => {
 }
 
 const calculatePnL = () => {
-    if (trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
+    if (!editingTrade.value.pnlAmount && trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
         // If exit price is not set, use 0 for P&L calculation
         const exitPrice = trade.value.exitPrice || trade.value.entryPrice
         const priceDiff = exitPrice - trade.value.entryPrice
@@ -204,11 +207,13 @@ const calculatePnL = () => {
 
         // Calculate return percentage
         updateReturnFromPnL()
-    } else {
+    } else if (!editingTrade.value.pnlAmount) {
         pnl.value.amount = 0
         pnl.value.percentage = 0
     }
 }
+
+
 
 const updateReturnFromPnL = () => {
     if (trade.value.capitalUsed && pnl.value.amount) {
@@ -231,43 +236,87 @@ const handleScreenshotUpload = (event) => {
     trade.value.screenshots = Array.from(event.target.files)
 }
 
+const resetForm = () => {
+    trade.value = {
+        id: null,
+        symbol: '',
+        contract: '',
+        type: '',
+        entryPrice: null,
+        exitPrice: null,
+        entryDate: '',
+        exitDate: '',
+        lots: 2,
+        daysHeld: 0,
+        capitalUsed: null,
+        notes: '',
+        confidence: 3,
+        executionQuality: 3,
+        lessonsLearned: ''
+    }
+
+    pnl.value = {
+        amount: 0,
+        percentage: 0
+    }
+}
+
 const handleSubmit = async () => {
     try {
-        // For now, store in localStorage
         const trades = JSON.parse(localStorage.getItem('trades') || '[]')
-        trades.push({
+
+        // Prepare trade data
+        const tradeData = {
             ...trade.value,
-            id: Date.now(), // Simple unique ID
-            createdAt: new Date().toISOString(),
-            status: trade.value.exitDate ? 'CLOSED' : 'OPEN',
             pnlAmount: pnl.value.amount,
-            pnlPercentage: pnl.value.percentage
-        })
+            pnlPercentage: pnl.value.percentage,
+            status: trade.value.exitDate ? 'CLOSED' : 'OPEN'
+        }
+
+        // If we're editing an existing trade
+        if (trade.value.id) {
+            const index = trades.findIndex(t => t.id === trade.value.id)
+            if (index !== -1) {
+                trades[index] = {
+                    ...tradeData,
+                    updatedAt: new Date().toISOString()
+                }
+            }
+        } else {
+            // Creating a new trade
+            trades.push({
+                ...tradeData,
+                id: Date.now(),
+                createdAt: new Date().toISOString()
+            })
+        }
+
         localStorage.setItem('trades', JSON.stringify(trades))
 
-        // Reset form
-        trade.value = {
-            symbol: '',
-            type: '',
-            entryPrice: null,
-            exitPrice: null,
-            entryDate: '',
-            exitDate: '',
-            lots: 2, // Keeping default value
-            daysHeld: 0,
-            capitalUsed: null,
-            notes: ''
+        // Clear editing state
+        if (editingTrade) {
+            editingTrade.value = null
         }
 
-        // Reset P&L values
-        pnl.value = {
-            amount: 0,
-            percentage: 0
-        }
+        // Switch back to history view
+        activeTab.value = 'history'
+
+        // Reset form
+        resetForm()
     } catch (error) {
         console.error('Error saving trade:', error)
     }
 }
+
+onMounted(() => {
+    if (editingTrade.value) {
+        trade.value = { ...editingTrade.value }
+        pnl.value.amount = editingTrade.value.pnlAmount || 0
+        pnl.value.percentage = editingTrade.value.pnlPercentage || 0
+        calculateHoldingDays()
+        calculatePnL()
+    }
+});
 </script>
 
 <style scoped>

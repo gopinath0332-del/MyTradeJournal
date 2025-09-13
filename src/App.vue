@@ -1,9 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import TradeForm from './components/trade/TradeForm.vue'
 import TradeHistory from './components/trade/TradeHistory.vue'
 
 const activeTab = ref('history') // 'trade' or 'history'
+const editingTrade = ref(null)
+
+// Provide the shared state to child components
+provide('activeTab', activeTab)
+provide('editingTrade', editingTrade)
+
+// Function to start editing a trade
+const startEditingTrade = (trade) => {
+  editingTrade.value = trade
+  activeTab.value = 'trade'
+}
+
+provide('startEditingTrade', startEditingTrade)
 </script>
 
 <template>

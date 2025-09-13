@@ -187,7 +187,7 @@ textarea {
 }
 
 .submit-button {
-    background-color: #4CAF50;
+    background-color: #42b883;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -195,9 +195,10 @@ textarea {
     cursor: pointer;
     font-size: 16px;
     width: 100%;
+    transition: all 0.25s;
 }
 
 .submit-button:hover {
-    background-color: #45a049;
+    background-color: #3aa876;
 }
 </style>

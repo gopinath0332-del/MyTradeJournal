@@ -46,8 +46,9 @@ nav {
 nav button {
   padding: 10px 20px;
   margin: 0 10px;
-  border: none;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
+  background-color: #ffffff;
   cursor: pointer;
   font-size: 16px;
   background: #f0f0f0;

@@ -218,10 +218,12 @@ onMounted(() => {
 }
 
 .metric-card {
-    background: #f5f5f5;
+    background: #ffffff;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .metric-value {
@@ -246,12 +248,14 @@ onMounted(() => {
 
 .chart-placeholder {
     height: 300px;
-    background: #f5f5f5;
+    background: #f8fafc;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    color: #666;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
 }
 
 .tag-cloud {

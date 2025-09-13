@@ -196,7 +196,7 @@ const calculateHoldingDays = () => {
 }
 
 const calculatePnL = () => {
-    if (!editingTrade.value.pnlAmount && trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
+    if (!editingTrade.value?.pnlAmount && trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
         // If exit price is not set, use 0 for P&L calculation
         const exitPrice = trade.value.exitPrice || trade.value.entryPrice
         const priceDiff = exitPrice - trade.value.entryPrice
@@ -207,7 +207,7 @@ const calculatePnL = () => {
 
         // Calculate return percentage
         updateReturnFromPnL()
-    } else if (!editingTrade.value.pnlAmount) {
+    } else if (!editingTrade.value?.pnlAmount) {
         pnl.value.amount = 0
         pnl.value.percentage = 0
     }

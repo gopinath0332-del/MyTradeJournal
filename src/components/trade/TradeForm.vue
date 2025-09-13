@@ -236,7 +236,9 @@ const handleSubmit = async () => {
         trades.push({
             ...trade.value,
             id: Date.now(), // Simple unique ID
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            pnlAmount: pnl.value.amount,
+            pnlPercentage: pnl.value.percentage
         })
         localStorage.setItem('trades', JSON.stringify(trades))
 

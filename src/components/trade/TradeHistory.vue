@@ -63,14 +63,24 @@
                 </span>
             </div>
             <div class="trades-summary">
-                <span class="profit-count">
-                    Profitable: {{sortedAndFilteredTrades.filter(t => t.pnlAmount > 0).length}}
-                </span>
-                <span class="loss-count">
-                    Loss: {{sortedAndFilteredTrades.filter(t => t.pnlAmount < 0).length}} </span>
-                        <span class="breakeven-count">
-                            Breakeven: {{sortedAndFilteredTrades.filter(t => t.pnlAmount === 0).length}}
+                <div class="trades-summary">
+                    <div class="summary-stats">
+                        <span class="profit-count">
+                            Profitable: {{sortedAndFilteredTrades.filter(t => t.pnlAmount > 0).length}}
                         </span>
+                        <span class="loss-count">
+                            Loss: {{sortedAndFilteredTrades.filter(t => t.pnlAmount < 0).length}} </span>
+                                <span class="breakeven-count">
+                                    Breakeven: {{sortedAndFilteredTrades.filter(t => t.pnlAmount === 0).length}}
+                                </span>
+                    </div>
+                    <div class="net-profit" :class="{
+                        'profit': calculateNetProfit > 0,
+                        'loss': calculateNetProfit < 0
+                    }">
+                        Net P&L: {{ formatCurrency(calculateNetProfit) }}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -408,6 +418,11 @@ const getSortArrow = (key) => {
     return sortDir.value === 'asc' ? '↑' : '↓'
 }
 
+// Calculate net profit from filtered trades
+const calculateNetProfit = computed(() => {
+    return sortedAndFilteredTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+})
+
 // Filter and sort trades
 const sortedAndFilteredTrades = computed(() => {
     let filtered = [...trades.value]
@@ -521,12 +536,37 @@ loadTrades()
 .trades-summary {
     display: flex;
     gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
 }
 
-.trades-summary span {
+.summary-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.summary-stats span {
     padding: 4px 12px;
     border-radius: 4px;
     font-size: 0.9em;
+}
+
+.net-profit {
+    font-size: 1.1em;
+    font-weight: 600;
+    padding: 4px 16px;
+    border-radius: 4px;
+}
+
+.net-profit.profit {
+    background-color: rgba(66, 184, 131, 0.1);
+    color: #42b883;
+}
+
+.net-profit.loss {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
 }
 
 .profit-count {

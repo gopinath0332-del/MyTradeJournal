@@ -101,18 +101,6 @@
             </div>
 
             <div class="form-group">
-                <label for="notes">Notes</label>
-                <textarea id="notes" v-model="trade.notes" rows="4"
-                    placeholder="Add your trade notes here..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="notes">Notes</label>
-                <textarea id="notes" v-model="trade.notes" rows="4"
-                    placeholder="Add your trade notes here..."></textarea>
-            </div>
-
-            <div class="form-group">
                 <label for="screenshot">Screenshots</label>
                 <input type="file" id="screenshot" @change="handleScreenshotUpload" multiple accept="image/*" />
             </div>

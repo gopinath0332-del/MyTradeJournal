@@ -2,8 +2,9 @@
 import { ref, provide } from 'vue'
 import TradeForm from './components/trade/TradeForm.vue'
 import TradeHistory from './components/trade/TradeHistory.vue'
+import DashboardStats from './components/dashboard/DashboardStats.vue'
 
-const activeTab = ref('history') // 'trade' or 'history'
+const activeTab = ref('dashboard') // 'dashboard', 'trade', or 'history'
 const editingTrade = ref(null)
 
 // Provide the shared state to child components
@@ -24,6 +25,9 @@ provide('startEditingTrade', startEditingTrade)
     <header>
       <h1>Trade Journal</h1>
       <nav>
+        <button :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">
+          Dashboard
+        </button>
         <button :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
           Trade History
         </button>
@@ -34,6 +38,7 @@ provide('startEditingTrade', startEditingTrade)
     </header>
 
     <main>
+      <DashboardStats v-if="activeTab === 'dashboard'" />
       <TradeHistory v-if="activeTab === 'history'" />
       <TradeForm v-if="activeTab === 'trade'" />
     </main>

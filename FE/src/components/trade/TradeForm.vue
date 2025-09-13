@@ -6,11 +6,13 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="symbol">Symbol</label>
-                    <input type="text" id="symbol" v-model="trade.symbol" required placeholder="e.g., NIFTY" />
+                    <input type="text" id="symbol" v-model="trade.symbol" @input="handleSymbolInput" required
+                        placeholder="e.g., NIFTY" />
                 </div>
                 <div class="form-group">
-                    <label for="contract">Contract</label>
-                    <input type="text" id="contract" v-model="trade.contract" required placeholder="e.g., 20OCT23" />
+                    <label for="contract">Contract (Optional)</label>
+                    <input type="text" id="contract" v-model="trade.contract" @input="handleContractInput"
+                        placeholder="e.g., 20OCT23" />
                 </div>
                 <div class="form-group">
                     <label for="tradeType">Type</label>
@@ -212,6 +214,14 @@ const updateReturnFromPnL = () => {
     } else {
         pnl.value.percentage = 0
     }
+}
+
+const handleSymbolInput = (event) => {
+    trade.value.symbol = event.target.value.toUpperCase();
+}
+
+const handleContractInput = (event) => {
+    trade.value.contract = event.target.value.toUpperCase();
 }
 
 const handleScreenshotUpload = (event) => {

@@ -1,3 +1,0 @@
-# MyTradeJournal
-
-Testing commit permision

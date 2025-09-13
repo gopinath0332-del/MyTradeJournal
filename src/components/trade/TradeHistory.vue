@@ -5,14 +5,27 @@
 
         <!-- Filters -->
         <div class="filters">
-            <div class="filter-group">
+            <div class="filter-group date-filter">
                 <label for="dateRange">Date Range</label>
                 <select v-model="filters.dateRange" id="dateRange">
                     <option value="7">Last 7 days</option>
                     <option value="30">Last 30 days</option>
                     <option value="90">Last 90 days</option>
+                    <option value="custom">Custom Range</option>
                     <option value="all">All time</option>
                 </select>
+                <div v-if="filters.dateRange === 'custom'" class="custom-date-range">
+                    <div class="date-input">
+                        <label for="startDate">Start Date</label>
+                        <input type="date" id="startDate" v-model="filters.startDate"
+                            :max="filters.endDate || new Date().toISOString().slice(0, 10)" />
+                    </div>
+                    <div class="date-input">
+                        <label for="endDate">End Date</label>
+                        <input type="date" id="endDate" v-model="filters.endDate" :min="filters.startDate"
+                            :max="new Date().toISOString().slice(0, 10)" />
+                    </div>
+                </div>
             </div>
             <div class="filter-group">
                 <label for="symbol">Symbol</label>
@@ -38,6 +51,26 @@
                     <option value="profit">Profitable</option>
                     <option value="loss">Loss Making</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Results Summary -->
+        <div class="results-summary">
+            <div class="total-results">
+                Showing {{ sortedAndFilteredTrades.length }} trade{{ sortedAndFilteredTrades.length !== 1 ? 's' : '' }}
+                <span v-if="sortedAndFilteredTrades.length !== trades.length">
+                    (filtered from {{ trades.length }} total)
+                </span>
+            </div>
+            <div class="trades-summary">
+                <span class="profit-count">
+                    Profitable: {{sortedAndFilteredTrades.filter(t => t.pnlAmount > 0).length}}
+                </span>
+                <span class="loss-count">
+                    Loss: {{sortedAndFilteredTrades.filter(t => t.pnlAmount < 0).length}} </span>
+                        <span class="breakeven-count">
+                            Breakeven: {{sortedAndFilteredTrades.filter(t => t.pnlAmount === 0).length}}
+                        </span>
             </div>
         </div>
 
@@ -265,7 +298,9 @@ const sortKey = ref('entryDate')
 const sortDir = ref('desc')
 
 const filters = ref({
-    dateRange: 'all',
+    dateRange: '30',
+    startDate: '',
+    endDate: '',
     symbol: 'all',
     type: 'all',
     profitability: 'all'
@@ -378,7 +413,15 @@ const sortedAndFilteredTrades = computed(() => {
     let filtered = [...trades.value]
 
     // Apply date filter
-    if (filters.value.dateRange !== 'all') {
+    if (filters.value.dateRange === 'custom' && filters.value.startDate && filters.value.endDate) {
+        const startDate = new Date(filters.value.startDate)
+        const endDate = new Date(filters.value.endDate)
+        endDate.setHours(23, 59, 59, 999) // Include the entire end date
+        filtered = filtered.filter(trade => {
+            const tradeDate = new Date(trade.entryDate)
+            return tradeDate >= startDate && tradeDate <= endDate
+        })
+    } else if (filters.value.dateRange !== 'all' && filters.value.dateRange !== 'custom') {
         const cutoffDate = new Date()
         cutoffDate.setDate(cutoffDate.getDate() - parseInt(filters.value.dateRange))
         filtered = filtered.filter(trade => new Date(trade.entryDate) >= cutoffDate)
@@ -457,6 +500,81 @@ loadTrades()
 <style scoped>
 .trade-history {
     padding: 20px;
+}
+
+.results-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-results {
+    font-size: 1.1em;
+    color: #1e293b;
+}
+
+.trades-summary {
+    display: flex;
+    gap: 20px;
+}
+
+.trades-summary span {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.profit-count {
+    background-color: rgba(66, 184, 131, 0.1);
+    color: #42b883;
+}
+
+.loss-count {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.breakeven-count {
+    background-color: rgba(100, 116, 139, 0.1);
+    color: #64748b;
+}
+
+.filter-group {
+    margin-right: 20px;
+    min-width: 150px;
+}
+
+.date-filter {
+    min-width: 200px;
+}
+
+.custom-date-range {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+.date-input {
+    flex: 1;
+}
+
+.date-input label {
+    display: block;
+    font-size: 0.9em;
+    margin-bottom: 4px;
+}
+
+.date-input input[type="date"] {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
 }
 
 .modal {

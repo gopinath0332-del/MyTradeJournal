@@ -1,3 +1,4 @@
+Inital prompts
 lets create component with following 
 
 High-Priority Features
@@ -56,3 +57,19 @@ Tag Cloud: See which strategies or setups dominate your journal
 Trade Replay: Reconstruct trade logic with chart snapshots and notes
 
 Export to CSV: For deeper analysis in Excel or Python
+
+
+Trade Log Fields: 
+==================
+Trade log should have following fields
+1. Entry date
+2. Exit date
+3. Type: Sell/Buy
+4. Symbol
+5. Entry price 
+6. Exit price
+7. Days hold - number of days difference between entry date and exit date
+8. Lots - Default value is 2 
+9. Capital used
+10. P&L amount
+11. Return percentage - (Capital used / P&L amount)

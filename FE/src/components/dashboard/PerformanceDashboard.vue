@@ -14,16 +14,6 @@
             </div>
 
             <div class="filter-group">
-                <label for="strategy">Strategy</label>
-                <select v-model="filters.strategy">
-                    <option value="all">All Strategies</option>
-                    <option value="Turtle">Turtle</option>
-                    <option value="Donchian">Donchian</option>
-                    <option value="SuperTrend">SuperTrend</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
                 <label for="symbol">Symbol</label>
                 <select v-model="filters.symbol">
                     <option value="all">All Symbols</option>
@@ -71,12 +61,14 @@
         </div>
 
         <div class="tag-cloud">
-            <h3>Strategy Tags</h3>
+            <h3>Symbol Tags</h3>
             <div class="tags">
-                <span v-for="(count, strategy) in strategyStats" :key="strategy" class="tag"
-                    :style="{ fontSize: getTagSize(count) + 'px' }">
-                    {{ strategy }} ({{ count }})
-                </span>
+                <button v-for="(count, symbol) in symbolStats" :key="symbol" class="tag"
+                    :class="{ 'tag-active': filters.symbol === symbol }" :style="{ fontSize: getTagSize(count) + 'px' }"
+                    @click="selectSymbol(symbol)">
+                    <span class="symbol-text">{{ symbol }}</span>
+                    <span class="count-badge">{{ count }}</span>
+                </button>
             </div>
         </div>
     </div>
@@ -88,7 +80,6 @@ import EquityCurveChart from './EquityCurveChart.vue'
 
 const filters = ref({
     dateRange: '30',
-    strategy: 'all',
     symbol: 'all'
 })
 
@@ -112,10 +103,6 @@ const filteredTrades = computed(() => {
         const cutoffDate = new Date()
         cutoffDate.setDate(cutoffDate.getDate() - parseInt(filters.value.dateRange))
         filtered = filtered.filter(trade => new Date(trade.entryDate) >= cutoffDate)
-    }
-
-    if (filters.value.strategy !== 'all') {
-        filtered = filtered.filter(trade => trade.strategy === filters.value.strategy)
     }
 
     if (filters.value.symbol !== 'all') {
@@ -143,10 +130,10 @@ const uniqueSymbols = computed(() => {
     return [...new Set(trades.value.map(t => t.symbol))]
 })
 
-// Compute strategy statistics for tag cloud
-const strategyStats = computed(() => {
+// Compute symbol statistics for tag cloud
+const symbolStats = computed(() => {
     return trades.value.reduce((acc, trade) => {
-        acc[trade.strategy] = (acc[trade.strategy] || 0) + 1
+        acc[trade.symbol] = (acc[trade.symbol] || 0) + 1
         return acc
     }, {})
 })
@@ -170,7 +157,7 @@ const calculateProfitFactor = (trades) => {
 const getTagSize = (count) => {
     const baseSize = 14
     const maxSize = 24
-    const scale = count / Math.max(...Object.values(strategyStats.value))
+    const scale = count / Math.max(...Object.values(symbolStats.value))
     return baseSize + (maxSize - baseSize) * scale
 }
 

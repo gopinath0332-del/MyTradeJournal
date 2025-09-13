@@ -2,6 +2,12 @@
 <template>
     <div class="trade-form">
         <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
+        <div class="toast-container position-fixed top-0 end-0 p-3">
+            <BToast v-model="showToastOverlay" :variant="toastVariant" :title="toastTitle" :auto-hide-delay="5000"
+                @hidden="onToastHidden">
+                {{ toastMessage }}
+            </BToast>
+        </div>
         <form @submit.prevent="handleSubmit">
             <div class="form-row">
                 <div class="form-group">
@@ -132,9 +138,29 @@
 
 <script setup>
 import { ref, inject, watch, onMounted } from 'vue'
+import { BToast, BOverlay } from 'bootstrap-vue-3'
 
 const editingTrade = inject('editingTrade')
 const activeTab = inject('activeTab')
+
+const toastVariant = ref('success')
+const toastTitle = ref('')
+const toastMessage = ref('')
+const showToastOverlay = ref(false)
+
+const onToastHidden = () => {
+    showToastOverlay.value = false
+}
+
+const showToast = (variant, title, message) => {
+    toastVariant.value = variant
+    toastTitle.value = title
+    toastMessage.value = message
+    showToastOverlay.value = true
+    setTimeout(() => {
+        showToastOverlay.value = false
+    }, 5000)
+}
 
 const trade = ref({
     id: null,
@@ -281,6 +307,7 @@ const handleSubmit = async () => {
                     ...tradeData,
                     updatedAt: new Date().toISOString()
                 }
+                showToast('success', 'Trade Updated', `Successfully updated trade for ${trade.value.symbol}`)
             }
         } else {
             // Creating a new trade
@@ -289,6 +316,7 @@ const handleSubmit = async () => {
                 id: Date.now(),
                 createdAt: new Date().toISOString()
             })
+            showToast('success', 'Trade Added', `Successfully added new trade for ${trade.value.symbol}`)
         }
 
         localStorage.setItem('trades', JSON.stringify(trades))
@@ -297,14 +325,17 @@ const handleSubmit = async () => {
         if (editingTrade) {
             editingTrade.value = null
         }
+        setTimeout(() => {
+            // Switch back to history view
+            activeTab.value = 'history'
 
-        // Switch back to history view
-        activeTab.value = 'history'
+            // Reset form
+            resetForm()
+        }, 1000);
 
-        // Reset form
-        resetForm()
     } catch (error) {
         console.error('Error saving trade:', error)
+        showToast('danger', 'Error', 'Failed to save trade. Please try again.')
     }
 }
 
@@ -324,6 +355,18 @@ onMounted(() => {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+}
+
+.toast-container {
+    z-index: 1050;
+}
+
+:deep(.b-toast) {
+    min-width: 250px;
+}
+
+:deep(.toast-body) {
+    padding: 0.75rem;
 }
 
 .form-group {

@@ -34,9 +34,9 @@
                         @change="calculateHoldingDays" />
                 </div>
                 <div class="form-group">
-                    <label for="exitDate">Exit Date</label>
-                    <input type="datetime-local" id="exitDate" v-model="trade.exitDate"
-                        @change="calculateHoldingDays" />
+                    <label for="exitDate">Exit Date (Optional)</label>
+                    <input type="datetime-local" id="exitDate" v-model="trade.exitDate" @change="calculateHoldingDays"
+                        :max="new Date().toISOString().slice(0, 16)" />
                 </div>
             </div>
 
@@ -182,9 +182,9 @@ const pnl = ref({
 })
 
 const calculateHoldingDays = () => {
-    if (trade.value.entryDate && trade.value.exitDate) {
+    if (trade.value.entryDate) {
         const entry = new Date(trade.value.entryDate)
-        const exit = new Date(trade.value.exitDate)
+        const exit = trade.value.exitDate ? new Date(trade.value.exitDate) : new Date()
         const diffTime = Math.abs(exit - entry)
         trade.value.daysHeld = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
     } else {
@@ -193,8 +193,10 @@ const calculateHoldingDays = () => {
 }
 
 const calculatePnL = () => {
-    if (trade.value.entryPrice && trade.value.exitPrice && trade.value.lots && trade.value.capitalUsed) {
-        const priceDiff = trade.value.exitPrice - trade.value.entryPrice
+    if (trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
+        // If exit price is not set, use 0 for P&L calculation
+        const exitPrice = trade.value.exitPrice || trade.value.entryPrice
+        const priceDiff = exitPrice - trade.value.entryPrice
         const multiplier = trade.value.type === 'SELL' ? -1 : 1
 
         // Calculate P&L amount
@@ -237,6 +239,7 @@ const handleSubmit = async () => {
             ...trade.value,
             id: Date.now(), // Simple unique ID
             createdAt: new Date().toISOString(),
+            status: trade.value.exitDate ? 'CLOSED' : 'OPEN',
             pnlAmount: pnl.value.amount,
             pnlPercentage: pnl.value.percentage
         })

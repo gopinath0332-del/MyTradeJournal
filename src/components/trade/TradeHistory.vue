@@ -11,6 +11,7 @@
                     <option value="7">Last 7 days</option>
                     <option value="30">Last 30 days</option>
                     <option value="90">Last 90 days</option>
+                    <option value="current-month">Current Month</option>
                     <option value="custom">Custom Range</option>
                     <option value="all">All time</option>
                 </select>
@@ -308,7 +309,7 @@ const sortKey = ref('entryDate')
 const sortDir = ref('desc')
 
 const filters = ref({
-    dateRange: '30',
+    dateRange: 'current-month',
     startDate: '',
     endDate: '',
     symbol: 'all',
@@ -435,6 +436,14 @@ const sortedAndFilteredTrades = computed(() => {
         filtered = filtered.filter(trade => {
             const tradeDate = new Date(trade.entryDate)
             return tradeDate >= startDate && tradeDate <= endDate
+        })
+    } else if (filters.value.dateRange === 'current-month') {
+        const now = new Date()
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        filtered = filtered.filter(trade => {
+            const tradeDate = new Date(trade.entryDate)
+            return tradeDate >= startOfMonth && tradeDate <= endOfMonth
         })
     } else if (filters.value.dateRange !== 'all' && filters.value.dateRange !== 'custom') {
         const cutoffDate = new Date()

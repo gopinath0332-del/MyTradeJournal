@@ -2,20 +2,23 @@
 <template>
     <div class="trade-form">
         <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
-        <div class="toast-container position-fixed top-0 end-0 p-3">
-            <BToast v-model="showToastOverlay" :variant="toastVariant" :title="toastTitle" :auto-hide-delay="5000"
-                @hidden="onToastHidden">
+        <div class="toast" v-if="showToastOverlay" :class="toastVariant">
+            <div class="toast-header">
+                <strong>{{ toastTitle }}</strong>
+                <button type="button" class="close-button" @click="showToastOverlay = false">&times;</button>
+            </div>
+            <div class="toast-body">
                 {{ toastMessage }}
-            </BToast>
+            </div>
         </div>
         <form @submit.prevent="handleSubmit">
-            <div class="form-row">
-                <div class="form-group">
+            <div class="form-grid">
+                <div class="form-field">
                     <label for="symbol">Symbol</label>
                     <input type="text" id="symbol" v-model="trade.symbol" @input="handleSymbolInput" required
                         placeholder="e.g., NIFTY" />
                 </div>
-                <div class="form-group">
+                <div class="form-field">
                     <label for="contract">Contract (Optional)</label>
                     <input type="text" id="contract" v-model="trade.contract" @input="handleContractInput"
                         placeholder="e.g., 20OCT23" />
@@ -138,7 +141,6 @@
 
 <script setup>
 import { ref, inject, watch, onMounted } from 'vue'
-import { BToast, BOverlay } from 'bootstrap-vue-3'
 
 const editingTrade = inject('editingTrade')
 const activeTab = inject('activeTab')

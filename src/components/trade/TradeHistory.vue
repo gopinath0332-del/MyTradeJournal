@@ -90,6 +90,9 @@
                             <button class="action-btn view-btn" @click="viewTradeDetails(trade)">
                                 View
                             </button>
+                            <button class="action-btn edit-btn" @click="editTrade(trade)">
+                                Edit
+                            </button>
                             <button class="action-btn delete-btn" @click="deleteTrade(trade)">
                                 Delete
                             </button>
@@ -172,14 +175,91 @@
                 <button class="close-btn" @click="selectedTrade = null">Close</button>
             </div>
         </div>
+
+        <!-- Edit Trade Modal -->
+        <div v-if="showEditModal" class="modal">
+            <div class="modal-content">
+                <h3>Edit Trade</h3>
+                <form @submit.prevent="handleEditSubmit">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editSymbol">Symbol</label>
+                            <input type="text" id="editSymbol" v-model="editedTrade.symbol" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="editContract">Contract (Optional)</label>
+                            <input type="text" id="editContract" v-model="editedTrade.contract" />
+                        </div>
+                        <div class="form-group">
+                            <label for="editType">Type</label>
+                            <select id="editType" v-model="editedTrade.type" required>
+                                <option value="BUY">Buy</option>
+                                <option value="SELL">Sell</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editEntryDate">Entry Date</label>
+                            <input type="datetime-local" id="editEntryDate" v-model="editedTrade.entryDate" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="editExitDate">Exit Date (Optional)</label>
+                            <input type="datetime-local" id="editExitDate" v-model="editedTrade.exitDate" />
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editEntryPrice">Entry Price</label>
+                            <div class="input-with-prefix">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="editEntryPrice" v-model="editedTrade.entryPrice" required
+                                    step="0.01" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="editExitPrice">Exit Price</label>
+                            <div class="input-with-prefix">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="editExitPrice" v-model="editedTrade.exitPrice" step="0.01" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editLots">Lots</label>
+                            <input type="number" id="editLots" v-model="editedTrade.lots" required min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label for="editCapitalUsed">Capital Used</label>
+                            <div class="input-with-prefix">
+                                <span class="currency-prefix">₹</span>
+                                <input type="number" id="editCapitalUsed" v-model="editedTrade.capitalUsed" required
+                                    step="0.01" min="0" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="cancel-btn" @click="closeEditModal">Cancel</button>
+                        <button type="submit" class="save-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 
-const trades = ref([])
+const showEditModal = ref(false)
+const editedTrade = ref({})
 const selectedTrade = ref(null)
+const trades = ref([])
 const sortKey = ref('entryDate')
 const sortDir = ref('desc')
 
@@ -225,6 +305,60 @@ const formatCurrency = (amount) => {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount)
+}
+
+// Edit functions
+const editTrade = (trade) => {
+    editedTrade.value = {
+        ...trade,
+        entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 16) : '',
+        exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 16) : ''
+    }
+    showEditModal.value = true
+}
+
+const closeEditModal = () => {
+    showEditModal.value = false
+    editedTrade.value = {}
+}
+
+const calculatePnL = (trade) => {
+    if (trade.entryPrice && trade.exitPrice && trade.lots) {
+        const priceDiff = trade.exitPrice - trade.entryPrice
+        const multiplier = trade.type === 'SELL' ? -1 : 1
+        return priceDiff * trade.lots * multiplier
+    }
+    return 0
+}
+
+const handleEditSubmit = () => {
+    try {
+        const tradesData = JSON.parse(localStorage.getItem('trades') || '[]')
+        const index = tradesData.findIndex(t => t.id === editedTrade.value.id)
+
+        if (index !== -1) {
+            // Calculate new P&L
+            const pnlAmount = calculatePnL(editedTrade.value)
+            const pnlPercentage = editedTrade.value.capitalUsed ? (pnlAmount / editedTrade.value.capitalUsed) * 100 : 0
+
+            // Update trade with new values
+            const updatedTrade = {
+                ...editedTrade.value,
+                pnlAmount,
+                pnlPercentage,
+                status: editedTrade.value.exitDate ? 'CLOSED' : 'OPEN'
+            }
+
+            tradesData[index] = updatedTrade
+            localStorage.setItem('trades', JSON.stringify(tradesData))
+
+            // Refresh the trades list
+            loadTrades()
+            closeEditModal()
+        }
+    } catch (error) {
+        console.error('Error updating trade:', error)
+    }
 }
 
 // Sorting functions
@@ -326,6 +460,59 @@ loadTrades()
 <style scoped>
 .trade-history {
     padding: 20px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.edit-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .filters {

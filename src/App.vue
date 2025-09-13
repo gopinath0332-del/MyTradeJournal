@@ -2,9 +2,8 @@
 import { ref } from 'vue'
 import TradeForm from './components/trade/TradeForm.vue'
 import TradeHistory from './components/trade/TradeHistory.vue'
-import PerformanceDashboard from './components/dashboard/PerformanceDashboard.vue'
 
-const activeTab = ref('dashboard') // or 'trade' or 'history'
+const activeTab = ref('history') // 'trade' or 'history'
 </script>
 
 <template>
@@ -12,9 +11,6 @@ const activeTab = ref('dashboard') // or 'trade' or 'history'
     <header>
       <h1>Trade Journal</h1>
       <nav>
-        <button :class="{ active: activeTab === 'dashboard' }" @click="activeTab = 'dashboard'">
-          Dashboard
-        </button>
         <button :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
           Trade History
         </button>
@@ -25,7 +21,6 @@ const activeTab = ref('dashboard') // or 'trade' or 'history'
     </header>
 
     <main>
-      <PerformanceDashboard v-if="activeTab === 'dashboard'" />
       <TradeHistory v-if="activeTab === 'history'" />
       <TradeForm v-if="activeTab === 'trade'" />
     </main>

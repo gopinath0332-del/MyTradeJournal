@@ -157,7 +157,7 @@
                         <span class="label">Return %:</span>
                         <span class="value"
                             :class="{ 'profit': selectedTrade.pnlPercentage > 0, 'loss': selectedTrade.pnlPercentage < 0 }">
-                            {{ selectedTrade.pnlPercentage.toFixed(2) }}%
+                            {{ (selectedTrade.pnlPercentage || 0).toFixed(2) }}%
                         </span>
                     </div>
                     <div class="detail-row">

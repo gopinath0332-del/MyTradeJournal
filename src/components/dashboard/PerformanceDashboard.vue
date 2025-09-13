@@ -165,6 +165,10 @@ const getTagSize = (count) => {
 onMounted(() => {
     loadTrades()
 })
+const selectSymbol = (symbol) => {
+    filters.value.symbol = symbol;
+    // Add any additional logic needed when a symbol is selected
+}
 </script>
 
 <style scoped>

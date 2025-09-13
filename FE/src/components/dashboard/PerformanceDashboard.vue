@@ -58,11 +58,7 @@
 
         <div class="charts">
             <div class="chart-container">
-                <h3>Equity Curve</h3>
-                <!-- Placeholder for equity curve chart -->
-                <div class="chart-placeholder">
-                    Equity curve visualization will be implemented with a charting library
-                </div>
+                <EquityCurveChart :trades="filteredTrades" />
             </div>
 
             <div class="chart-container">
@@ -88,6 +84,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import EquityCurveChart from './EquityCurveChart.vue'
 
 const filters = ref({
     dateRange: '30',

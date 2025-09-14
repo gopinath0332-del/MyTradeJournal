@@ -3,6 +3,14 @@
     <div class="dashboard-stats">
         <div class="dashboard-header">
             <h2>Trading Statistics</h2>
+            <div class="global-year-selector" v-if="availableYears.length > 0">
+                <label for="globalYearSelect">Year:</label>
+                <select id="globalYearSelect" v-model="selectedYear" @change="onGlobalYearChange">
+                    <option v-for="year in availableYears" :key="`global-${year}`" :value="year">
+                        {{ year }}
+                    </option>
+                </select>
+            </div>
         </div>
         <div class="stats-grid" style="position: relative;">
             <!-- Loading overlay for stats -->
@@ -74,14 +82,6 @@
             <div class="section-header">
                 <h3>Weekly Breakdown</h3>
                 <div class="filters-container">
-                    <div class="year-selector">
-                        <label for="weeklyYearSelect">Year:</label>
-                        <select id="weeklyYearSelect" v-model="selectedYear" @change="onYearChange">
-                            <option v-for="year in availableYears" :key="`weekly-${year}`" :value="year">
-                                {{ year }}
-                            </option>
-                        </select>
-                    </div>
                     <div class="month-selector">
                         <label for="monthSelect">Month:</label>
                         <select id="monthSelect" v-model="selectedMonth" @change="onMonthChange" :disabled="availableMonths.length === 0">
@@ -147,14 +147,6 @@
         <div class="monthly-breakdown" v-if="availableYears.length > 0">
             <div class="section-header">
                 <h3>Monthly Breakdown</h3>
-                <div class="year-selector">
-                    <label for="yearSelect">Year:</label>
-                    <select id="yearSelect" v-model="selectedYear" @change="onYearChange">
-                        <option v-for="year in availableYears" :key="year" :value="year">
-                            {{ year }}
-                        </option>
-                    </select>
-                </div>
             </div>
             
             <!-- Loading state for monthly breakdown -->
@@ -232,7 +224,7 @@ const totalLoss = ref(0)
 const netPnL = ref(0)
 const avgDailyPnL = ref(0)
 
-// Monthly breakdown data
+// Global year selection for all dashboard statistics
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
 const monthlyData = ref([])
@@ -250,7 +242,23 @@ const monthNames = [
 const calculateStats = async () => {
     isLoadingStats.value = true
     try {
-        const trades = await tradeService.getAllTrades()        // Group trades by date
+        const allTrades = await tradeService.getAllTrades()
+        
+        // Set available years for year selectors
+        const years = [...new Set(allTrades.map(trade => new Date(trade.entryDate).getFullYear()))]
+        availableYears.value = years.sort((a, b) => b - a)
+        
+        // If selectedYear is not in available years, set to latest year
+        if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
+            selectedYear.value = availableYears.value[0]
+        }
+        
+        // Filter trades by selected year
+        const trades = allTrades.filter(trade => 
+            new Date(trade.entryDate).getFullYear() === selectedYear.value
+        )
+        
+        // Group trades by date
         const tradesByDate = trades.reduce((acc, trade) => {
             const date = new Date(trade.entryDate).toDateString()
             if (!acc[date]) {
@@ -526,8 +534,10 @@ window.addEventListener('storage', (e) => {
 })
 
 // Watch for year changes
-const onYearChange = () => {
+// Global year change handler - updates all sections
+const onGlobalYearChange = () => {
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
+    calculateStats()
     calculateMonthlyBreakdown()
     calculateWeeklyBreakdown()
 }
@@ -555,8 +565,19 @@ onUnmounted(() => {
 }
 
 .dashboard-header {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
     margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
 }
 
 .dashboard-header h2 {
@@ -568,6 +589,34 @@ onUnmounted(() => {
     .dashboard-header h2 {
         font-size: 2rem;
     }
+}
+
+.global-year-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.global-year-selector label {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.global-year-selector select {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: white;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.global-year-selector select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
 .stats-grid {
@@ -737,34 +786,6 @@ onUnmounted(() => {
     }
 }
 
-.weekly-breakdown .year-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.weekly-breakdown .year-selector label {
-    font-weight: 500;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.weekly-breakdown .year-selector select {
-    padding: 0.4rem 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    background: white;
-    color: var(--text-color);
-    font-size: 0.9rem;
-    cursor: pointer;
-}
-
-.weekly-breakdown .year-selector select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
 .weekly-breakdown .month-selector {
     display: flex;
     align-items: center;
@@ -905,26 +926,6 @@ onUnmounted(() => {
     margin: 0;
     color: var(--text-color);
     font-size: 1.5rem;
-}
-
-.year-selector {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.year-selector label {
-    font-weight: 500;
-    color: var(--text-muted);
-}
-
-.year-selector select {
-    padding: 0.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 1rem;
-    min-width: 80px;
 }
 
 .monthly-grid {

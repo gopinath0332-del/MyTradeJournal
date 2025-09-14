@@ -86,7 +86,12 @@
         </div>
 
         <!-- Trade Table -->
-        <div class="table-container">
+        <div class="table-container" style="position: relative;">
+            <!-- Loading overlay for trades table -->
+            <div v-if="isLoadingTrades" class="loader-overlay">
+                <div class="spinner"></div>
+            </div>
+            
             <table>
                 <thead>
                     <tr>
@@ -303,6 +308,10 @@
 import { ref, computed, inject } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 
+// Loading states
+const isLoadingTrades = ref(false)
+const isDeletingTrade = ref(false)
+
 // Get the shared functions from App.vue
 const startEditingTrade = inject('startEditingTrade')
 const showToast = inject('showToast')
@@ -332,11 +341,14 @@ const filters = ref({
 
 // Load trades from Firestore
 const loadTrades = async () => {
+    isLoadingTrades.value = true
     try {
         trades.value = await tradeService.getAllTrades()
     } catch (error) {
         console.error('Error loading trades:', error)
         trades.value = []
+    } finally {
+        isLoadingTrades.value = false
     }
 }
 
@@ -520,6 +532,7 @@ const viewTradeDetails = (trade) => {
 // Delete trade
 const deleteTrade = async (trade) => {
     if (confirm('Are you sure you want to delete this trade?')) {
+        isDeletingTrade.value = true
         try {
             await tradeService.deleteTrade(trade.id)
             trades.value = trades.value.filter(t => t.id !== trade.id)
@@ -527,6 +540,8 @@ const deleteTrade = async (trade) => {
         } catch (error) {
             console.error('Error deleting trade:', error)
             displayToast('error', 'Error', 'Failed to delete trade. Please try again.')
+        } finally {
+            isDeletingTrade.value = false
         }
     }
 }
@@ -1031,5 +1046,34 @@ td.loss {
 
 .close-btn:hover {
     background-color: #cbd5e1;
+}
+
+/* Loader Styles */
+.loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>

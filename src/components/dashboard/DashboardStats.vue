@@ -4,7 +4,12 @@
         <div class="dashboard-header">
             <h2>Trading Statistics</h2>
         </div>
-        <div class="stats-grid">
+        <div class="stats-grid" style="position: relative;">
+            <!-- Loading overlay for stats -->
+            <div v-if="isLoadingStats" class="loader-overlay">
+                <div class="spinner"></div>
+            </div>
+            
             <div class="stat-card">
                 <div class="stat-title">Total Trading Days</div>
                 <div class="stat-value">{{ tradingDays }}</div>
@@ -89,7 +94,12 @@
                 </div>
             </div>
             
-            <div class="weekly-grid" v-if="weeklyData.length > 0">
+            <!-- Loading state for weekly breakdown -->
+            <div v-if="isLoadingWeekly" class="loader-container">
+                <div class="spinner"></div>
+            </div>
+            
+            <div v-else-if="weeklyData.length > 0" class="weekly-grid">
                 <div v-for="week in weeklyData" :key="week.weekRange" 
                      class="weekly-card" 
                      :class="{ 
@@ -147,7 +157,12 @@
                 </div>
             </div>
             
-            <div class="monthly-grid" v-if="monthlyData.length > 0">
+            <!-- Loading state for monthly breakdown -->
+            <div v-if="isLoadingMonthly" class="loader-container">
+                <div class="spinner"></div>
+            </div>
+            
+            <div v-else-if="monthlyData.length > 0" class="monthly-grid">
                 <div v-for="month in monthlyData" :key="month.month" 
                      class="monthly-card" 
                      :class="{ 
@@ -197,6 +212,11 @@ import { ref, onMounted, onUnmounted, watchEffect } from 'vue'
 
 import { tradeService } from '../../firebase/tradeService.js'
 
+// Loading states
+const isLoadingStats = ref(false)
+const isLoadingMonthly = ref(false)
+const isLoadingWeekly = ref(false)
+
 const tradingDays = ref(0)
 const winDays = ref(0)
 const lossDays = ref(0)
@@ -228,6 +248,7 @@ const monthNames = [
 ]
 
 const calculateStats = async () => {
+    isLoadingStats.value = true
     try {
         const trades = await tradeService.getAllTrades()        // Group trades by date
         const tradesByDate = trades.reduce((acc, trade) => {
@@ -317,10 +338,13 @@ const calculateStats = async () => {
 
     } catch (error) {
         console.error('Error calculating trading stats:', error)
+    } finally {
+        isLoadingStats.value = false
     }
 }
 
 const calculateMonthlyBreakdown = async () => {
+    isLoadingMonthly.value = true
     try {
         const trades = await tradeService.getAllTrades()
         
@@ -379,10 +403,13 @@ const calculateMonthlyBreakdown = async () => {
         
     } catch (error) {
         console.error('Error calculating monthly breakdown:', error)
+    } finally {
+        isLoadingMonthly.value = false
     }
 }
 
 const calculateWeeklyBreakdown = async () => {
+    isLoadingWeekly.value = true
     try {
         const trades = await tradeService.getAllTrades()
         
@@ -478,6 +505,8 @@ const calculateWeeklyBreakdown = async () => {
         
     } catch (error) {
         console.error('Error calculating weekly breakdown:', error)
+    } finally {
+        isLoadingWeekly.value = false
     }
 }
 
@@ -1019,5 +1048,50 @@ onUnmounted(() => {
 .losses {
     background: rgba(213, 0, 0, 0.1);
     color: #D50000;
+}
+
+/* Loader Styles */
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    position: relative;
+}
+
+.loader-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.spinner-small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
 }
 </style>

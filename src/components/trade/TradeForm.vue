@@ -134,7 +134,13 @@
                     placeholder="What did you learn from this trade?"></textarea>
             </div>
 
-            <button type="submit" class="submit-button">{{ trade.id ? 'Save Changes' : 'Log Trade' }}</button>
+            <button type="submit" class="submit-button" :disabled="isSubmitting">
+                <span v-if="isSubmitting">
+                    <span class="spinner-small"></span>
+                    {{ trade.id ? 'Saving...' : 'Logging...' }}
+                </span>
+                <span v-else>{{ trade.id ? 'Save Changes' : 'Log Trade' }}</span>
+            </button>
         </form>
     </div>
 </template>
@@ -143,6 +149,9 @@
 import { ref, inject, watch, onMounted } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { tradeService } from '../../firebase/tradeService'
+
+// Loading state
+const isSubmitting = ref(false)
 
 const editingTrade = inject('editingTrade')
 const activeTab = inject('activeTab')
@@ -292,6 +301,7 @@ const resetForm = () => {
 }
 
 const handleSubmit = async () => {
+    isSubmitting.value = true
     try {
         // Prepare trade data
         const tradeData = {
@@ -326,6 +336,8 @@ const handleSubmit = async () => {
     } catch (error) {
         console.error('Error saving trade:', error)
         showToast('danger', 'Error', 'Failed to save trade. Please try again.')
+    } finally {
+        isSubmitting.value = false
     }
 }
 
@@ -662,5 +674,27 @@ select[id="tradeStatus"] {
 
 .pl-row:not(:last-child) {
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Spinner Styles */
+.spinner-small {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.submit-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 </style>

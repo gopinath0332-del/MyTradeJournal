@@ -108,5 +108,88 @@ export const tradeService = {
             console.error('Error getting available years:', error)
             throw error
         }
+    },
+
+    // Get trades with filters applied on server-side
+    async getFilteredTrades(filters = {}) {
+        try {
+            let q = query(collection(db, COLLECTION_NAME))
+            const conditions = []
+
+            // Apply date range filter
+            if (filters.startDate && filters.endDate) {
+                conditions.push(where('entryDate', '>=', filters.startDate))
+                conditions.push(where('entryDate', '<=', filters.endDate))
+            } else if (filters.dateRange && filters.dateRange !== 'all') {
+                const now = new Date()
+                let startDate
+
+                if (filters.dateRange === 'current-month') {
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+                    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString()
+                    conditions.push(where('entryDate', '>=', startDate))
+                    conditions.push(where('entryDate', '<=', endDate))
+                } else if (filters.dateRange === '7' || filters.dateRange === '30' || filters.dateRange === '90') {
+                    const daysBack = parseInt(filters.dateRange)
+                    startDate = new Date()
+                    startDate.setDate(startDate.getDate() - daysBack)
+                    conditions.push(where('entryDate', '>=', startDate.toISOString()))
+                }
+            }
+
+            // Apply symbol filter
+            if (filters.symbol && filters.symbol !== 'all') {
+                conditions.push(where('symbol', '==', filters.symbol))
+            }
+
+            // Apply type filter
+            if (filters.type && filters.type !== 'all') {
+                conditions.push(where('type', '==', filters.type))
+            }
+
+            // Build query with conditions
+            if (conditions.length > 0) {
+                q = query(collection(db, COLLECTION_NAME), ...conditions, orderBy('entryDate', 'desc'))
+            } else {
+                q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
+            }
+
+            const querySnapshot = await getDocs(q)
+            let trades = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+
+            // Apply profitability filter on client-side (since we can't easily do complex calculations in Firestore)
+            if (filters.profitability && filters.profitability !== 'all') {
+                trades = trades.filter(trade => {
+                    const pnl = trade.pnlAmount || 0
+                    if (filters.profitability === 'profit') {
+                        return pnl > 0
+                    } else if (filters.profitability === 'loss') {
+                        return pnl < 0
+                    }
+                    return true
+                })
+            }
+
+            return trades
+        } catch (error) {
+            console.error('Error getting filtered trades:', error)
+            throw error
+        }
+    },
+
+    // Get unique symbols without loading all trade data
+    async getUniqueSymbols() {
+        try {
+            const q = query(collection(db, COLLECTION_NAME))
+            const querySnapshot = await getDocs(q)
+            const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))]
+            return symbols.sort()
+        } catch (error) {
+            console.error('Error getting unique symbols:', error)
+            throw error
+        }
     }
 }

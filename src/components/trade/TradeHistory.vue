@@ -58,21 +58,18 @@
         <!-- Results Summary -->
         <div class="results-summary">
             <div class="total-results">
-                Showing {{ sortedAndFilteredTrades.length }} trade{{ sortedAndFilteredTrades.length !== 1 ? 's' : '' }}
-                <span v-if="sortedAndFilteredTrades.length !== trades.length">
-                    (filtered from {{ trades.length }} total)
-                </span>
+                Showing {{ sortedTrades.length }} trade{{ sortedTrades.length !== 1 ? 's' : '' }}
             </div>
             <div class="trades-summary">
                 <div class="trades-summary">
                     <div class="summary-stats">
                         <span class="profit-count">
-                            Profitable: {{sortedAndFilteredTrades.filter(t => t.pnlAmount > 0).length}}
+                            Profitable: {{sortedTrades.filter(t => t.pnlAmount > 0).length}}
                         </span>
                         <span class="loss-count">
-                            Loss: {{sortedAndFilteredTrades.filter(t => t.pnlAmount < 0).length}} </span>
+                            Loss: {{sortedTrades.filter(t => t.pnlAmount < 0).length}} </span>
                                 <span class="breakeven-count">
-                                    Breakeven: {{sortedAndFilteredTrades.filter(t => t.pnlAmount === 0).length}}
+                                    Breakeven: {{sortedTrades.filter(t => t.pnlAmount === 0).length}}
                                 </span>
                     </div>
                     <div class="net-profit" :class="{
@@ -123,7 +120,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="trade in sortedAndFilteredTrades" :key="trade.id"
+                    <tr v-for="trade in sortedTrades" :key="trade.id"
                         :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
                         <td>{{ formatDate(trade.entryDate) }}</td>
                         <td>{{ trade.symbol }}</td>
@@ -149,7 +146,7 @@
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="sortedAndFilteredTrades.length === 0">
+                    <tr v-if="sortedTrades.length === 0">
                         <td colspan="7" class="no-data">No trades found matching your filters</td>
                     </tr>
                 </tbody>
@@ -305,7 +302,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 
 // Loading states
@@ -328,6 +325,7 @@ const displayToast = (type, title, message) => {
 
 const selectedTrade = ref(null)
 const trades = ref([])
+const uniqueSymbols = ref([])
 const sortKey = ref('entryDate')
 const sortDir = ref('desc')
 
@@ -340,22 +338,51 @@ const filters = ref({
     profitability: 'all'
 })
 
-// Load trades from Firestore
+// Load trades with current filters
 const loadTrades = async () => {
     isLoadingTrades.value = true
     try {
-        trades.value = await tradeService.getAllTrades()
+        // Build filter object for API call
+        const filterParams = {
+            dateRange: filters.value.dateRange,
+            startDate: filters.value.startDate,
+            endDate: filters.value.endDate,
+            symbol: filters.value.symbol,
+            type: filters.value.type,
+            profitability: filters.value.profitability
+        }
+        
+        trades.value = await tradeService.getFilteredTrades(filterParams)
     } catch (error) {
         console.error('Error loading trades:', error)
         trades.value = []
+        displayToast('error', 'Error', 'Failed to load trades. Please try again.')
     } finally {
         isLoadingTrades.value = false
     }
 }
 
-// Computed property for unique symbols
-const uniqueSymbols = computed(() => {
-    return [...new Set(trades.value.map(trade => trade.symbol))]
+// Load unique symbols for filter dropdown
+const loadUniqueSymbols = async () => {
+    try {
+        uniqueSymbols.value = await tradeService.getUniqueSymbols()
+    } catch (error) {
+        console.error('Error loading unique symbols:', error)
+        uniqueSymbols.value = []
+    }
+}
+
+// Watch for filter changes and reload data
+watch(filters, () => {
+    loadTrades()
+}, { deep: true })
+
+// Initialize data on component mount
+onMounted(async () => {
+    await Promise.all([
+        loadTrades(),
+        loadUniqueSymbols()
+    ])
 })
 
 // Format date
@@ -445,61 +472,17 @@ const getSortArrow = (key) => {
     return sortDir.value === 'asc' ? '↑' : '↓'
 }
 
-// Calculate net profit from filtered trades
+// Calculate net profit from sorted trades
 const calculateNetProfit = computed(() => {
-    return sortedAndFilteredTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+    return sortedTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
 })
 
-// Filter and sort trades
-const sortedAndFilteredTrades = computed(() => {
-    let filtered = [...trades.value]
-
-    // Apply date filter
-    if (filters.value.dateRange === 'custom' && filters.value.startDate && filters.value.endDate) {
-        const startDate = new Date(filters.value.startDate)
-        const endDate = new Date(filters.value.endDate)
-        endDate.setHours(23, 59, 59, 999) // Include the entire end date
-        filtered = filtered.filter(trade => {
-            const tradeDate = new Date(trade.entryDate)
-            return tradeDate >= startDate && tradeDate <= endDate
-        })
-    } else if (filters.value.dateRange === 'current-month') {
-        const now = new Date()
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
-        filtered = filtered.filter(trade => {
-            const tradeDate = new Date(trade.entryDate)
-            return tradeDate >= startOfMonth && tradeDate <= endOfMonth
-        })
-    } else if (filters.value.dateRange !== 'all' && filters.value.dateRange !== 'custom') {
-        const cutoffDate = new Date()
-        cutoffDate.setDate(cutoffDate.getDate() - parseInt(filters.value.dateRange))
-        filtered = filtered.filter(trade => new Date(trade.entryDate) >= cutoffDate)
-    }
-
-    // Apply symbol filter
-    if (filters.value.symbol !== 'all') {
-        filtered = filtered.filter(trade => trade.symbol === filters.value.symbol)
-    }
-
-    // Apply type filter
-    if (filters.value.type !== 'all') {
-        filtered = filtered.filter(trade => trade.type === filters.value.type)
-    }
-
-    // Apply profitability filter
-    if (filters.value.profitability !== 'all') {
-        filtered = filtered.filter(trade => {
-            if (filters.value.profitability === 'profit') {
-                return trade.pnlAmount > 0
-            } else {
-                return trade.pnlAmount < 0
-            }
-        })
-    }
+// Sort trades (filtering is now done server-side)
+const sortedTrades = computed(() => {
+    const sorted = [...trades.value]
 
     // Sort trades
-    filtered.sort((a, b) => {
+    sorted.sort((a, b) => {
         let aVal = a[sortKey.value]
         let bVal = b[sortKey.value]
 
@@ -522,7 +505,7 @@ const sortedAndFilteredTrades = computed(() => {
         }
     })
 
-    return filtered
+    return sorted
 })
 
 // View trade details
@@ -536,7 +519,12 @@ const deleteTrade = async (trade) => {
         isDeletingTrade.value = true
         try {
             await tradeService.deleteTrade(trade.id)
-            trades.value = trades.value.filter(t => t.id !== trade.id)
+            
+            // Reload filtered data instead of client-side filtering
+            await loadTrades()
+            
+            // Also reload unique symbols in case this was the only trade for that symbol
+            await loadUniqueSymbols()
             
             // Refresh dashboard data
             refreshDashboard()
@@ -550,9 +538,6 @@ const deleteTrade = async (trade) => {
         }
     }
 }
-
-// Load trades when component mounts
-loadTrades()
 </script>
 
 <style scoped>

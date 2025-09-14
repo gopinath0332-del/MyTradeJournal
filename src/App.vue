@@ -85,18 +85,33 @@ provide('showToast', showToast)
 .toast-container {
   position: fixed;
   top: 20px;
+  left: 20px;
   right: 20px;
   z-index: 1000;
 }
 
+@media (min-width: 768px) {
+  .toast-container {
+    left: auto;
+    width: auto;
+    max-width: 400px;
+  }
+}
+
 .toast {
-  min-width: 300px;
+  min-width: auto;
   margin-bottom: 10px;
   padding: 15px 20px;
   border-radius: 4px;
   background: white;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   animation: slideIn 0.3s ease-in-out;
+}
+
+@media (min-width: 768px) {
+  .toast {
+    min-width: 300px;
+  }
 }
 
 .toast-header {
@@ -145,27 +160,71 @@ provide('showToast', showToast)
 .app-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding: 20px;
+  }
 }
 
 header {
-  margin-bottom: 30px;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
+header h1 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  header {
+    margin-bottom: 30px;
+  }
+  
+  header h1 {
+    font-size: 2.5rem;
+  }
+}
+
 nav {
-  margin-top: 20px;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  nav {
+    margin-top: 20px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0;
+  }
 }
 
 nav button {
-  padding: 10px 20px;
-  margin: 0 10px;
+  padding: 12px 16px;
+  margin: 0;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
   background-color: #ffffff;
   cursor: pointer;
   font-size: 16px;
   background: #f0f0f0;
+  width: 100%;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+  nav button {
+    width: auto;
+    margin: 0 10px;
+    padding: 10px 20px;
+  }
 }
 
 nav button.active {
@@ -177,5 +236,12 @@ main {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  main {
+    margin-top: 0;
+  }
 }
 </style>

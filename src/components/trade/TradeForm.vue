@@ -344,7 +344,13 @@ onMounted(() => {
 .trade-form {
     max-width: 800px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .trade-form {
+        padding: 20px;
+    }
 }
 
 .toast-container {
@@ -360,12 +366,26 @@ onMounted(() => {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+    .form-group {
+        margin-bottom: 20px;
+    }
 }
 
 .form-row {
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .form-row {
+        flex-direction: row;
+        gap: 20px;
+    }
 }
 
 .form-row .form-group {
@@ -384,10 +404,25 @@ input[type="datetime-local"],
 select,
 textarea {
     width: 100%;
-    padding: 8px;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 16px;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    min-height: 44px;
+}
+
+@media (min-width: 768px) {
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select,
+    textarea {
+        padding: 8px;
+    }
 }
 
 textarea {
@@ -397,13 +432,22 @@ textarea {
 .submit-button {
     background-color: #42b883;
     color: white;
-    padding: 12px 20px;
+    padding: 14px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
     width: 100%;
     transition: all 0.25s;
+    min-height: 50px;
+    touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+    .submit-button {
+        padding: 12px 20px;
+        min-height: auto;
+    }
 }
 
 .submit-button:hover {
@@ -504,8 +548,15 @@ input[disabled] {
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+@media (min-width: 768px) {
+    .trade-summary {
+        padding: 20px;
+        margin: 20px 0;
+    }
 }
 
 .trade-summary h3 {
@@ -517,8 +568,18 @@ input[disabled] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 8px 0;
     border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .summary-row {
+        padding: 10px 0;
+        flex-wrap: nowrap;
+        gap: 0;
+    }
 }
 
 .summary-row:last-child {

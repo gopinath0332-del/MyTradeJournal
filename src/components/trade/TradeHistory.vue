@@ -130,16 +130,18 @@
                         <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
                             {{ formatCurrency(trade.pnlAmount) }}
                         </td>
-                        <td>
-                            <button class="action-btn view-btn" @click="viewTradeDetails(trade)">
-                                View
-                            </button>
-                            <button class="action-btn edit-btn" @click="handleEdit(trade)">
-                                Edit
-                            </button>
-                            <button class="action-btn delete-btn" @click="deleteTrade(trade)">
-                                Delete
-                            </button>
+                        <td class="actions-cell">
+                            <div class="actions-container">
+                                <button class="action-btn view-btn" @click="viewTradeDetails(trade)">
+                                    View
+                                </button>
+                                <button class="action-btn edit-btn" @click="handleEdit(trade)">
+                                    Edit
+                                </button>
+                                <button class="action-btn delete-btn" @click="deleteTrade(trade)">
+                                    Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     <tr v-if="sortedAndFilteredTrades.length === 0">
@@ -535,18 +537,35 @@ loadTrades()
 
 <style scoped>
 .trade-history {
-    padding: 20px;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .trade-history {
+        padding: 20px;
+    }
 }
 
 .results-summary {
-    margin: 20px 0;
-    padding: 15px;
+    margin: 1rem 0;
+    padding: 1rem;
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .results-summary {
+        margin: 20px 0;
+        padding: 15px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0;
+    }
 }
 
 .total-results {
@@ -556,15 +575,34 @@ loadTrades()
 
 .trades-summary {
     display: flex;
-    gap: 20px;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+@media (min-width: 768px) {
+    .trades-summary {
+        flex-direction: row;
+        gap: 20px;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
 }
 
 .summary-stats {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .summary-stats {
+        gap: 20px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+    }
 }
 
 .summary-stats span {
@@ -693,14 +731,29 @@ loadTrades()
 
 .filters {
     display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .filters {
+        flex-direction: row;
+        gap: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
 }
 
 .filter-group {
     flex: 1;
-    min-width: 200px;
+    min-width: auto;
+}
+
+@media (min-width: 768px) {
+    .filter-group {
+        min-width: 200px;
+    }
 }
 
 .filter-group label {
@@ -711,34 +764,75 @@ loadTrades()
 
 .filter-group select {
     width: 100%;
-    padding: 8px;
+    padding: 12px;
     border: 1px solid #e2e8f0;
     border-radius: 4px;
     background-color: white;
+    font-size: 16px;
+    min-height: 44px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+@media (min-width: 768px) {
+    .filter-group select {
+        padding: 8px;
+        font-size: 14px;
+        min-height: auto;
+    }
 }
 
 .table-container {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 1rem -1rem;
+    padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+    .table-container {
+        margin: 0;
+        padding: 0;
+    }
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 1rem;
     background: white;
     border-radius: 8px;
     overflow: hidden;
+    min-width: 800px;
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    table {
+        margin-top: 20px;
+        min-width: 100%;
+        font-size: 1rem;
+    }
 }
 
 th {
     background-color: #f8fafc;
-    padding: 12px;
+    padding: 8px;
     text-align: left;
     font-weight: 600;
     color: #1e293b;
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
+    font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+    th {
+        padding: 12px;
+        font-size: 1rem;
+    }
 }
 
 th.active {
@@ -746,8 +840,17 @@ th.active {
 }
 
 td {
-    padding: 12px;
+    padding: 8px;
     border-top: 1px solid #e2e8f0;
+    white-space: nowrap;
+    font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+    td {
+        padding: 12px;
+        font-size: 1rem;
+    }
 }
 
 tr:hover {
@@ -784,12 +887,45 @@ td.loss {
     font-weight: 600;
 }
 
+.actions-cell {
+    min-width: 200px;
+}
+
+.actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .actions-container {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        gap: 0;
+    }
+}
+
 .action-btn {
-    padding: 4px 8px;
-    margin: 0 4px;
+    padding: 6px 10px;
+    margin: 2px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 12px;
+    min-height: 36px;
+    min-width: 60px;
+    touch-action: manipulation;
+    display: inline-block;
+}
+
+@media (min-width: 768px) {
+    .action-btn {
+        padding: 4px 8px;
+        margin: 0 4px;
+        font-size: 14px;
+        min-height: auto;
+        min-width: auto;
+    }
 }
 
 .view-btn {

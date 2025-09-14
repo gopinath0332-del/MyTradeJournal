@@ -1,7 +1,9 @@
 <!-- DashboardStats.vue -->
 <template>
     <div class="dashboard-stats">
-        <h2>Trading Statistics</h2>
+        <div class="dashboard-header">
+            <h2>Trading Statistics</h2>
+        </div>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-title">Total Trading Days</div>
@@ -194,27 +196,83 @@ onUnmounted(() => {
 
 <style scoped>
 .dashboard-stats {
-    padding: 20px;
+    padding: 1rem;
+}
+
+@media (min-width: 768px) {
+    .dashboard-stats {
+        padding: 2rem;
+    }
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.dashboard-header h2 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+@media (min-width: 768px) {
+    .dashboard-header h2 {
+        font-size: 2rem;
+    }
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-top: 20px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 16px;
     max-width: 1400px;
     margin-left: auto;
     margin-right: auto;
+    padding: 0 1rem;
+}
+
+@media (min-width: 480px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 20px;
+        padding: 0;
+    }
+}
+
+@media (min-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 .stat-card {
     background-color: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 20px;
+    padding: 16px;
     text-align: center;
     box-shadow: var(--shadow);
     transition: transform 0.2s;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .stat-card {
+        padding: 20px;
+        min-height: 100px;
+    }
 }
 
 .stat-card:hover {
@@ -223,14 +281,29 @@ onUnmounted(() => {
 
 .stat-title {
     color: var(--text-muted);
-    font-size: 0.9em;
-    margin-bottom: 8px;
+    font-size: 0.8em;
+    margin-bottom: 6px;
+    line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+    .stat-title {
+        font-size: 0.9em;
+        margin-bottom: 8px;
+    }
 }
 
 .stat-value {
-    font-size: 1.8em;
+    font-size: 1.4em;
     font-weight: 600;
     color: var(--text-color);
+    line-height: 1.1;
+}
+
+@media (min-width: 768px) {
+    .stat-value {
+        font-size: 1.8em;
+    }
 }
 
 .stat-card.profit {

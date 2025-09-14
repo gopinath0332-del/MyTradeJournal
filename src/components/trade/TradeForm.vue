@@ -141,6 +141,7 @@
 
 <script setup>
 import { ref, inject, watch, onMounted } from 'vue'
+import { v4 as uuidv4 } from 'uuid'
 import { tradeService } from '../../firebase/tradeService'
 
 const editingTrade = inject('editingTrade')
@@ -166,7 +167,7 @@ const showToast = (variant, title, message) => {
 }
 
 const trade = ref({
-    id: null,
+    tradeId: uuidv4(),
     symbol: '',
     contract: '',
     type: '',
@@ -267,7 +268,7 @@ const handleScreenshotUpload = (event) => {
 
 const resetForm = () => {
     trade.value = {
-        id: null,
+        tradeId: uuidv4(),
         symbol: '',
         contract: '',
         type: '',

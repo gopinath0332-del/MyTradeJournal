@@ -6,6 +6,8 @@ import DashboardStats from './components/dashboard/DashboardStats.vue'
 
 const activeTab = ref('dashboard') // 'dashboard', 'trade', or 'history'
 const editingTrade = ref(null)
+const toasts = ref([])
+let toastId = 0
 
 // Provide the shared state to child components
 provide('activeTab', activeTab)
@@ -17,7 +19,27 @@ const startEditingTrade = (trade) => {
   activeTab.value = 'trade'
 }
 
+// Toast functions
+const showToast = (type, title, message, duration = 3000) => {
+  const id = toastId++
+  toasts.value.push({ id, type, title, message })
+
+  // Automatically remove the toast after duration
+  setTimeout(() => {
+    removeToast(id)
+  }, duration)
+}
+
+const removeToast = (id) => {
+  const index = toasts.value.findIndex(t => t.id === id)
+  if (index !== -1) {
+    toasts.value.splice(index, 1)
+  }
+}
+
+// Provide functions to child components
 provide('startEditingTrade', startEditingTrade)
+provide('showToast', showToast)
 </script>
 
 <template>
@@ -42,10 +64,84 @@ provide('startEditingTrade', startEditingTrade)
       <TradeHistory v-if="activeTab === 'history'" />
       <TradeForm v-if="activeTab === 'trade'" />
     </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container">
+      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
+        <div class="toast-header">
+          <strong>{{ toast.title }}</strong>
+          <button class="close-button" @click="removeToast(toast.id)">&times;</button>
+        </div>
+        <div class="toast-body">
+          {{ toast.message }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style>
+/* Toast Styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  min-width: 300px;
+  margin-bottom: 10px;
+  padding: 15px 20px;
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-in-out;
+}
+
+.toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.toast.success {
+  background-color: #42b883;
+  color: white;
+}
+
+.toast.error {
+  background-color: #ef4444;
+  color: white;
+}
+
+.toast.info {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 5px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 .app-container {
   max-width: 1200px;
   margin: 0 auto;

@@ -301,8 +301,18 @@
 import { ref, computed, inject } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 
-// Get the shared editing function from App.vue
+// Get the shared functions from App.vue
 const startEditingTrade = inject('startEditingTrade')
+const showToast = inject('showToast')
+
+// Fallback if showToast is not provided
+const displayToast = (type, title, message) => {
+    if (showToast) {
+        showToast(type, title, message)
+    } else {
+        console.log(`${type}: ${title} - ${message}`)
+    }
+}
 
 const selectedTrade = ref(null)
 const trades = ref([])
@@ -511,10 +521,10 @@ const deleteTrade = async (trade) => {
         try {
             await tradeService.deleteTrade(trade.id)
             trades.value = trades.value.filter(t => t.id !== trade.id)
-            showToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
+            displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
         } catch (error) {
             console.error('Error deleting trade:', error)
-            showToast('error', 'Error', 'Failed to delete trade. Please try again.')
+            displayToast('error', 'Error', 'Failed to delete trade. Please try again.')
         }
     }
 }

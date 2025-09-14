@@ -16,6 +16,10 @@
       </div>
     </div>
     
+    <div class="stat-card net-pnl">
+      <div class="stat-title">Net P&L</div>
+      <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
+    </div>
     <div class="stat-card">
       <div class="stat-title">Total Trading Days</div>
       <div class="stat-value">{{ stats.tradingDays }}</div>
@@ -63,10 +67,6 @@
     <div class="stat-card total-loss">
       <div class="stat-title">Total Loss</div>
       <div class="stat-value">₹{{ stats.totalLoss }}</div>
-    </div>
-    <div class="stat-card net-pnl">
-      <div class="stat-title">Net P&L</div>
-      <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
     </div>
     <div class="stat-card avg-daily-pnl">
       <div class="stat-title">Avg Daily P&L</div>

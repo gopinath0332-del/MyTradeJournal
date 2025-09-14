@@ -63,6 +63,63 @@
                     avgDailyPnL }}</div>
             </div>
         </div>
+
+        <!-- Monthly Breakdown Section -->
+        <div class="monthly-breakdown" v-if="availableYears.length > 0">
+            <div class="section-header">
+                <h3>Monthly Breakdown</h3>
+                <div class="year-selector">
+                    <label for="yearSelect">Year:</label>
+                    <select id="yearSelect" v-model="selectedYear" @change="onYearChange">
+                        <option v-for="year in availableYears" :key="year" :value="year">
+                            {{ year }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="monthly-grid" v-if="monthlyData.length > 0">
+                <div v-for="month in monthlyData" :key="month.month" 
+                     class="monthly-card" 
+                     :class="{ 
+                         'profitable': month.totalPnL > 0,
+                         'loss': month.totalPnL < 0
+                     }">
+                    <div class="monthly-header">
+                        <h4>{{ month.month }}</h4>
+                        <span class="trade-count">{{ month.totalTrades }} trades</span>
+                    </div>
+                    
+                    <div class="monthly-stats">
+                        <div class="monthly-stat">
+                            <span class="stat-label">P&L:</span>
+                            <span class="stat-value" :class="{ 'positive': month.totalPnL > 0, 'negative': month.totalPnL < 0 }">
+                                ₹{{ month.totalPnL.toLocaleString() }}
+                            </span>
+                        </div>
+                        <div class="monthly-stat">
+                            <span class="stat-label">Win Rate:</span>
+                            <span class="stat-value">{{ month.winRate }}%</span>
+                        </div>
+                        <div class="monthly-stat">
+                            <span class="stat-label">Avg P&L:</span>
+                            <span class="stat-value" :class="{ 'positive': month.avgPnL > 0, 'negative': month.avgPnL < 0 }">
+                                ₹{{ month.avgPnL.toLocaleString() }}
+                            </span>
+                        </div>
+                        <div class="win-loss-breakdown">
+                            <span class="wins">{{ month.winningTrades }}W</span>
+                            <span class="losses">{{ month.losingTrades }}L</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div v-else-if="availableYears.length > 0" class="no-data-message">
+                <p>No trading data available for {{ selectedYear }}.</p>
+                <p>Select a different year or start logging trades!</p>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -85,6 +142,16 @@ const totalProfit = ref(0)
 const totalLoss = ref(0)
 const netPnL = ref(0)
 const avgDailyPnL = ref(0)
+
+// Monthly breakdown data
+const selectedYear = ref(new Date().getFullYear())
+const availableYears = ref([])
+const monthlyData = ref([])
+
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+]
 
 const calculateStats = async () => {
     try {
@@ -179,14 +246,85 @@ const calculateStats = async () => {
     }
 }
 
-onMounted(calculateStats)
+const calculateMonthlyBreakdown = async () => {
+    try {
+        const trades = await tradeService.getAllTrades()
+        
+        // Get available years from trades
+        const years = [...new Set(trades.map(trade => new Date(trade.entryDate).getFullYear()))]
+        availableYears.value = years.sort((a, b) => b - a) // Sort descending
+        
+        // If selected year is not in available years, select the latest year
+        if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
+            selectedYear.value = availableYears.value[0]
+        }
+        
+        // Group trades by month for selected year
+        const yearTrades = trades.filter(trade => 
+            new Date(trade.entryDate).getFullYear() === selectedYear.value
+        )
+        
+        const monthlyStats = {}
+        
+        // Group trades by month (only create entries for months with data)
+        yearTrades.forEach(trade => {
+            const month = new Date(trade.entryDate).getMonth()
+            
+            if (!monthlyStats[month]) {
+                monthlyStats[month] = {
+                    month: monthNames[month],
+                    monthNumber: month,
+                    trades: [],
+                    totalTrades: 0,
+                    winningTrades: 0,
+                    losingTrades: 0,
+                    totalPnL: 0,
+                    winRate: 0,
+                    avgPnL: 0
+                }
+            }
+            
+            monthlyStats[month].trades.push(trade)
+        })
+        
+        // Calculate monthly statistics for months with data
+        Object.keys(monthlyStats).forEach(month => {
+            const monthData = monthlyStats[month]
+            const trades = monthData.trades
+            
+            monthData.totalTrades = trades.length
+            monthData.totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+            monthData.winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
+            monthData.losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
+            monthData.winRate = monthData.totalTrades > 0 ? Math.round((monthData.winningTrades / monthData.totalTrades) * 100) : 0
+            monthData.avgPnL = Math.round(monthData.totalPnL / monthData.totalTrades)
+        })
+        
+        // Sort months by month number and convert to array
+        monthlyData.value = Object.values(monthlyStats).sort((a, b) => a.monthNumber - b.monthNumber)
+        
+    } catch (error) {
+        console.error('Error calculating monthly breakdown:', error)
+    }
+}
+
+onMounted(() => {
+    calculateStats()
+    calculateMonthlyBreakdown()
+})
 
 // Recalculate stats when localStorage changes
 window.addEventListener('storage', (e) => {
     if (e.key === 'trades') {
         calculateStats()
+        calculateMonthlyBreakdown()
     }
 })
+
+// Watch for year changes
+const onYearChange = () => {
+    calculateMonthlyBreakdown()
+}
 
 // Cleanup event listener
 onUnmounted(() => {
@@ -363,6 +501,179 @@ onUnmounted(() => {
 }
 
 .stat-value.negative {
+    color: #D50000;
+}
+
+/* Monthly Breakdown Styles */
+.monthly-breakdown {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e2e8f0;
+}
+
+.section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+    .section-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0;
+    }
+}
+
+.section-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.5rem;
+}
+
+.year-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.year-selector label {
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.year-selector select {
+    padding: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 1rem;
+    min-width: 80px;
+}
+
+.monthly-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 480px) {
+    .monthly-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 768px) {
+    .monthly-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .monthly-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.monthly-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    min-height: 140px;
+}
+
+.monthly-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.monthly-card.profitable {
+    border-left: 4px solid #00C853;
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.monthly-card.loss {
+    border-left: 4px solid #D50000;
+    background: linear-gradient(135deg, rgba(213, 0, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.monthly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.monthly-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.trade-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background: #f1f5f9;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+}
+
+.monthly-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.monthly-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.monthly-stat .stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.monthly-stat .stat-value.positive {
+    color: #00C853;
+}
+
+.monthly-stat .stat-value.negative {
+    color: #D50000;
+}
+
+.win-loss-breakdown {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+}
+
+.wins, .losses {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.wins {
+    background: rgba(0, 200, 83, 0.1);
+    color: #00C853;
+}
+
+.losses {
+    background: rgba(213, 0, 0, 0.1);
     color: #D50000;
 }
 </style>

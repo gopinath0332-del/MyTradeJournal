@@ -141,6 +141,7 @@
 
 <script setup>
 import { ref, inject, watch, onMounted } from 'vue'
+import { tradeService } from '../../firebase/tradeService'
 
 const editingTrade = inject('editingTrade')
 const activeTab = inject('activeTab')
@@ -291,8 +292,6 @@ const resetForm = () => {
 
 const handleSubmit = async () => {
     try {
-        const trades = JSON.parse(localStorage.getItem('trades') || '[]')
-
         // Prepare trade data
         const tradeData = {
             ...trade.value,
@@ -303,25 +302,13 @@ const handleSubmit = async () => {
 
         // If we're editing an existing trade
         if (trade.value.id) {
-            const index = trades.findIndex(t => t.id === trade.value.id)
-            if (index !== -1) {
-                trades[index] = {
-                    ...tradeData,
-                    updatedAt: new Date().toISOString()
-                }
-                showToast('success', 'Trade Updated', `Successfully updated trade for ${trade.value.symbol}`)
-            }
+            await tradeService.updateTrade(trade.value.id, tradeData)
+            showToast('success', 'Trade Updated', `Successfully updated trade for ${trade.value.symbol}`)
         } else {
             // Creating a new trade
-            trades.push({
-                ...tradeData,
-                id: Date.now(),
-                createdAt: new Date().toISOString()
-            })
+            await tradeService.addTrade(tradeData)
             showToast('success', 'Trade Added', `Successfully added new trade for ${trade.value.symbol}`)
         }
-
-        localStorage.setItem('trades', JSON.stringify(trades))
 
         // Clear editing state
         if (editingTrade) {

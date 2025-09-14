@@ -299,6 +299,7 @@
 
 <script setup>
 import { ref, computed, inject } from 'vue'
+import { tradeService } from '../../firebase/tradeService'
 
 // Get the shared editing function from App.vue
 const startEditingTrade = inject('startEditingTrade')
@@ -317,10 +318,10 @@ const filters = ref({
     profitability: 'all'
 })
 
-// Load trades from localStorage
-const loadTrades = () => {
+// Load trades from Firestore
+const loadTrades = async () => {
     try {
-        trades.value = JSON.parse(localStorage.getItem('trades') || '[]')
+        trades.value = await tradeService.getAllTrades()
     } catch (error) {
         console.error('Error loading trades:', error)
         trades.value = []
@@ -507,12 +508,13 @@ const viewTradeDetails = (trade) => {
 // Delete trade
 const deleteTrade = async (trade) => {
     if (confirm('Are you sure you want to delete this trade?')) {
-        const updatedTrades = trades.value.filter(t => t.id !== trade.id)
         try {
-            localStorage.setItem('trades', JSON.stringify(updatedTrades))
-            trades.value = updatedTrades
+            await tradeService.deleteTrade(trade.id)
+            trades.value = trades.value.filter(t => t.id !== trade.id)
+            showToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
         } catch (error) {
             console.error('Error deleting trade:', error)
+            showToast('error', 'Error', 'Failed to delete trade. Please try again.')
         }
     }
 }

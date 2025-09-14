@@ -67,6 +67,8 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watchEffect } from 'vue'
 
+import { tradeService } from '../../firebase/tradeService.js'
+
 const tradingDays = ref(0)
 const winDays = ref(0)
 const lossDays = ref(0)
@@ -82,11 +84,9 @@ const totalLoss = ref(0)
 const netPnL = ref(0)
 const avgDailyPnL = ref(0)
 
-const calculateStats = () => {
+const calculateStats = async () => {
     try {
-        const trades = JSON.parse(localStorage.getItem('trades') || '[]')
-
-        // Group trades by date
+        const trades = await tradeService.getAllTrades()        // Group trades by date
         const tradesByDate = trades.reduce((acc, trade) => {
             const date = new Date(trade.entryDate).toDateString()
             if (!acc[date]) {

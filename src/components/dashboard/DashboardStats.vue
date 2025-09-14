@@ -64,6 +64,75 @@
             </div>
         </div>
 
+        <!-- Weekly Breakdown Section -->
+        <div class="weekly-breakdown" v-if="availableYears.length > 0">
+            <div class="section-header">
+                <h3>Weekly Breakdown</h3>
+                <div class="filters-container">
+                    <div class="year-selector">
+                        <label for="weeklyYearSelect">Year:</label>
+                        <select id="weeklyYearSelect" v-model="selectedYear" @change="onYearChange">
+                            <option v-for="year in availableYears" :key="`weekly-${year}`" :value="year">
+                                {{ year }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="month-selector">
+                        <label for="monthSelect">Month:</label>
+                        <select id="monthSelect" v-model="selectedMonth" @change="onMonthChange" :disabled="availableMonths.length === 0">
+                            <option v-if="availableMonths.length === 0" value="">No data available</option>
+                            <option v-for="monthIndex in availableMonths" :key="monthIndex" :value="monthIndex">
+                                {{ monthNames[monthIndex] }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="weekly-grid" v-if="weeklyData.length > 0">
+                <div v-for="week in weeklyData" :key="week.weekRange" 
+                     class="weekly-card" 
+                     :class="{ 
+                         'profitable': week.totalPnL > 0,
+                         'loss': week.totalPnL < 0
+                     }">
+                    <div class="weekly-header">
+                        <h4>{{ week.weekRange }}</h4>
+                        <span class="trade-count">{{ week.totalTrades }} trades</span>
+                    </div>
+                    
+                    <div class="weekly-stats">
+                        <div class="weekly-stat">
+                            <span class="stat-label">P&L:</span>
+                            <span class="stat-value" :class="{ 'positive': week.totalPnL > 0, 'negative': week.totalPnL < 0 }">
+                                ₹{{ week.totalPnL.toLocaleString() }}
+                            </span>
+                        </div>
+                        <div class="weekly-stat">
+                            <span class="stat-label">Win Rate:</span>
+                            <span class="stat-value">{{ week.winRate }}%</span>
+                        </div>
+                        <div class="weekly-stat">
+                            <span class="stat-label">Avg P&L:</span>
+                            <span class="stat-value" :class="{ 'positive': week.avgPnL > 0, 'negative': week.avgPnL < 0 }">
+                                ₹{{ week.avgPnL.toLocaleString() }}
+                            </span>
+                        </div>
+                        <div class="win-loss-breakdown">
+                            <span class="wins">{{ week.winningTrades }}W</span>
+                            <span class="losses">{{ week.losingTrades }}L</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div v-else-if="availableYears.length > 0" class="no-data-message">
+                <p v-if="availableMonths.length === 0">No trading data available for {{ selectedYear }}.</p>
+                <p v-else>No trading data available for {{ monthNames[selectedMonth] }} {{ selectedYear }}.</p>
+                <p>Select a different {{ availableMonths.length === 0 ? 'year' : 'month' }} or start logging trades!</p>
+            </div>
+        </div>
+
         <!-- Monthly Breakdown Section -->
         <div class="monthly-breakdown" v-if="availableYears.length > 0">
             <div class="section-header">
@@ -147,6 +216,11 @@ const avgDailyPnL = ref(0)
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
 const monthlyData = ref([])
+
+// Weekly breakdown data
+const weeklyData = ref([])
+const selectedMonth = ref(new Date().getMonth()) // Default to current month (September = 8)
+const availableMonths = ref([]) // Months that have trading data
 
 const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -308,9 +382,109 @@ const calculateMonthlyBreakdown = async () => {
     }
 }
 
+const calculateWeeklyBreakdown = async () => {
+    try {
+        const trades = await tradeService.getAllTrades()
+        
+        // Filter trades by selected year
+        const yearTrades = trades.filter(trade => 
+            new Date(trade.entryDate).getFullYear() === selectedYear.value
+        )
+        
+        // Get available months (months that have trading data)
+        const monthsWithData = [...new Set(yearTrades.map(trade => 
+            new Date(trade.entryDate).getMonth()
+        ))].sort((a, b) => a - b)
+        
+        availableMonths.value = monthsWithData
+        
+        // If current selected month is not available and we have data, fallback to first available month
+        if (monthsWithData.length > 0 && !monthsWithData.includes(selectedMonth.value)) {
+            selectedMonth.value = monthsWithData[0]
+        }
+        
+        // If no months have data, clear weekly data and return early
+        if (monthsWithData.length === 0) {
+            weeklyData.value = []
+            return
+        }
+        
+        // Filter trades by selected month
+        const filteredTrades = yearTrades.filter(trade => 
+            new Date(trade.entryDate).getMonth() === selectedMonth.value
+        )
+        
+        const weeklyStats = {}
+        
+        // Helper function to get week start date (Monday)
+        const getWeekStart = (date) => {
+            const d = new Date(date)
+            const day = d.getDay()
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+            const weekStart = new Date(d.setDate(diff))
+            weekStart.setHours(0, 0, 0, 0)
+            return weekStart
+        }
+        
+        // Helper function to format week range
+        const formatWeekRange = (weekStart) => {
+            const weekEnd = new Date(weekStart)
+            weekEnd.setDate(weekEnd.getDate() + 6)
+            
+            const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            
+            return `${startStr} - ${endStr}`
+        }
+        
+        // Group trades by week (only create entries for weeks with data)
+        filteredTrades.forEach(trade => {
+            const tradeDate = new Date(trade.entryDate)
+            const weekStart = getWeekStart(tradeDate)
+            const weekKey = weekStart.getTime()
+            
+            if (!weeklyStats[weekKey]) {
+                weeklyStats[weekKey] = {
+                    weekStart: weekStart,
+                    weekRange: formatWeekRange(weekStart),
+                    trades: [],
+                    totalTrades: 0,
+                    winningTrades: 0,
+                    losingTrades: 0,
+                    totalPnL: 0,
+                    winRate: 0,
+                    avgPnL: 0
+                }
+            }
+            
+            weeklyStats[weekKey].trades.push(trade)
+        })
+        
+        // Calculate weekly statistics for weeks with data
+        Object.keys(weeklyStats).forEach(weekKey => {
+            const weekData = weeklyStats[weekKey]
+            const trades = weekData.trades
+            
+            weekData.totalTrades = trades.length
+            weekData.totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+            weekData.winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
+            weekData.losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
+            weekData.winRate = weekData.totalTrades > 0 ? Math.round((weekData.winningTrades / weekData.totalTrades) * 100) : 0
+            weekData.avgPnL = Math.round(weekData.totalPnL / weekData.totalTrades)
+        })
+        
+        // Sort weeks by date and convert to array (most recent first)
+        weeklyData.value = Object.values(weeklyStats).sort((a, b) => b.weekStart - a.weekStart)
+        
+    } catch (error) {
+        console.error('Error calculating weekly breakdown:', error)
+    }
+}
+
 onMounted(() => {
     calculateStats()
     calculateMonthlyBreakdown()
+    calculateWeeklyBreakdown()
 })
 
 // Recalculate stats when localStorage changes
@@ -318,12 +492,20 @@ window.addEventListener('storage', (e) => {
     if (e.key === 'trades') {
         calculateStats()
         calculateMonthlyBreakdown()
+        calculateWeeklyBreakdown()
     }
 })
 
 // Watch for year changes
 const onYearChange = () => {
+    selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
     calculateMonthlyBreakdown()
+    calculateWeeklyBreakdown()
+}
+
+// Watch for month changes
+const onMonthChange = () => {
+    calculateWeeklyBreakdown()
 }
 
 // Cleanup event listener
@@ -502,6 +684,168 @@ onUnmounted(() => {
 
 .stat-value.negative {
     color: #D50000;
+}
+
+/* Weekly Breakdown Styles */
+.weekly-breakdown {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e2e8f0;
+}
+
+.weekly-breakdown .section-header .filters-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+    .weekly-breakdown .section-header .filters-container {
+        flex-direction: row;
+        align-items: center;
+        gap: 1.5rem;
+    }
+}
+
+.weekly-breakdown .year-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.weekly-breakdown .year-selector label {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.weekly-breakdown .year-selector select {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: white;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.weekly-breakdown .year-selector select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.weekly-breakdown .month-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.weekly-breakdown .month-selector label {
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.weekly-breakdown .month-selector select {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: white;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.weekly-breakdown .month-selector select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.weekly-breakdown .month-selector select:disabled {
+    background: #f8fafc;
+    color: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+    .weekly-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+.weekly-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+    min-height: 140px;
+    border-left: 4px solid #64748b;
+}
+
+.weekly-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.weekly-card.profitable {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.weekly-card.loss {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.02) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.weekly-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.weekly-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.weekly-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.weekly-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.weekly-stat .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.weekly-stat .stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
 }
 
 /* Monthly Breakdown Styles */

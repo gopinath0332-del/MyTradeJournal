@@ -242,21 +242,18 @@ const monthNames = [
 const calculateStats = async () => {
     isLoadingStats.value = true
     try {
-        const allTrades = await tradeService.getAllTrades()
-        
-        // Set available years for year selectors
-        const years = [...new Set(allTrades.map(trade => new Date(trade.entryDate).getFullYear()))]
-        availableYears.value = years.sort((a, b) => b - a)
+        // Get available years for year selectors (only need to do this once)
+        if (availableYears.value.length === 0) {
+            availableYears.value = await tradeService.getAvailableYears()
+        }
         
         // If selectedYear is not in available years, set to latest year
         if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
             selectedYear.value = availableYears.value[0]
         }
         
-        // Filter trades by selected year
-        const trades = allTrades.filter(trade => 
-            new Date(trade.entryDate).getFullYear() === selectedYear.value
-        )
+        // Get trades for selected year only (optimized query)
+        const trades = await tradeService.getTradesByYear(selectedYear.value)
         
         // Group trades by date
         const tradesByDate = trades.reduce((acc, trade) => {
@@ -354,21 +351,18 @@ const calculateStats = async () => {
 const calculateMonthlyBreakdown = async () => {
     isLoadingMonthly.value = true
     try {
-        const trades = await tradeService.getAllTrades()
-        
-        // Get available years from trades
-        const years = [...new Set(trades.map(trade => new Date(trade.entryDate).getFullYear()))]
-        availableYears.value = years.sort((a, b) => b - a) // Sort descending
+        // Get available years if not already loaded
+        if (availableYears.value.length === 0) {
+            availableYears.value = await tradeService.getAvailableYears()
+        }
         
         // If selected year is not in available years, select the latest year
         if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
             selectedYear.value = availableYears.value[0]
         }
         
-        // Group trades by month for selected year
-        const yearTrades = trades.filter(trade => 
-            new Date(trade.entryDate).getFullYear() === selectedYear.value
-        )
+        // Get trades for selected year only (optimized query)
+        const yearTrades = await tradeService.getTradesByYear(selectedYear.value)
         
         const monthlyStats = {}
         
@@ -419,12 +413,8 @@ const calculateMonthlyBreakdown = async () => {
 const calculateWeeklyBreakdown = async () => {
     isLoadingWeekly.value = true
     try {
-        const trades = await tradeService.getAllTrades()
-        
-        // Filter trades by selected year
-        const yearTrades = trades.filter(trade => 
-            new Date(trade.entryDate).getFullYear() === selectedYear.value
-        )
+        // Get trades for selected year only (optimized query)
+        const yearTrades = await tradeService.getTradesByYear(selectedYear.value)
         
         // Get available months (months that have trading data)
         const monthsWithData = [...new Set(yearTrades.map(trade => 
@@ -518,22 +508,16 @@ const calculateWeeklyBreakdown = async () => {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    // Initialize available years first
+    availableYears.value = await tradeService.getAvailableYears()
+    
+    // Then calculate all sections
     calculateStats()
     calculateMonthlyBreakdown()
     calculateWeeklyBreakdown()
 })
 
-// Recalculate stats when localStorage changes
-window.addEventListener('storage', (e) => {
-    if (e.key === 'trades') {
-        calculateStats()
-        calculateMonthlyBreakdown()
-        calculateWeeklyBreakdown()
-    }
-})
-
-// Watch for year changes
 // Global year change handler - updates all sections
 const onGlobalYearChange = () => {
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes

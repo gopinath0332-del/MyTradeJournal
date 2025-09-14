@@ -8,6 +8,7 @@ const activeTab = ref('dashboard') // 'dashboard', 'trade', or 'history'
 const editingTrade = ref(null)
 const toasts = ref([])
 const isMobileMenuOpen = ref(false)
+const dashboardKey = ref(0) // Key to force dashboard re-render
 let toastId = 0
 
 // Provide the shared state to child components
@@ -49,9 +50,15 @@ const removeToast = (id) => {
   }
 }
 
+// Function to refresh dashboard data
+const refreshDashboard = () => {
+  dashboardKey.value++
+}
+
 // Provide functions to child components
 provide('startEditingTrade', startEditingTrade)
 provide('showToast', showToast)
+provide('refreshDashboard', refreshDashboard)
 </script>
 
 <template>
@@ -103,7 +110,7 @@ provide('showToast', showToast)
     </header>
 
     <main>
-      <DashboardStats v-if="activeTab === 'dashboard'" />
+      <DashboardStats v-if="activeTab === 'dashboard'" :key="dashboardKey" />
       <TradeHistory v-if="activeTab === 'history'" />
       <TradeForm v-if="activeTab === 'trade'" />
     </main>

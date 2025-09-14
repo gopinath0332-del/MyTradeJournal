@@ -315,6 +315,7 @@ const isDeletingTrade = ref(false)
 // Get the shared functions from App.vue
 const startEditingTrade = inject('startEditingTrade')
 const showToast = inject('showToast')
+const refreshDashboard = inject('refreshDashboard')
 
 // Fallback if showToast is not provided
 const displayToast = (type, title, message) => {
@@ -536,6 +537,10 @@ const deleteTrade = async (trade) => {
         try {
             await tradeService.deleteTrade(trade.id)
             trades.value = trades.value.filter(t => t.id !== trade.id)
+            
+            // Refresh dashboard data
+            refreshDashboard()
+            
             displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
         } catch (error) {
             console.error('Error deleting trade:', error)

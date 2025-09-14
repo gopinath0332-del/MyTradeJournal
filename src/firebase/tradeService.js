@@ -6,7 +6,8 @@ import {
     doc,
     getDocs,
     query,
-    orderBy
+    orderBy,
+    where
 } from 'firebase/firestore'
 import { db } from './config'
 
@@ -66,6 +67,45 @@ export const tradeService = {
             }))
         } catch (error) {
             console.error('Error getting trades:', error)
+            throw error
+        }
+    },
+
+    // Get trades for a specific year
+    async getTradesByYear(year) {
+        try {
+            // Create date range for the year
+            const startDate = `${year}-01-01`
+            const endDate = `${year + 1}-01-01`
+            
+            const q = query(
+                collection(db, COLLECTION_NAME),
+                where('entryDate', '>=', startDate),
+                where('entryDate', '<', endDate),
+                orderBy('entryDate', 'desc')
+            )
+            const querySnapshot = await getDocs(q)
+            return querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        } catch (error) {
+            console.error('Error getting trades by year:', error)
+            throw error
+        }
+    },
+
+    // Get available years (for year selector dropdown)
+    async getAvailableYears() {
+        try {
+            const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
+            const querySnapshot = await getDocs(q)
+            const years = [...new Set(querySnapshot.docs.map(doc => 
+                new Date(doc.data().entryDate).getFullYear()
+            ))]
+            return years.sort((a, b) => b - a)
+        } catch (error) {
+            console.error('Error getting available years:', error)
             throw error
         }
     }

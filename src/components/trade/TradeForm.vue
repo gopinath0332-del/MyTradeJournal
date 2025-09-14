@@ -155,6 +155,7 @@ const isSubmitting = ref(false)
 
 const editingTrade = inject('editingTrade')
 const activeTab = inject('activeTab')
+const refreshDashboard = inject('refreshDashboard')
 
 const toastVariant = ref('success')
 const toastTitle = ref('')
@@ -320,6 +321,9 @@ const handleSubmit = async () => {
             await tradeService.addTrade(tradeData)
             showToast('success', 'Trade Added', `Successfully added new trade for ${trade.value.symbol}`)
         }
+
+        // Refresh dashboard data
+        refreshDashboard()
 
         // Clear editing state
         if (editingTrade) {

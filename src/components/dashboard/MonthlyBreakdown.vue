@@ -3,7 +3,7 @@
     <div class="section-header">
       <h3>Monthly Breakdown</h3>
     </div>
-    
+
     <!-- Loading state for monthly breakdown -->
     <div v-if="isLoading" class="loader-container">
       <div class="spinner"></div>
@@ -19,19 +19,17 @@
         </button>
       </div>
     </div>
-    
+
     <div v-else-if="monthlyData.length > 0" class="monthly-grid">
-      <div v-for="month in monthlyData" :key="month.month" 
-           class="monthly-card" 
-           :class="{ 
-             'profitable': month.totalPnL > 0,
-             'loss': month.totalPnL < 0
-           }">
+      <div v-for="month in monthlyData" :key="month.month" class="monthly-card" :class="{
+        'profitable': month.totalPnL > 0,
+        'loss': month.totalPnL < 0
+      }">
         <div class="monthly-header">
           <h4>{{ month.month }}</h4>
           <span class="trade-count">{{ month.totalTrades }} trades</span>
         </div>
-        
+
         <div class="monthly-stats">
           <div class="monthly-stat">
             <span class="stat-label">P&L:</span>
@@ -49,6 +47,13 @@
               ₹{{ month.avgPnL.toLocaleString() }}
             </span>
           </div>
+          <div class="monthly-stat">
+            <span class="stat-label">R:R Ratio:</span>
+            <span class="stat-value"
+              :class="{ 'positive': month.riskRewardRatio >= 1, 'neutral': month.riskRewardRatio < 1 && month.riskRewardRatio > 0 }">
+              {{ month.riskRewardRatio > 0 ? month.riskRewardRatio.toFixed(2) : 'N/A' }}
+            </span>
+          </div>
           <div class="win-loss-breakdown">
             <span class="wins">{{ month.winningTrades }}W</span>
             <span class="losses">{{ month.losingTrades }}L</span>
@@ -56,7 +61,7 @@
         </div>
       </div>
     </div>
-    
+
     <div v-else-if="availableYears.length > 0" class="no-data-message">
       <p>No trading data available for {{ selectedYear }}.</p>
       <p>Select a different year or start logging trades!</p>
@@ -222,6 +227,10 @@ const props = defineProps({
   color: #D50000;
 }
 
+.monthly-stat .stat-value.neutral {
+  color: #FF9800;
+}
+
 .win-loss-breakdown {
   display: flex;
   gap: 0.5rem;
@@ -229,7 +238,8 @@ const props = defineProps({
   justify-content: center;
 }
 
-.wins, .losses {
+.wins,
+.losses {
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -312,8 +322,13 @@ const props = defineProps({
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .no-data-message {

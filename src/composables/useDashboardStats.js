@@ -155,6 +155,16 @@ export function useDashboardStats() {
       const winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
       const losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
 
+      // Calculate risk-reward ratio
+      const totalWins = trades.filter(trade => (trade.pnlAmount || 0) > 0)
+        .reduce((sum, trade) => sum + trade.pnlAmount, 0)
+      const totalLosses = Math.abs(trades.filter(trade => (trade.pnlAmount || 0) < 0)
+        .reduce((sum, trade) => sum + trade.pnlAmount, 0))
+
+      const avgWin = winningTrades > 0 ? totalWins / winningTrades : 0
+      const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0
+      const riskRewardRatio = avgLoss > 0 ? avgWin / avgLoss : 0
+
       return {
         ...monthData,
         totalTrades: trades.length,
@@ -162,7 +172,8 @@ export function useDashboardStats() {
         losingTrades,
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
-        avgPnL: Math.round(totalPnL / trades.length)
+        avgPnL: Math.round(totalPnL / trades.length),
+        riskRewardRatio: riskRewardRatio
       }
     }).sort((a, b) => a.monthNumber - b.monthNumber)
   })

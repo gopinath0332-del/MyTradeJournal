@@ -30,7 +30,7 @@ export function useDashboardStats() {
   // Computed daily P&L data
   const dailyPnLData = computed(() => {
     if (!currentYearTrades.value.length) return []
-    
+
     const tradesByDate = currentYearTrades.value.reduce((acc, trade) => {
       const date = new Date(trade.entryDate).toDateString()
       if (!acc[date]) {
@@ -55,7 +55,7 @@ export function useDashboardStats() {
   // Computed main statistics
   const stats = computed(() => {
     const dailyData = dailyPnLData.value
-    
+
     if (!dailyData.length) {
       return {
         tradingDays: 0,
@@ -100,7 +100,7 @@ export function useDashboardStats() {
     // Calculate profit/loss statistics
     const profits = dailyData.filter(d => d.isProfit).map(d => d.pnl)
     const losses = dailyData.filter(d => d.isLoss).map(d => Math.abs(d.pnl))
-    
+
     const totalProfit = profits.reduce((sum, p) => sum + p, 0)
     const totalLoss = losses.reduce((sum, l) => sum + l, 0)
     const netPnL = totalProfit - totalLoss
@@ -134,10 +134,10 @@ export function useDashboardStats() {
     if (!currentYearTrades.value.length) return []
 
     const monthlyStats = {}
-    
+
     currentYearTrades.value.forEach(trade => {
       const month = new Date(trade.entryDate).getMonth()
-      
+
       if (!monthlyStats[month]) {
         monthlyStats[month] = {
           month: monthNames[month],
@@ -145,16 +145,16 @@ export function useDashboardStats() {
           trades: []
         }
       }
-      
+
       monthlyStats[month].trades.push(trade)
     })
-    
+
     return Object.values(monthlyStats).map(monthData => {
       const trades = monthData.trades
       const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
       const winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
       const losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
-      
+
       return {
         ...monthData,
         totalTrades: trades.length,
@@ -172,26 +172,26 @@ export function useDashboardStats() {
     if (!currentYearTrades.value.length) return []
 
     // Get available months
-    const monthsWithData = [...new Set(currentYearTrades.value.map(trade => 
+    const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
       new Date(trade.entryDate).getMonth()
     ))].sort((a, b) => a - b)
-    
+
     availableMonths.value = monthsWithData
-    
+
     // Filter trades by selected month
-    const filteredTrades = currentYearTrades.value.filter(trade => 
+    const filteredTrades = currentYearTrades.value.filter(trade =>
       new Date(trade.entryDate).getMonth() === selectedMonth.value
     )
-    
+
     if (!filteredTrades.length) return []
 
     const weeklyStats = {}
-    
+
     filteredTrades.forEach(trade => {
       const tradeDate = new Date(trade.entryDate)
       const weekStart = getWeekStart(tradeDate)
       const weekKey = weekStart.getTime()
-      
+
       if (!weeklyStats[weekKey]) {
         weeklyStats[weekKey] = {
           weekStart: weekStart,
@@ -199,16 +199,26 @@ export function useDashboardStats() {
           trades: []
         }
       }
-      
+
       weeklyStats[weekKey].trades.push(trade)
     })
-    
+
     return Object.values(weeklyStats).map(weekData => {
       const trades = weekData.trades
       const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
       const winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
       const losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
-      
+
+      // Calculate risk-reward ratio
+      const totalWins = trades.filter(trade => (trade.pnlAmount || 0) > 0)
+        .reduce((sum, trade) => sum + trade.pnlAmount, 0)
+      const totalLosses = Math.abs(trades.filter(trade => (trade.pnlAmount || 0) < 0)
+        .reduce((sum, trade) => sum + trade.pnlAmount, 0))
+
+      const avgWin = winningTrades > 0 ? totalWins / winningTrades : 0
+      const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0
+      const riskRewardRatio = avgLoss > 0 ? avgWin / avgLoss : 0
+
       return {
         ...weekData,
         totalTrades: trades.length,
@@ -216,7 +226,8 @@ export function useDashboardStats() {
         losingTrades,
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
-        avgPnL: Math.round(totalPnL / trades.length)
+        avgPnL: Math.round(totalPnL / trades.length),
+        riskRewardRatio: riskRewardRatio
       }
     }).sort((a, b) => b.weekStart - a.weekStart)
   })
@@ -235,14 +246,14 @@ export function useDashboardStats() {
     weekStart.setHours(0, 0, 0, 0)
     return weekStart
   }
-  
+
   const formatWeekRange = (weekStart) => {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
-    
+
     const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    
+
     return `${startStr} - ${endStr}`
   }
 
@@ -267,7 +278,7 @@ export function useDashboardStats() {
   const initializeAvailableYears = async () => {
     try {
       availableYears.value = await tradeService.getAvailableYears()
-      
+
       // If selectedYear is not in available years, set to latest year
       if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
         selectedYear.value = availableYears.value[0]
@@ -293,7 +304,7 @@ export function useDashboardStats() {
   const calculateStats = async () => {
     isLoadingStats.value = true
     statsError.value = null
-    
+
     try {
       await loadTradesForYear(selectedYear.value)
       // Stats are automatically computed via the computed property
@@ -309,7 +320,7 @@ export function useDashboardStats() {
   const calculateMonthlyBreakdown = async () => {
     isLoadingMonthly.value = true
     monthlyError.value = null
-    
+
     try {
       await loadTradesForYear(selectedYear.value)
       // Monthly data is automatically computed via the computed property
@@ -325,22 +336,22 @@ export function useDashboardStats() {
   const calculateWeeklyBreakdown = async () => {
     isLoadingWeekly.value = true
     weeklyError.value = null
-    
+
     try {
       await loadTradesForYear(selectedYear.value)
-      
+
       // Update available months based on current year trades
-      const monthsWithData = [...new Set(currentYearTrades.value.map(trade => 
+      const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
         new Date(trade.entryDate).getMonth()
       ))].sort((a, b) => a - b)
-      
+
       availableMonths.value = monthsWithData
-      
+
       // If current selected month is not available and we have data, fallback to first available month
       if (monthsWithData.length > 0 && !monthsWithData.includes(selectedMonth.value)) {
         selectedMonth.value = monthsWithData[0]
       }
-      
+
       // Weekly data is automatically computed via the computed property
     } catch (error) {
       weeklyError.value = error.message
@@ -354,10 +365,10 @@ export function useDashboardStats() {
   const onYearChange = (newYear) => {
     selectedYear.value = newYear
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
-    
+
     // Clear cache for old year and recalculate
     tradesCache.value.clear()
-    
+
     // Load new year data
     Promise.all([
       calculateStats(),
@@ -414,17 +425,17 @@ export function useDashboardStats() {
     availableYears,
     availableMonths,
     monthNames,
-    
+
     // Loading states
     isLoadingStats,
     isLoadingMonthly,
     isLoadingWeekly,
-    
+
     // Error states
     statsError,
     monthlyError,
     weeklyError,
-    
+
     // Methods
     initializeDashboard,
     onYearChange,

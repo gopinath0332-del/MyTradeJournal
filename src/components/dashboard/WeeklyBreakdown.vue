@@ -5,12 +5,8 @@
       <div class="filters-container">
         <div class="month-selector">
           <label for="monthSelect">Month:</label>
-          <select 
-            id="monthSelect" 
-            :value="selectedMonth" 
-            @change="$emit('month-change', $event.target.value)"
-            :disabled="availableMonths.length === 0"
-          >
+          <select id="monthSelect" :value="selectedMonth" @change="$emit('month-change', $event.target.value)"
+            :disabled="availableMonths.length === 0">
             <option v-if="availableMonths.length === 0" value="">No data available</option>
             <option v-for="monthIndex in availableMonths" :key="monthIndex" :value="monthIndex">
               {{ monthNames[monthIndex] }}
@@ -19,7 +15,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Loading state for weekly breakdown -->
     <div v-if="isLoading" class="loader-container">
       <div class="spinner"></div>
@@ -35,19 +31,17 @@
         </button>
       </div>
     </div>
-    
+
     <div v-else-if="weeklyData.length > 0" class="weekly-grid">
-      <div v-for="week in weeklyData" :key="week.weekRange" 
-           class="weekly-card" 
-           :class="{ 
-             'profitable': week.totalPnL > 0,
-             'loss': week.totalPnL < 0
-           }">
+      <div v-for="week in weeklyData" :key="week.weekRange" class="weekly-card" :class="{
+        'profitable': week.totalPnL > 0,
+        'loss': week.totalPnL < 0
+      }">
         <div class="weekly-header">
           <h4>{{ week.weekRange }}</h4>
           <span class="trade-count">{{ week.totalTrades }} trades</span>
         </div>
-        
+
         <div class="weekly-stats">
           <div class="weekly-stat">
             <span class="stat-label">P&L:</span>
@@ -65,6 +59,13 @@
               ₹{{ week.avgPnL.toLocaleString() }}
             </span>
           </div>
+          <div class="weekly-stat">
+            <span class="stat-label">R:R Ratio:</span>
+            <span class="stat-value"
+              :class="{ 'positive': week.riskRewardRatio >= 1, 'neutral': week.riskRewardRatio < 1 && week.riskRewardRatio > 0 }">
+              {{ week.riskRewardRatio > 0 ? week.riskRewardRatio.toFixed(2) : 'N/A' }}
+            </span>
+          </div>
           <div class="win-loss-breakdown">
             <span class="wins">{{ week.winningTrades }}W</span>
             <span class="losses">{{ week.losingTrades }}L</span>
@@ -72,7 +73,7 @@
         </div>
       </div>
     </div>
-    
+
     <div v-else-if="availableYears.length > 0" class="no-data-message">
       <p v-if="availableMonths.length === 0">No trading data available for {{ selectedYear }}.</p>
       <p v-else>No trading data available for {{ monthNames[selectedMonth] }} {{ selectedYear }}.</p>
@@ -290,6 +291,10 @@ const monthNames = [
   color: #D50000;
 }
 
+.weekly-stat .stat-value.neutral {
+  color: #FF9800;
+}
+
 .trade-count {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -306,7 +311,8 @@ const monthNames = [
   grid-column: span 2;
 }
 
-.wins, .losses {
+.wins,
+.losses {
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
@@ -389,8 +395,13 @@ const monthNames = [
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .no-data-message {

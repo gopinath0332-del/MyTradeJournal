@@ -390,9 +390,7 @@ const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-IN', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: 'numeric'
     })
 }
 

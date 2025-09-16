@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { tradeService } from '../firebase/tradeService.js'
 
 export function useDashboardStats() {
@@ -11,6 +11,16 @@ export function useDashboardStats() {
   const statsError = ref(null)
   const monthlyError = ref(null)
   const weeklyError = ref(null)
+
+  // Equity curve loading state
+  const isLoadingEquityCurve = ref(false)
+  const equityCurveError = ref(null)
+
+  // Selected month for equity curve (separate from main dashboard month selection)
+  const selectedEquityMonth = ref(new Date().getMonth())
+
+  // Starting equity for the current month (configurable)
+  const startingEquity = ref(100000) // Default starting equity
 
   // Year and month selection
   const selectedYear = ref(new Date().getFullYear())
@@ -128,6 +138,75 @@ export function useDashboardStats() {
       avgDailyPnL: Math.round(avgDailyPnL)
     }
   })
+
+  // Computed equity curve data for selected month
+  const currentMonthEquityData = computed(() => {
+    if (!currentYearTrades.value.length) return []
+
+    const currentDate = new Date()
+    const currentYear = selectedYear.value
+
+    // Filter trades for selected equity month
+    const selectedMonthTrades = currentYearTrades.value.filter(trade => {
+      const tradeDate = new Date(trade.entryDate)
+      return tradeDate.getMonth() === selectedEquityMonth.value && tradeDate.getFullYear() === currentYear
+    })
+
+    if (!selectedMonthTrades.length) return []
+
+    // Group trades by date and calculate daily P&L
+    const dailyPnLMap = {}
+    
+    selectedMonthTrades.forEach(trade => {
+      const dateStr = new Date(trade.entryDate).toISOString().split('T')[0]
+      if (!dailyPnLMap[dateStr]) {
+        dailyPnLMap[dateStr] = 0
+      }
+      dailyPnLMap[dateStr] += (trade.pnlAmount || 0)
+    })
+
+    // Convert to array and sort by date
+    const dailyPnLArray = Object.entries(dailyPnLMap)
+      .map(([date, pnl]) => ({ date, dailyPnL: pnl }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+    // Calculate cumulative P&L (starting from 0)
+    let cumulativePnL = 0
+    
+    return dailyPnLArray.map(dayData => {
+      cumulativePnL += dayData.dailyPnL
+      return {
+        date: dayData.date,
+        dailyPnL: dayData.dailyPnL,
+        cumulativePnL: cumulativePnL
+      }
+    })
+  })
+
+  // Available months for equity curve
+  const availableEquityMonths = computed(() => {
+    if (!currentYearTrades.value.length) return []
+
+    const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
+      new Date(trade.entryDate).getMonth()
+    ))].sort((a, b) => a - b)
+
+    return monthsWithData.map(month => ({
+      value: month,
+      label: monthNames[month]
+    }))
+  })
+
+  // Auto-adjust equity month selection when available months change
+  watch(availableEquityMonths, (newMonths) => {
+    if (newMonths.length > 0) {
+      // If current selected month is not available, select the first available month
+      const isCurrentMonthAvailable = newMonths.some(month => month.value === selectedEquityMonth.value)
+      if (!isCurrentMonthAvailable) {
+        selectedEquityMonth.value = newMonths[0].value
+      }
+    }
+  }, { immediate: true })
 
   // Computed monthly breakdown
   const monthlyData = computed(() => {
@@ -376,6 +455,10 @@ export function useDashboardStats() {
   const onYearChange = (newYear) => {
     selectedYear.value = newYear
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
+    
+    // Reset equity curve month to current month or first available month
+    const currentMonth = new Date().getMonth()
+    selectedEquityMonth.value = currentMonth
 
     // Clear cache for old year and recalculate
     tradesCache.value.clear()
@@ -394,6 +477,12 @@ export function useDashboardStats() {
   const onMonthChange = (newMonth) => {
     selectedMonth.value = parseInt(newMonth)
     // Weekly data will automatically update via computed property
+  }
+
+  // Equity curve month change handler
+  const onEquityMonthChange = (newMonth) => {
+    selectedEquityMonth.value = parseInt(newMonth)
+    // Equity curve data will automatically update via computed property
   }
 
   // Initialize all data
@@ -437,20 +526,28 @@ export function useDashboardStats() {
     availableMonths,
     monthNames,
 
+    // Equity curve
+    currentMonthEquityData,
+    selectedEquityMonth,
+    availableEquityMonths,
+
     // Loading states
     isLoadingStats,
     isLoadingMonthly,
     isLoadingWeekly,
+    isLoadingEquityCurve,
 
     // Error states
     statsError,
     monthlyError,
     weeklyError,
+    equityCurveError,
 
     // Methods
     initializeDashboard,
     onYearChange,
     onMonthChange,
+    onEquityMonthChange,
     calculateStats,
     calculateMonthlyBreakdown,
     calculateWeeklyBreakdown,

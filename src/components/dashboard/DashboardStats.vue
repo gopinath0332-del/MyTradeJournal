@@ -17,6 +17,15 @@
       :on-retry="retryStats"
     />
 
+    <EquityCurve 
+      :equity-data="currentMonthEquityData"
+      :is-loading="isLoadingEquityCurve"
+      :selected-equity-month="selectedEquityMonth"
+      :available-months="availableEquityMonths"
+      :selected-year="selectedYear"
+      @month-change="onEquityMonthChange"
+    />
+
     <WeeklyBreakdown 
       v-if="availableYears.length > 0"
       :weekly-data="weeklyData"
@@ -45,6 +54,7 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
 import StatsGrid from './StatsGrid.vue'
+import EquityCurve from './EquityCurve.vue'
 import WeeklyBreakdown from './WeeklyBreakdown.vue'
 import MonthlyBreakdown from './MonthlyBreakdown.vue'
 import YearSelector from './YearSelector.vue'
@@ -60,10 +70,16 @@ const {
   availableYears,
   availableMonths,
   
+  // Equity curve
+  currentMonthEquityData,
+  selectedEquityMonth,
+  availableEquityMonths,
+  
   // Loading states
   isLoadingStats,
   isLoadingMonthly,
   isLoadingWeekly,
+  isLoadingEquityCurve,
   
   // Error states
   statsError,
@@ -74,6 +90,7 @@ const {
   initializeDashboard,
   onYearChange,
   onMonthChange,
+  onEquityMonthChange,
   retryStats,
   retryMonthly,
   retryWeekly

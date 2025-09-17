@@ -39,13 +39,13 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="entryDate">Entry Date</label>
-                    <input type="datetime-local" id="entryDate" v-model="trade.entryDate" required
+                    <input type="date" id="entryDate" v-model="trade.entryDate" required
                         @change="calculateHoldingDays" />
                 </div>
                 <div class="form-group">
                     <label for="exitDate">Exit Date (Optional)</label>
-                    <input type="datetime-local" id="exitDate" v-model="trade.exitDate" @change="calculateHoldingDays"
-                        :max="new Date().toISOString().slice(0, 16)" />
+                    <input type="date" id="exitDate" v-model="trade.exitDate" @change="calculateHoldingDays"
+                        :max="new Date().toISOString().slice(0, 10)" />
                 </div>
             </div>
 
@@ -416,7 +416,7 @@ label {
 
 input[type="text"],
 input[type="number"],
-input[type="datetime-local"],
+input[type="date"],
 select,
 textarea {
     width: 100%;
@@ -434,7 +434,7 @@ textarea {
 @media (min-width: 768px) {
     input[type="text"],
     input[type="number"],
-    input[type="datetime-local"],
+    input[type="date"],
     select,
     textarea {
         padding: 8px;

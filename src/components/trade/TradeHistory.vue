@@ -250,11 +250,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editEntryDate">Entry Date</label>
-                            <input type="datetime-local" id="editEntryDate" v-model="editedTrade.entryDate" required />
+                            <input type="date" id="editEntryDate" v-model="editedTrade.entryDate" required />
                         </div>
                         <div class="form-group">
                             <label for="editExitDate">Exit Date (Optional)</label>
-                            <input type="datetime-local" id="editExitDate" v-model="editedTrade.exitDate" />
+                            <input type="date" id="editExitDate" v-model="editedTrade.exitDate" 
+                                :max="new Date().toISOString().slice(0, 10)" />
                         </div>
                     </div>
 
@@ -410,8 +411,8 @@ const handleEdit = (trade) => {
     // Format dates for the form inputs
     const formattedTrade = {
         ...trade,
-        entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 16) : '',
-        exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 16) : ''
+        entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 10) : '',
+        exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 10) : ''
     }
     startEditingTrade(formattedTrade)
 }

@@ -86,22 +86,23 @@ export function useTradeForm(initialTrade = null) {
         errors.strategy = 'Strategy is required'
       }
 
-      // Date validation
+      // Date validation - compare only dates, not times
       if (formData.entryDate && formData.exitDate) {
-        const entryTime = new Date(formData.entryDate).getTime()
-        const exitTime = new Date(formData.exitDate).getTime()
+        const entryDate = new Date(formData.entryDate + 'T00:00:00')
+        const exitDate = new Date(formData.exitDate + 'T00:00:00')
         
-        if (exitTime <= entryTime) {
-          errors.exitDate = 'Exit date must be after entry date'
+        if (exitDate < entryDate) {
+          errors.exitDate = 'Exit date must be on or after entry date'
         }
       }
 
-      // Exit date cannot be in the future
+      // Exit date cannot be in the future (compare only dates)
       if (formData.exitDate) {
-        const exitTime = new Date(formData.exitDate).getTime()
-        const now = new Date().getTime()
+        const exitDate = new Date(formData.exitDate + 'T00:00:00')
+        const today = new Date()
+        today.setHours(0, 0, 0, 0) // Set to start of today
         
-        if (exitTime > now) {
+        if (exitDate > today) {
           errors.exitDate = 'Exit date cannot be in the future'
         }
       }

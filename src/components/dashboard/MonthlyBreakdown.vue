@@ -54,6 +54,20 @@
               {{ month.riskRewardRatio > 0 ? month.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>
           </div>
+          
+          <!-- Remarks breakdown section -->
+          <div v-if="Object.keys(month.remarksCount || {}).length > 0" class="remarks-section">
+            <div class="remarks-header">
+              <span class="stat-label">Remarks:</span>
+            </div>
+            <div class="remarks-list">
+              <div v-for="(count, remark) in month.remarksCount" :key="remark" class="remark-item">
+                <span class="remark-name">{{ remark }}:</span>
+                <span class="remark-count">{{ count }}</span>
+              </div>
+            </div>
+          </div>
+          
           <div class="win-loss-breakdown">
             <span class="wins">{{ month.winningTrades }}W</span>
             <span class="losses">{{ month.losingTrades }}L</span>
@@ -342,5 +356,48 @@ const props = defineProps({
 
 .no-data-message p {
   margin: 0.5rem 0;
+}
+
+.remarks-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.remarks-header {
+  margin-bottom: 0.5rem;
+}
+
+.remarks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.remark-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.remark-name {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  flex: 1;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.remark-count {
+  font-weight: 600;
+  color: var(--text-color);
+  background: #f1f5f9;
+  padding: 0.125rem 0.375rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  min-width: 20px;
+  text-align: center;
 }
 </style>

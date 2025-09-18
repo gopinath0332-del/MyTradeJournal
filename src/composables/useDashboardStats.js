@@ -244,6 +244,15 @@ export function useDashboardStats() {
       const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0
       const riskRewardRatio = avgLoss > 0 ? avgWin / avgLoss : 0
 
+      // Calculate remarks breakdown
+      const remarksCount = {}
+      trades.forEach(trade => {
+        if (trade.remarks && trade.remarks.trim()) {
+          const remark = trade.remarks.trim()
+          remarksCount[remark] = (remarksCount[remark] || 0) + 1
+        }
+      })
+
       return {
         ...monthData,
         totalTrades: trades.length,
@@ -252,7 +261,8 @@ export function useDashboardStats() {
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
-        riskRewardRatio: riskRewardRatio
+        riskRewardRatio: riskRewardRatio,
+        remarksCount: remarksCount
       }
     }).sort((a, b) => a.monthNumber - b.monthNumber)
   })

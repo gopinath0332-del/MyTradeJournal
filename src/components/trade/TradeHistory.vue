@@ -215,6 +215,10 @@
                         <span class="label">Days Held:</span>
                         <span class="value">{{ selectedTrade.daysHeld }}</span>
                     </div>
+                    <div class="detail-notes" v-if="selectedTrade.remarks">
+                        <span class="label">Remarks:</span>
+                        <p class="value">{{ selectedTrade.remarks }}</p>
+                    </div>
                     <div class="detail-notes" v-if="selectedTrade.notes">
                         <span class="label">Notes:</span>
                         <p class="value">{{ selectedTrade.notes }}</p>

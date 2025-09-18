@@ -215,9 +215,9 @@
                         <span class="label">Days Held:</span>
                         <span class="value">{{ selectedTrade.daysHeld }}</span>
                     </div>
-                    <div class="detail-notes" v-if="selectedTrade.remarks">
+                    <div class="detail-row" v-if="selectedTrade.remarks">
                         <span class="label">Remarks:</span>
-                        <p class="value">{{ selectedTrade.remarks }}</p>
+                        <span class="value">{{ selectedTrade.remarks }}</span>
                     </div>
                     <div class="detail-notes" v-if="selectedTrade.notes">
                         <span class="label">Notes:</span>
@@ -1019,6 +1019,14 @@ td.loss {
 
 .value {
     font-weight: 600;
+}
+
+.value.profit {
+    color: #42b883;
+}
+
+.value.loss {
+    color: #ef4444;
 }
 
 .detail-notes {

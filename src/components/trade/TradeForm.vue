@@ -129,6 +129,12 @@
             </div>
 
             <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea id="notes" v-model="trade.notes" rows="4"
+                    placeholder="Add any notes about this trade..."></textarea>
+            </div>
+
+            <div class="form-group">
                 <label for="lessonsLearned">Lessons Learned</label>
                 <textarea id="lessonsLearned" v-model="trade.lessonsLearned" rows="4"
                     placeholder="What did you learn from this trade?"></textarea>

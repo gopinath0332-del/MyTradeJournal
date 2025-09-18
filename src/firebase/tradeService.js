@@ -13,6 +13,48 @@ import { db } from './config'
 
 const COLLECTION_NAME = 'trades'
 
+// LocalStorage fallback functions
+const localStorageService = {
+    getTrades() {
+        return JSON.parse(localStorage.getItem('trades') || '[]')
+    },
+    
+    saveTrades(trades) {
+        localStorage.setItem('trades', JSON.stringify(trades))
+    },
+    
+    addTrade(trade) {
+        const trades = this.getTrades()
+        const newTrade = {
+            ...trade,
+            id: Date.now().toString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        }
+        trades.push(newTrade)
+        this.saveTrades(trades)
+        return newTrade
+    },
+    
+    updateTrade(id, updatedTrade) {
+        const trades = this.getTrades()
+        const index = trades.findIndex(t => t.id === id)
+        if (index !== -1) {
+            trades[index] = { ...updatedTrade, id, updatedAt: new Date().toISOString() }
+            this.saveTrades(trades)
+            return trades[index]
+        }
+        throw new Error('Trade not found')
+    },
+    
+    deleteTrade(id) {
+        const trades = this.getTrades()
+        const filteredTrades = trades.filter(t => t.id !== id)
+        this.saveTrades(filteredTrades)
+        return id
+    }
+}
+
 export const tradeService = {
     // Create a new trade
     async addTrade(trade) {
@@ -24,8 +66,8 @@ export const tradeService = {
             })
             return { ...trade, id: docRef.id }
         } catch (error) {
-            console.error('Error adding trade:', error)
-            throw error
+            console.error('Error adding trade to Firebase, falling back to localStorage:', error)
+            return localStorageService.addTrade(trade)
         }
     },
 
@@ -39,8 +81,8 @@ export const tradeService = {
             })
             return { ...trade, id }
         } catch (error) {
-            console.error('Error updating trade:', error)
-            throw error
+            console.error('Error updating trade in Firebase, falling back to localStorage:', error)
+            return localStorageService.updateTrade(id, trade)
         }
     },
 
@@ -51,8 +93,8 @@ export const tradeService = {
             await deleteDoc(tradeRef)
             return id
         } catch (error) {
-            console.error('Error deleting trade:', error)
-            throw error
+            console.error('Error deleting trade from Firebase, falling back to localStorage:', error)
+            return localStorageService.deleteTrade(id)
         }
     },
 
@@ -175,8 +217,59 @@ export const tradeService = {
 
             return trades
         } catch (error) {
-            console.error('Error getting filtered trades:', error)
-            throw error
+            console.error('Error getting filtered trades from Firebase, falling back to localStorage:', error)
+            // Fallback to localStorage and apply filters client-side
+            let trades = localStorageService.getTrades()
+            
+            // Apply filters client-side
+            if (filters.dateRange && filters.dateRange !== 'all') {
+                const now = new Date()
+                if (filters.dateRange === 'current-month') {
+                    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+                    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                    trades = trades.filter(trade => {
+                        const tradeDate = new Date(trade.entryDate)
+                        return tradeDate >= startOfMonth && tradeDate <= endOfMonth
+                    })
+                } else if (['7', '30', '90'].includes(filters.dateRange)) {
+                    const daysBack = parseInt(filters.dateRange)
+                    const cutoffDate = new Date()
+                    cutoffDate.setDate(cutoffDate.getDate() - daysBack)
+                    trades = trades.filter(trade => new Date(trade.entryDate) >= cutoffDate)
+                }
+            }
+            
+            if (filters.startDate && filters.endDate) {
+                trades = trades.filter(trade => {
+                    const tradeDate = new Date(trade.entryDate)
+                    return tradeDate >= new Date(filters.startDate) && tradeDate <= new Date(filters.endDate)
+                })
+            }
+            
+            if (filters.symbol && filters.symbol !== 'all') {
+                trades = trades.filter(trade => trade.symbol === filters.symbol)
+            }
+            
+            if (filters.type && filters.type !== 'all') {
+                trades = trades.filter(trade => trade.type === filters.type)
+            }
+            
+            if (filters.profitability && filters.profitability !== 'all') {
+                trades = trades.filter(trade => {
+                    const pnl = trade.pnlAmount || 0
+                    if (filters.profitability === 'profit') {
+                        return pnl > 0
+                    } else if (filters.profitability === 'loss') {
+                        return pnl < 0
+                    }
+                    return true
+                })
+            }
+            
+            // Sort by entry date descending
+            trades.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
+            
+            return trades
         }
     },
 
@@ -188,8 +281,10 @@ export const tradeService = {
             const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))]
             return symbols.sort()
         } catch (error) {
-            console.error('Error getting unique symbols:', error)
-            throw error
+            console.error('Error getting unique symbols from Firebase, falling back to localStorage:', error)
+            const trades = localStorageService.getTrades()
+            const symbols = [...new Set(trades.map(trade => trade.symbol))]
+            return symbols.sort()
         }
     }
 }

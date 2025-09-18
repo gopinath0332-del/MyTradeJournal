@@ -215,9 +215,17 @@
                         <span class="label">Days Held:</span>
                         <span class="value">{{ selectedTrade.daysHeld }}</span>
                     </div>
+                    <div class="detail-row" v-if="selectedTrade.remarks">
+                        <span class="label">Remarks:</span>
+                        <span class="value">{{ selectedTrade.remarks }}</span>
+                    </div>
                     <div class="detail-notes" v-if="selectedTrade.notes">
                         <span class="label">Notes:</span>
                         <p class="value">{{ selectedTrade.notes }}</p>
+                    </div>
+                    <div class="detail-notes" v-if="selectedTrade.lessonsLearned">
+                        <span class="label">Lessons Learned:</span>
+                        <p class="value">{{ selectedTrade.lessonsLearned }}</p>
                     </div>
                 </div>
                 <button class="close-btn" @click="selectedTrade = null">Close</button>
@@ -329,6 +337,8 @@ const trades = ref([])
 const uniqueSymbols = ref([])
 const sortKey = ref('entryDate')
 const sortDir = ref('desc')
+const showEditModal = ref(false)
+const editedTrade = ref({})
 
 const filters = ref({
     dateRange: 'current-month',
@@ -454,6 +464,11 @@ const handleEditSubmit = () => {
     } catch (error) {
         console.error('Error updating trade:', error)
     }
+}
+
+const closeEditModal = () => {
+    showEditModal.value = false
+    editedTrade.value = {}
 }
 
 // Sorting functions
@@ -1004,6 +1019,14 @@ td.loss {
 
 .value {
     font-weight: 600;
+}
+
+.value.profit {
+    color: #42b883;
+}
+
+.value.loss {
+    color: #ef4444;
 }
 
 .detail-notes {

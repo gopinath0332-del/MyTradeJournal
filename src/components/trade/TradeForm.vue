@@ -129,6 +129,20 @@
             </div>
 
             <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <select id="remarks" v-model="trade.remarks">
+                    <option value="">Select remarks (optional)</option>
+                    <option value="Early exit">Early exit</option>
+                    <option value="rush trade">rush trade</option>
+                    <option value="Against rules">Against rules</option>
+                    <option value="over trade">over trade</option>
+                    <option value="Early Entry">Early Entry</option>
+                    <option value="Late entry - over analysis">Late entry - over analysis</option>
+                    <option value="Late entry - time past">Late entry - time past</option>
+                </select>
+            </div>
+
+            <div class="form-group">
                 <label for="lessonsLearned">Lessons Learned</label>
                 <textarea id="lessonsLearned" v-model="trade.lessonsLearned" rows="4"
                     placeholder="What did you learn from this trade?"></textarea>
@@ -189,6 +203,7 @@ const trade = ref({
     daysHeld: 0,
     capitalUsed: null,
     notes: '',
+    remarks: '',
     confidence: 3,
     executionQuality: 3,
     lessonsLearned: ''
@@ -290,6 +305,7 @@ const resetForm = () => {
         daysHeld: 0,
         capitalUsed: null,
         notes: '',
+        remarks: '',
         confidence: 3,
         executionQuality: 3,
         lessonsLearned: ''

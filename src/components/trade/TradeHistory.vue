@@ -82,8 +82,8 @@
             </div>
         </div>
 
-        <!-- Trade Table -->
-        <div class="table-container" style="position: relative;">
+        <!-- Trade Table for Desktop -->
+        <div class="table-container desktop-table" style="position: relative;">
             <!-- Loading overlay for trades table -->
             <div v-if="isLoadingTrades" class="loader-overlay">
                 <div class="spinner"></div>
@@ -151,6 +151,79 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card Layout -->
+        <div class="mobile-trades">
+            <!-- Loading overlay for mobile cards -->
+            <div v-if="isLoadingTrades" class="loader-overlay">
+                <div class="spinner"></div>
+            </div>
+            
+            <!-- Sort controls for mobile -->
+            <div class="mobile-sort-controls">
+                <label for="mobileSortSelect">Sort by:</label>
+                <select id="mobileSortSelect" v-model="sortKey" @change="toggleSortOrder">
+                    <option value="entryDate">Date</option>
+                    <option value="symbol">Symbol</option>
+                    <option value="type">Type</option>
+                    <option value="entryPrice">Entry Price</option>
+                    <option value="exitPrice">Exit Price</option>
+                    <option value="pnlAmount">P&L</option>
+                </select>
+                <button class="sort-direction-btn" @click="toggleSortOrder">
+                    {{ sortOrder === 'asc' ? '↑' : '↓' }}
+                </button>
+            </div>
+
+            <div class="trade-cards">
+                <div v-for="trade in sortedTrades" :key="trade.id" class="trade-card"
+                    :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
+                    <div class="trade-card-header">
+                        <div class="trade-symbol">{{ trade.symbol }}</div>
+                        <div class="trade-date">{{ formatDate(trade.entryDate) }}</div>
+                    </div>
+                    
+                    <div class="trade-card-body">
+                        <div class="trade-row">
+                            <span class="trade-label">Type:</span>
+                            <span class="trade-value" :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
+                                {{ trade.type }}
+                            </span>
+                        </div>
+                        <div class="trade-row">
+                            <span class="trade-label">Entry:</span>
+                            <span class="trade-value">{{ formatCurrency(trade.entryPrice) }}</span>
+                        </div>
+                        <div class="trade-row">
+                            <span class="trade-label">Exit:</span>
+                            <span class="trade-value">{{ formatCurrency(trade.exitPrice) }}</span>
+                        </div>
+                        <div class="trade-row">
+                            <span class="trade-label">P&L:</span>
+                            <span class="trade-value pnl-value" :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
+                                {{ formatCurrency(trade.pnlAmount) }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="trade-card-actions">
+                        <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
+                            View
+                        </button>
+                        <button class="action-btn edit-btn" @click="handleEdit(trade)">
+                            Edit
+                        </button>
+                        <button class="action-btn delete-btn" @click="deleteTrade(trade)">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <div v-if="sortedTrades.length === 0" class="no-data-mobile">
+                    No trades found matching your filters
+                </div>
+            </div>
         </div>
 
         <!-- Trade Details Modal -->
@@ -484,6 +557,10 @@ const sortBy = (key) => {
 const getSortArrow = (key) => {
     if (sortKey.value !== key) return ''
     return sortDir.value === 'asc' ? '↑' : '↓'
+}
+
+const toggleSortOrder = () => {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
 }
 
 // Calculate net profit from sorted trades
@@ -1095,5 +1172,211 @@ td.loss {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Mobile/Desktop Responsive Layout */
+.desktop-table {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .desktop-table {
+        display: block;
+    }
+    .mobile-trades {
+        display: none;
+    }
+}
+
+/* Mobile Trade Cards */
+.mobile-trades {
+    display: block;
+}
+
+.mobile-sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding: 12px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+}
+
+.mobile-sort-controls label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.mobile-sort-controls select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+}
+
+.sort-direction-btn {
+    padding: 8px 12px;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    min-width: 40px;
+}
+
+.sort-direction-btn:hover {
+    background-color: #2563eb;
+}
+
+.trade-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trade-card {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.trade-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.trade-card.profit {
+    border-left: 4px solid #22c55e;
+    background-color: rgba(34, 197, 94, 0.02);
+}
+
+.trade-card.loss {
+    border-left: 4px solid #ef4444;
+    background-color: rgba(239, 68, 68, 0.02);
+}
+
+.trade-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.trade-symbol {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.trade-date {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.trade-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.trade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trade-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.trade-value {
+    font-size: 14px;
+    color: #111827;
+    font-weight: 600;
+}
+
+.trade-value.type-buy {
+    color: #22c55e;
+}
+
+.trade-value.type-sell {
+    color: #ef4444;
+}
+
+.pnl-value.profit {
+    color: #22c55e;
+}
+
+.pnl-value.loss {
+    color: #ef4444;
+}
+
+.trade-card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.trade-card-actions .action-btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.no-data-mobile {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+    font-size: 16px;
+    font-style: italic;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    border: 2px dashed #d1d5db;
+}
+
+/* Ensure table doesn't break on smaller screens when shown */
+@media (min-width: 768px) {
+    table {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
+    table {
+        min-width: 100%;
+        font-size: 0.75rem;
+    }
+    
+    th, td {
+        padding: 6px 4px;
+        font-size: 0.75rem;
+    }
+    
+    .actions-container {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .action-btn {
+        padding: 6px 8px;
+        font-size: 0.75rem;
+        min-width: 50px;
+    }
 }
 </style>

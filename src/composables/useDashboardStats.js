@@ -16,6 +16,10 @@ export function useDashboardStats() {
   const isLoadingEquityCurve = ref(false)
   const equityCurveError = ref(null)
 
+  // Heatmap loading state
+  const isLoadingHeatmap = ref(false)
+  const heatmapError = ref(null)
+
   // Selected month for equity curve (separate from main dashboard month selection)
   const selectedEquityMonth = ref(new Date().getMonth())
 
@@ -593,6 +597,10 @@ export function useDashboardStats() {
   const retryStats = () => calculateStats()
   const retryMonthly = () => calculateMonthlyBreakdown()
   const retryWeekly = () => calculateWeeklyBreakdown()
+  const retryHeatmap = () => {
+    heatmapError.value = null
+    // Heatmap data is computed automatically, just clear the error
+  }
 
   return {
     // State
@@ -618,12 +626,14 @@ export function useDashboardStats() {
     isLoadingMonthly,
     isLoadingWeekly,
     isLoadingEquityCurve,
+    isLoadingHeatmap,
 
     // Error states
     statsError,
     monthlyError,
     weeklyError,
     equityCurveError,
+    heatmapError,
 
     // Methods
     initializeDashboard,
@@ -636,6 +646,7 @@ export function useDashboardStats() {
     clearErrors,
     retryStats,
     retryMonthly,
-    retryWeekly
+    retryWeekly,
+    retryHeatmap
   }
 }

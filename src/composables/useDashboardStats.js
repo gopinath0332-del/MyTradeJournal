@@ -197,6 +197,75 @@ export function useDashboardStats() {
     }))
   })
 
+  // Heatmap data for calendar view
+  const heatmapData = computed(() => {
+    if (!currentYearTrades.value.length) return []
+
+    const year = selectedYear.value
+    const months = []
+
+    // Generate all 12 months
+    for (let month = 0; month < 12; month++) {
+      const monthData = {
+        month,
+        monthName: monthNames[month],
+        weeks: []
+      }
+
+      // Get first day of month and number of days
+      const firstDay = new Date(year, month, 1)
+      const lastDay = new Date(year, month + 1, 0)
+      const daysInMonth = lastDay.getDate()
+      
+      // Calculate weeks in month
+      let currentWeek = []
+
+      // Add empty cells for days before month starts
+      const startDay = firstDay.getDay() // 0 = Sunday
+      for (let i = 0; i < startDay; i++) {
+        currentWeek.push(null)
+      }
+
+      // Add all days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day)
+        const dateString = date.toDateString()
+        
+        // Find trades for this day
+        const dayTrades = currentYearTrades.value.filter(trade => 
+          new Date(trade.entryDate).toDateString() === dateString
+        )
+        
+        const dayPnL = dayTrades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+        
+        currentWeek.push({
+          day,
+          date: dateString,
+          pnl: dayPnL,
+          tradeCount: dayTrades.length,
+          intensity: dayPnL === 0 ? 0 : Math.min(4, Math.ceil(Math.abs(dayPnL) / 1000))
+        })
+
+        // If week is complete (7 days) or it's the last day of month
+        if (currentWeek.length === 7 || day === daysInMonth) {
+          // Fill remaining days of week with null if needed
+          while (currentWeek.length < 7 && day === daysInMonth) {
+            currentWeek.push(null)
+          }
+          
+          if (currentWeek.length === 7) {
+            monthData.weeks.push([...currentWeek])
+            currentWeek = []
+          }
+        }
+      }
+
+      months.push(monthData)
+    }
+
+    return months
+  })
+
   // Auto-adjust equity month selection when available months change
   watch(availableEquityMonths, (newMonths) => {
     if (newMonths.length > 0) {
@@ -540,6 +609,9 @@ export function useDashboardStats() {
     currentMonthEquityData,
     selectedEquityMonth,
     availableEquityMonths,
+
+    // Heatmap
+    heatmapData,
 
     // Loading states
     isLoadingStats,

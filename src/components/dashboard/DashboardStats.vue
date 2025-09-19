@@ -48,6 +48,12 @@
       :error="monthlyError"
       :on-retry="retryMonthly"
     />
+
+    <TradingHeatmap 
+      v-if="availableYears.length > 0"
+      :heatmap-data="heatmapData"
+      :selected-year="selectedYear"
+    />
   </div>
 </template>
 
@@ -57,6 +63,7 @@ import StatsGrid from './StatsGrid.vue'
 import EquityCurve from './EquityCurve.vue'
 import WeeklyBreakdown from './WeeklyBreakdown.vue'
 import MonthlyBreakdown from './MonthlyBreakdown.vue'
+import TradingHeatmap from './TradingHeatmap.vue'
 import YearSelector from './YearSelector.vue'
 import { useDashboardStats } from '../../composables/useDashboardStats.js'
 
@@ -74,6 +81,9 @@ const {
   currentMonthEquityData,
   selectedEquityMonth,
   availableEquityMonths,
+  
+  // Heatmap
+  heatmapData,
   
   // Loading states
   isLoadingStats,

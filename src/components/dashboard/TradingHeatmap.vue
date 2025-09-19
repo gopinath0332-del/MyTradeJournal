@@ -2,30 +2,48 @@
   <div class="heatmap-section">
     <div class="heatmap-header">
       <h3>Trading Activity Heatmap</h3>
-      <span class="heatmap-year">{{ selectedYear }}</span>
+      <span v-if="availableYears.length > 0" class="heatmap-years">
+        {{ availableYears.length > 1 ? `${Math.min(...availableYears)} - ${Math.max(...availableYears)}` : availableYears[0] }}
+      </span>
     </div>
     
-    <div class="heatmap-container">
-      <div class="heatmap-months">
-        <div v-for="monthData in heatmapData" :key="monthData.month" class="month-grid">
-          <div class="month-label" :class="{ 'has-trades': hasTradesInMonth(monthData) }">
-            {{ monthData.monthName.slice(0, 3) }}
-          </div>
-          <div class="month-calendar">
-            <div class="week-row" v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex">
-              <div v-for="(day, dayIndex) in week" :key="dayIndex" class="day-cell"
-                :class="{
-                  'has-trades': day && day.tradeCount > 0,
-                  'profit': day && day.pnl > 0,
-                  'loss': day && day.pnl < 0,
-                  'neutral': day && day.pnl === 0 && day.tradeCount > 0,
-                  'no-trade': !day || day.tradeCount === 0,
-                  [`intensity-${day?.intensity || 0}`]: day
-                }"
-                @mouseenter="showTooltip($event, day)"
-                @mouseleave="hideTooltip"
-              >
-                <span v-if="day && day.tradeCount > 0" class="trade-indicator">{{ day.tradeCount }}</span>
+    <div v-if="isLoading" class="loading-state">
+      <p>Loading heatmap data...</p>
+    </div>
+    
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button @click="onRetry" class="retry-button">Retry</button>
+    </div>
+    
+    <div v-else class="heatmap-container">
+      <!-- Display each year's data -->
+      <div v-for="yearData in heatmapData" :key="yearData.year" class="year-section">
+        <div class="year-header">
+          <h4>{{ yearData.year }}</h4>
+        </div>
+        
+        <div class="heatmap-months">
+          <div v-for="monthData in yearData.months" :key="`${yearData.year}-${monthData.month}`" class="month-grid">
+            <div class="month-label" :class="{ 'has-trades': hasTradesInMonth(monthData) }">
+              {{ monthData.monthName.slice(0, 3) }}
+            </div>
+            <div class="month-calendar">
+              <div class="week-row" v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex">
+                <div v-for="(day, dayIndex) in week" :key="dayIndex" class="day-cell"
+                  :class="{
+                    'has-trades': day && day.tradeCount > 0,
+                    'profit': day && day.pnl > 0,
+                    'loss': day && day.pnl < 0,
+                    'neutral': day && day.pnl === 0 && day.tradeCount > 0,
+                    'no-trade': !day || day.tradeCount === 0,
+                    [`intensity-${day?.intensity || 0}`]: day
+                  }"
+                  @mouseenter="showTooltip($event, day)"
+                  @mouseleave="hideTooltip"
+                >
+                  <span v-if="day && day.tradeCount > 0" class="trade-indicator">{{ day.tradeCount }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -77,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 // Props
 const props = defineProps({
@@ -85,10 +103,23 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  selectedYear: {
-    type: Number,
-    required: true
+  isLoading: {
+    type: Boolean,
+    default: false
+  },
+  error: {
+    type: String,
+    default: null
+  },
+  onRetry: {
+    type: Function,
+    default: () => {}
   }
+})
+
+// Extract available years from heatmap data
+const availableYears = computed(() => {
+  return props.heatmapData.map(yearData => yearData.year).sort((a, b) => b - a)
 })
 
 // Tooltip state
@@ -171,6 +202,58 @@ const hideTooltip = () => {
   font-size: 1rem;
   color: #6b7280;
   font-weight: 500;
+}
+
+.heatmap-years {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.loading-state, .error-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.error-state {
+  color: #dc2626;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.retry-button:hover {
+  background-color: #2563eb;
+}
+
+.year-section {
+  margin-bottom: 3rem;
+}
+
+.year-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.year-header h4 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: #374151;
+  font-weight: 600;
+  padding: 0.5rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .heatmap-container {

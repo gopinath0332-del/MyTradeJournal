@@ -148,13 +148,18 @@
                     placeholder="What did you learn from this trade?"></textarea>
             </div>
 
-            <button type="submit" class="submit-button" :disabled="isSubmitting">
-                <span v-if="isSubmitting">
-                    <span class="spinner-small"></span>
-                    {{ trade.id ? 'Saving...' : 'Logging...' }}
-                </span>
-                <span v-else>{{ trade.id ? 'Save Changes' : 'Log Trade' }}</span>
-            </button>
+            <div class="form-actions">
+                <button v-if="trade.id" type="button" class="cancel-button" @click="handleCancel">
+                    Cancel
+                </button>
+                <button type="submit" class="submit-button" :disabled="isSubmitting">
+                    <span v-if="isSubmitting">
+                        <span class="spinner-small"></span>
+                        {{ trade.id ? 'Saving...' : 'Logging...' }}
+                    </span>
+                    <span v-else>{{ trade.id ? 'Save Changes' : 'Log Trade' }}</span>
+                </button>
+            </div>
         </form>
     </div>
 </template>
@@ -361,6 +366,19 @@ const handleSubmit = async () => {
     }
 }
 
+const handleCancel = () => {
+    // Clear editing state
+    if (editingTrade) {
+        editingTrade.value = null
+    }
+    
+    // Reset form to clear any changes
+    resetForm()
+    
+    // Navigate back to history view
+    activeTab.value = 'history'
+}
+
 onMounted(() => {
     if (editingTrade.value) {
         trade.value = { ...editingTrade.value }
@@ -484,6 +502,51 @@ textarea {
 
 .submit-button:hover {
     background-color: #3aa876;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+}
+
+.cancel-button {
+    background-color: #6b7280;
+    color: white;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    width: 100%;
+    transition: all 0.25s;
+    min-height: 50px;
+    touch-action: manipulation;
+}
+
+@media (min-width: 768px) {
+    .cancel-button {
+        padding: 12px 20px;
+        min-height: auto;
+        width: auto;
+        min-width: 120px;
+    }
+    
+    .submit-button {
+        width: auto;
+        min-width: 140px;
+    }
+}
+
+.cancel-button:hover {
+    background-color: #4b5563;
 }
 
 .input-with-prefix {

@@ -134,7 +134,7 @@
                         </td>
                         <td class="actions-cell">
                             <div class="actions-container">
-                                <button class="action-btn view-btn" @click="viewTradeDetails(trade)">
+                                <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
                                     View
                                 </button>
                                 <button class="action-btn edit-btn" @click="handleEdit(trade)">
@@ -948,15 +948,23 @@ td.loss {
 }
 
 .view-btn {
-    background-color: #3b82f6;
-    color: white;
+    background-color: #e5e7eb; /* light gray */
+    color: #374151;
     border: none;
 }
 
 .view-btn:hover {
-    background-color: #2563eb;
+    background-color: #d1d5db;
 }
 
+/* Blue if trade has remark */
+.view-btn.has-remarks {
+    background-color: #3b82f6;
+    color: #fff;
+}
+.view-btn.has-remarks:hover {
+    background-color: #2563eb;
+}
 .delete-btn {
     background-color: #ef4444;
     color: white;

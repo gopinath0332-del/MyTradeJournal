@@ -179,7 +179,7 @@ const hideTooltip = () => {
 
 .heatmap-months {
   display: flex;
-  gap: 3px;
+  gap: 12px;
   min-width: fit-content;
 }
 

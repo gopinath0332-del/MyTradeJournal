@@ -53,6 +53,7 @@
       v-if="availableYears.length > 0"
       :heatmap-data="heatmapData"
       :selected-year="selectedYear"
+      class="desktop-only"
     />
   </div>
 </template>
@@ -151,6 +152,13 @@ onUnmounted(() => {
 @media (min-width: 768px) {
   .dashboard-header h2 {
     font-size: 2rem;
+  }
+}
+
+/* Hide heatmap on mobile devices */
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none;
   }
 }
 </style>

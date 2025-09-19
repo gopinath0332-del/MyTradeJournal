@@ -2,18 +2,11 @@
   <div class="heatmap-view">
     <div class="heatmap-header">
       <h2>Trading Heatmap</h2>
-      <YearSelector 
-        v-if="availableYears.length > 0"
-        :selected-year="selectedYear"
-        :available-years="availableYears"
-        @year-change="onYearChange"
-      />
     </div>
 
     <TradingHeatmap 
       v-if="availableYears.length > 0"
       :heatmap-data="heatmapData"
-      :selected-year="selectedYear"
       :is-loading="isLoadingHeatmap"
       :error="heatmapError"
       :on-retry="retryHeatmap"
@@ -28,12 +21,10 @@
 <script setup>
 import { onMounted, onUnmounted } from 'vue'
 import TradingHeatmap from './dashboard/TradingHeatmap.vue'
-import YearSelector from './dashboard/YearSelector.vue'
-import { useDashboardStats } from '../composables/useDashboardStats.js'
+import { useMultiYearHeatmap } from '../composables/useMultiYearHeatmap.js'
 
 const {
   // State
-  selectedYear,
   availableYears,
   
   // Heatmap
@@ -46,13 +37,12 @@ const {
   heatmapError,
   
   // Methods
-  initializeDashboard,
-  onYearChange,
+  initializeHeatmap,
   retryHeatmap
-} = useDashboardStats()
+} = useMultiYearHeatmap()
 
 onMounted(() => {
-  initializeDashboard()
+  initializeHeatmap()
 })
 
 // Cleanup (if needed for any future event listeners)

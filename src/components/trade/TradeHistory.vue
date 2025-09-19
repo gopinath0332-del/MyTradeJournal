@@ -1145,6 +1145,84 @@ td.loss {
     background-color: #cbd5e1;
 }
 
+/* Mobile Modal Optimizations */
+@media (max-width: 767px) {
+    .modal-content {
+        padding: 16px;
+        max-width: 95%;
+        width: 95%;
+        margin: 10px;
+        max-height: 85vh;
+        border-radius: 12px;
+    }
+    
+    .modal-content h3 {
+        font-size: 1.1rem;
+        margin: 0 0 16px 0;
+        text-align: center;
+        color: #1e293b;
+    }
+    
+    .trade-details {
+        margin-top: 12px;
+    }
+    
+    .detail-row {
+        padding: 8px 0;
+        font-size: 0.9rem;
+        align-items: center;
+    }
+    
+    .detail-row .label {
+        font-size: 0.85rem;
+        color: #64748b;
+        font-weight: 500;
+        flex-shrink: 0;
+        min-width: 85px;
+    }
+    
+    .detail-row .value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: right;
+        word-break: break-word;
+    }
+    
+    .detail-notes {
+        margin-top: 16px;
+    }
+    
+    .detail-notes .label {
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+    
+    .detail-notes .value {
+        padding: 10px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        border-radius: 6px;
+        background: #f1f5f9;
+    }
+    
+    .close-btn {
+        margin-top: 16px;
+        padding: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 8px;
+        background-color: #3b82f6;
+        color: white;
+        touch-action: manipulation;
+        min-height: 44px;
+    }
+    
+    .close-btn:hover {
+        background-color: #2563eb;
+    }
+}
+
 /* Loader Styles */
 .loader-overlay {
     position: absolute;

@@ -1,0 +1,152 @@
+<template>
+  <div class="trade-pricing">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="entryPrice">Entry Price</label>
+        <div class="input-with-prefix">
+          <span class="currency-prefix">₹</span>
+          <input 
+            type="number" 
+            id="entryPrice" 
+            :value="modelValue.entryPrice" 
+            @input="handlePriceChange('entryPrice', $event)"
+            required 
+            step="0.01" 
+          />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="exitPrice">Exit Price</label>
+        <div class="input-with-prefix">
+          <span class="currency-prefix">₹</span>
+          <input 
+            type="number" 
+            id="exitPrice" 
+            :value="modelValue.exitPrice" 
+            @input="handlePriceChange('exitPrice', $event)"
+            step="0.01" 
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="lots">Lots</label>
+        <input 
+          type="number" 
+          id="lots" 
+          :value="modelValue.lots" 
+          @input="handleNumberChange('lots', $event)"
+          required 
+          min="1" 
+          step="1" 
+        />
+      </div>
+      <div class="form-group">
+        <label for="capitalUsed">Capital Used</label>
+        <div class="input-with-prefix">
+          <span class="currency-prefix">₹</span>
+          <input 
+            type="number" 
+            id="capitalUsed" 
+            :value="modelValue.capitalUsed" 
+            @input="handlePriceChange('capitalUsed', $event)"
+            required 
+            step="0.01" 
+            min="0" 
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+const props = defineProps({
+  modelValue: {
+    type: Object,
+    required: true
+  }
+})
+
+const emit = defineEmits(['update:modelValue', 'calculate-pnl'])
+
+const updateField = (field, value) => {
+  emit('update:modelValue', {
+    ...props.modelValue,
+    [field]: value
+  })
+}
+
+const handlePriceChange = (field, event) => {
+  const value = parseFloat(event.target.value) || null
+  updateField(field, value)
+  emit('calculate-pnl')
+}
+
+const handleNumberChange = (field, event) => {
+  const value = parseInt(event.target.value) || null
+  updateField(field, value)
+  emit('calculate-pnl')
+}
+</script>
+
+<style scoped>
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+input {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-prefix {
+  position: absolute;
+  left: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.input-with-prefix input {
+  padding-left: 2.5rem;
+}
+</style>

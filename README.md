@@ -5,9 +5,10 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 ## 🚀 Features
 
 - **Trade Management**: Add, edit, and delete trades with comprehensive trade details
+- **Modular Form Design**: Trade form broken into focused, reusable components
 - **Dashboard Analytics**: Visual statistics and performance metrics
 - **Historical Analysis**: View trade history with filtering and search capabilities
-- **Monthly/Weekly Breakdowns**: Detailed performance analysis by time periods
+- **Trading Heatmap**: Visual representation of trading performance patterns
 - **Real-time Data**: Firebase integration for real-time data synchronization
 - **Responsive Design**: Mobile-friendly interface with adaptive layouts
 
@@ -17,7 +18,8 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 - **Build Tool**: Vite
 - **Database**: Firebase Firestore
 - **Styling**: Custom CSS with responsive design
-- **State Management**: Vue 3 Composition API with provide/inject
+- **Architecture**: Modular component design with reusable sub-components
+- **State Management**: Vue 3 Composition API with provide/inject pattern
 
 ## 📁 Project Structure
 
@@ -25,22 +27,26 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 src/
 ├── components/
 │   ├── dashboard/          # Dashboard analytics components
-│   │   ├── DashboardStats.vue
-│   │   ├── MonthlyBreakdown.vue
-│   │   ├── StatsGrid.vue
-│   │   ├── WeeklyBreakdown.vue
-│   │   └── YearSelector.vue
-│   └── trade/              # Trade management components
-│       ├── TradeForm.vue
-│       └── TradeHistory.vue
+│   │   └── DashboardStats.vue
+│   ├── trade/              # Trade management components
+│   │   ├── forms/          # Modular trade form components
+│   │   │   ├── TradeActions.vue      # Save/Delete actions
+│   │   │   ├── TradeBasicInfo.vue    # Symbol, quantity, type
+│   │   │   ├── TradeDates.vue        # Entry/exit dates
+│   │   │   ├── TradeMetadata.vue     # Strategy, notes, tags
+│   │   │   ├── TradePricing.vue      # Price, fees, P&L
+│   │   │   └── TradeSummary.vue      # Calculated summaries
+│   │   ├── TradeForm.vue             # Main trade form container
+│   │   ├── TradeFormOriginal.vue     # Original monolithic form (backup)
+│   │   └── TradeHistory.vue          # Trade history table
+│   ├── HeatmapView.vue     # Trading performance heatmap
+│   └── HelloWorld.vue      # Default Vue component
+├── assets/                 # Static assets
 ├── composables/            # Reusable composition functions
-│   ├── useDashboardStats.js
-│   └── useTradeForm.js
 ├── firebase/               # Firebase configuration and services
-│   ├── config.js
-│   └── tradeService.js
+│   ├── config.js           # Firebase configuration
+│   └── tradeService.js     # Firestore service functions
 ├── styles/                 # CSS stylesheets
-│   └── dashboard.css
 ├── App.vue                 # Main application component
 ├── main.js                 # Application entry point
 └── style.css              # Global styles
@@ -89,18 +95,36 @@ npm run dev
 
 ### Dashboard Components
 - **DashboardStats**: Main dashboard with key performance indicators
-- **StatsGrid**: Grid layout for displaying trading statistics
-- **MonthlyBreakdown**: Monthly performance analysis
-- **WeeklyBreakdown**: Weekly performance trends
-- **YearSelector**: Year selection for filtering data
 
 ### Trade Components
-- **TradeForm**: Form for adding and editing trades
+- **TradeForm**: Main container component that orchestrates all trade form sub-components
 - **TradeHistory**: Table view of all trades with filtering options
 
-### Composables
-- **useDashboardStats**: Logic for dashboard statistics and calculations
-- **useTradeForm**: Form validation and trade management logic
+#### Trade Form Sub-Components (Modular Architecture)
+- **TradeBasicInfo**: Symbol, quantity, and trade type selection
+- **TradeDates**: Entry date, exit date, and automatic days held calculation
+- **TradePricing**: Entry/exit prices, fees, and P&L calculations
+- **TradeSummary**: Calculated trade summaries and performance metrics
+- **TradeMetadata**: Strategy, notes, and tags for trade categorization
+- **TradeActions**: Save and delete action buttons with form validation
+
+### Additional Components
+- **HeatmapView**: Visual heatmap representation of trading performance patterns
+
+## 🏗️ Architecture Highlights
+
+### Modular Component Design
+The application follows a modular architecture pattern, particularly evident in the TradeForm component which has been decomposed into focused sub-components:
+
+- **Separation of Concerns**: Each form section is isolated into its own component
+- **Reusability**: Sub-components can be easily reused across different contexts
+- **Maintainability**: Smaller, focused components are easier to test and maintain
+- **Vue 3 Composition API**: Leverages reactive refs and computed properties for optimal reactivity
+
+### Component Communication
+- **Props/Events Pattern**: Parent-child communication using props down, events up
+- **v-model Binding**: Two-way data binding with computed properties (getter/setter pattern)
+- **Reactive Updates**: Automatic recalculation of derived values (e.g., days held, P&L)
 
 ## 🔥 Firebase Integration
 

@@ -4,6 +4,7 @@ import TradeForm from './components/trade/TradeForm.vue'
 import TradeHistory from './components/trade/TradeHistory.vue'
 import DashboardStats from './components/dashboard/DashboardStats.vue'
 import HeatmapView from './components/HeatmapView.vue'
+import MobileTransactionView from './components/MobileTransactionView.vue'
 
 const activeTab = ref('dashboard') // 'dashboard', 'trade', or 'history'
 const editingTrade = ref(null)
@@ -114,6 +115,14 @@ provide('refreshDashboard', refreshDashboard)
               <span class="nav-text">Log Trade</span>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link" 
+               :class="{ active: activeTab === 'mobile' }" 
+               @click.prevent="navigateTo('mobile')">
+              <span class="nav-icon">📱</span>
+              <span class="nav-text">Mobile View</span>
+            </a>
+          </li>
         </ul>
       </nav>
     </header>
@@ -123,6 +132,7 @@ provide('refreshDashboard', refreshDashboard)
       <TradeHistory v-if="activeTab === 'history'" />
       <HeatmapView v-if="activeTab === 'heatmap'" />
       <TradeForm v-if="activeTab === 'trade'" />
+      <MobileTransactionView v-if="activeTab === 'mobile'" />
     </main>
 
     <!-- Toast Container -->

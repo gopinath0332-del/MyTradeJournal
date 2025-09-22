@@ -1257,6 +1257,10 @@ td.loss {
     display: none;
 }
 
+.mobile-trades {
+    display: block;
+}
+
 @media (min-width: 768px) {
     .desktop-table {
         display: block;
@@ -1264,11 +1268,6 @@ td.loss {
     .mobile-trades {
         display: none;
     }
-}
-
-/* Mobile Trade Cards */
-.mobile-trades {
-    display: block;
 }
 
 .mobile-sort-controls {

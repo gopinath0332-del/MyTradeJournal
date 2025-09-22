@@ -11,7 +11,9 @@
             :value="modelValue.entryPrice" 
             @input="handlePriceChange('entryPrice', $event)"
             required 
-            step="0.01" 
+            step="0.01"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
           />
         </div>
       </div>
@@ -24,7 +26,9 @@
             id="exitPrice" 
             :value="modelValue.exitPrice" 
             @input="handlePriceChange('exitPrice', $event)"
-            step="0.01" 
+            step="0.01"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
           />
         </div>
       </div>
@@ -40,7 +44,9 @@
           @input="handleNumberChange('lots', $event)"
           required 
           min="1" 
-          step="1" 
+          step="1"
+          inputmode="numeric"
+          pattern="[0-9]*"
         />
       </div>
       <div class="form-group">
@@ -54,7 +60,9 @@
             @input="handlePriceChange('capitalUsed', $event)"
             required 
             step="0.01" 
-            min="0" 
+            min="0"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
           />
         </div>
       </div>

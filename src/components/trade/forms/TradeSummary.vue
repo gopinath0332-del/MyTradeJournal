@@ -11,7 +11,9 @@
             :value="pnl.amount" 
             @input="handlePnLAmountChange"
             step="0.01" 
-            :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }" 
+            :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
           />
         </div>
       </div>

@@ -366,6 +366,13 @@ const props = defineProps({
 
 .remarks-header {
   margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.remarks-header .stat-label {
+  text-align: left;
+  justify-content: flex-start;
+  font-weight: 700;
 }
 
 .remarks-list {
@@ -388,6 +395,7 @@ const props = defineProps({
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  text-align: left;
 }
 
 .remark-count {

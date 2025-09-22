@@ -37,11 +37,8 @@ src/
 │   │   │   ├── TradePricing.vue      # Price, fees, P&L
 │   │   │   └── TradeSummary.vue      # Calculated summaries
 │   │   ├── TradeForm.vue             # Main trade form container
-│   │   ├── TradeFormOriginal.vue     # Original monolithic form (backup)
 │   │   └── TradeHistory.vue          # Trade history table
 │   ├── HeatmapView.vue     # Trading performance heatmap
-│   └── HelloWorld.vue      # Default Vue component
-├── assets/                 # Static assets
 ├── composables/            # Reusable composition functions
 ├── firebase/               # Firebase configuration and services
 │   ├── config.js           # Firebase configuration

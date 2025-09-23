@@ -16,7 +16,7 @@
       </div>
     </div>
     
-    <div class="stat-card net-pnl">
+    <div class="stat-card net-pnl" :class="{ 'net-pnl-positive': stats.netPnL > 0, 'net-pnl-negative': stats.netPnL < 0, 'net-pnl-neutral': stats.netPnL === 0 }">
       <div class="stat-title">Net P&L</div>
       <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
     </div>
@@ -246,6 +246,18 @@ const props = defineProps({
 }
 
 .stat-card.net-pnl {
+  border-left: 4px solid #1976D2;
+}
+
+.stat-card.net-pnl.net-pnl-positive {
+  border-left: 4px solid var(--dashboard-success);
+}
+
+.stat-card.net-pnl.net-pnl-negative {
+  border-left: 4px solid var(--dashboard-danger);
+}
+
+.stat-card.net-pnl.net-pnl-neutral {
   border-left: 4px solid #1976D2;
 }
 

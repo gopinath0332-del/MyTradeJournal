@@ -8,7 +8,7 @@
           <span class="currency-prefix">₹</span>
           <input 
             type="number" 
-            :value="pnl.amount" 
+            :value="Math.round(pnl.amount * 100) / 100" 
             @input="handlePnLAmountChange"
             step="0.01" 
             :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"

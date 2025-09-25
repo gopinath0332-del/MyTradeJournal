@@ -8,7 +8,7 @@ self.addEventListener('message', (event) => {
 })
 
 // Add custom caching strategies here if needed
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (_event) => {
   // Custom fetch handling can be added here
   // The PWA plugin will handle most caching automatically
 })

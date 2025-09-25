@@ -77,12 +77,29 @@ cd MyTradeJournal
 npm install
 ```
 
-3. Configure Firebase:
+3. Configure Environment Variables:
+   - Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+   - Update the `.env` file with your Firebase project configuration:
+   ```env
+   VITE_FIREBASE_API_KEY=your_firebase_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+   ```
+
+4. Set up Firebase:
    - Create a Firebase project at [https://console.firebase.google.com](https://console.firebase.google.com)
    - Enable Firestore Database
-   - Update the Firebase configuration in `src/firebase/config.js`
+   - Get your Firebase configuration from Project Settings > General > Your apps
+   - Update the `.env` file with your Firebase credentials
 
-4. Start the development server:
+5. Start the development server:
 ```bash
 npm run dev
 ```
@@ -122,7 +139,34 @@ npm run dev
 - **useDashboardStats**: Logic for dashboard statistics and calculations
 - **useTradeForm**: Form validation and trade management logic
 
-## 🔥 Firebase Integration
+## � Environment Configuration
+
+This project uses environment variables to manage configuration across different environments (development, staging, production).
+
+### Environment Variables
+
+All environment variables must be prefixed with `VITE_` to be accessible in the frontend:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `VITE_FIREBASE_API_KEY` | Firebase API Key | Yes |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | Yes |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase Project ID | Yes |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket | Yes |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase Messaging Sender ID | Yes |
+| `VITE_FIREBASE_APP_ID` | Firebase App ID | Yes |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Firebase Analytics Measurement ID | No |
+| `VITE_APP_TITLE` | Application Title | No |
+| `VITE_APP_VERSION` | Application Version | No |
+
+### Security Best Practices
+
+- **Never commit `.env` files** to version control
+- Use `.env.example` as a template for required variables
+- Different environments should have separate `.env` files
+- Firebase configuration values are safe to expose in client-side code as they identify your project publicly
+
+## �🔥 Firebase Integration
 
 The application uses Firebase Firestore for:
 - Real-time trade data storage

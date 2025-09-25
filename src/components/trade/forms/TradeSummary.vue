@@ -9,11 +9,11 @@
           <input 
             type="number" 
             :value="Math.round(pnl.amount * 100) / 100" 
-            @input="handlePnLAmountChange"
-            step="0.01" 
-            :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
+            step="0.01"
+            :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }" 
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
+            @input="handlePnLAmountChange"
           />
         </div>
       </div>

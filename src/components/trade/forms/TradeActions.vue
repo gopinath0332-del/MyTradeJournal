@@ -5,8 +5,8 @@
         v-if="showCancel" 
         type="button" 
         class="cancel-button" 
-        @click="$emit('cancel')"
         :disabled="isSubmitting"
+        @click="$emit('cancel')"
       >
         Cancel
       </button>

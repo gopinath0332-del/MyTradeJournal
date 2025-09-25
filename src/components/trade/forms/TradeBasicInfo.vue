@@ -4,22 +4,22 @@
       <div class="form-field">
         <label for="symbol">Symbol</label>
         <input 
-          type="text" 
           id="symbol" 
+          type="text" 
           :value="modelValue.symbol" 
+          required 
+          placeholder="e.g., NIFTY"
           @input="handleSymbolInput" 
-          required
-          placeholder="e.g., NIFTY" 
         />
       </div>
       <div class="form-field">
         <label for="contract">Contract (Optional)</label>
         <input 
-          type="text" 
           id="contract" 
+          type="text" 
           :value="modelValue.contract" 
-          @input="handleContractInput"
-          placeholder="e.g., 20OCT23" 
+          placeholder="e.g., 20OCT23"
+          @input="handleContractInput" 
         />
       </div>
       <div class="form-group">
@@ -27,12 +27,12 @@
         <select 
           id="tradeType" 
           :value="modelValue.type" 
-          @change="updateField('type', $event.target.value)"
-          required 
+          required
           :class="{
             'type-buy': modelValue.type === 'BUY',
             'type-sell': modelValue.type === 'SELL'
-          }"
+          }" 
+          @change="updateField('type', $event.target.value)"
         >
           <option value="">Select type</option>
           <option value="BUY">Buy</option>

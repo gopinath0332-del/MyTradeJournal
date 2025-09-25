@@ -4,7 +4,7 @@
     <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
     
     <!-- Toast notification -->
-    <div class="toast" v-if="showToastOverlay" :class="toastVariant">
+    <div v-if="showToastOverlay" class="toast" :class="toastVariant">
       <div class="toast-header">
         <strong>{{ toastTitle }}</strong>
         <button type="button" class="close-button" @click="showToastOverlay = false">&times;</button>

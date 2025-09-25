@@ -4,18 +4,18 @@
       <div class="form-group">
         <label for="entryDate">Entry Date</label>
         <input 
-          type="date" 
           id="entryDate" 
-          v-model="entryDateValue"
+          v-model="entryDateValue" 
+          type="date"
           required 
         />
       </div>
       <div class="form-group">
         <label for="exitDate">Exit Date (Optional)</label>
         <input 
-          type="date" 
           id="exitDate" 
-          v-model="exitDateValue"
+          v-model="exitDateValue" 
+          type="date"
           :max="maxDate" 
         />
       </div>
@@ -25,8 +25,8 @@
       <div class="form-group">
         <label for="daysHeld">Days Held</label>
         <input 
-          type="number" 
           id="daysHeld" 
+          type="number" 
           :value="modelValue.daysHeld" 
           disabled 
           class="calculated-field"

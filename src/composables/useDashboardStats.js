@@ -23,8 +23,8 @@ export function useDashboardStats() {
   // Selected month for equity curve (separate from main dashboard month selection)
   const selectedEquityMonth = ref(new Date().getMonth())
 
-  // Starting equity for the current month (configurable)
-  const startingEquity = ref(100000) // Default starting equity
+  // Starting equity for the current month (configurable) - TODO: implement configuration
+  // const startingEquity = ref(100000) // Default starting equity
 
   // Year and month selection
   const selectedYear = ref(new Date().getFullYear())
@@ -43,7 +43,7 @@ export function useDashboardStats() {
 
   // Computed daily P&L data
   const dailyPnLData = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
     const tradesByDate = currentYearTrades.value.reduce((acc, trade) => {
       const date = new Date(trade.entryDate).toDateString()
@@ -145,9 +145,9 @@ export function useDashboardStats() {
 
   // Computed equity curve data for selected month
   const currentMonthEquityData = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
-    const currentDate = new Date()
+    // const currentDate = new Date() // TODO: implement date-based filtering
     const currentYear = selectedYear.value
 
     // Filter trades for selected equity month
@@ -156,7 +156,7 @@ export function useDashboardStats() {
       return tradeDate.getMonth() === selectedEquityMonth.value && tradeDate.getFullYear() === currentYear
     })
 
-    if (!selectedMonthTrades.length) return []
+    if (!selectedMonthTrades.length) {return []}
 
     // Group trades by date and calculate daily P&L
     const dailyPnLMap = {}
@@ -189,7 +189,7 @@ export function useDashboardStats() {
 
   // Available months for equity curve
   const availableEquityMonths = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
     const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
       new Date(trade.entryDate).getMonth()
@@ -203,7 +203,7 @@ export function useDashboardStats() {
 
   // Heatmap data for calendar view
   const heatmapData = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
     const year = selectedYear.value
     const months = []
@@ -283,7 +283,7 @@ export function useDashboardStats() {
 
   // Computed monthly breakdown
   const monthlyData = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
     const monthlyStats = {}
 
@@ -342,7 +342,7 @@ export function useDashboardStats() {
 
   // Computed weekly breakdown
   const weeklyData = computed(() => {
-    if (!currentYearTrades.value.length) return []
+    if (!currentYearTrades.value.length) {return []}
 
     // Get available months
     const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
@@ -356,7 +356,7 @@ export function useDashboardStats() {
       new Date(trade.entryDate).getMonth() === selectedMonth.value
     )
 
-    if (!filteredTrades.length) return []
+    if (!filteredTrades.length) {return []}
 
     const weeklyStats = {}
 

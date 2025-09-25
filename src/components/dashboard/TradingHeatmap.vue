@@ -13,7 +13,7 @@
     
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button @click="onRetry" class="retry-button">Retry</button>
+      <button class="retry-button" @click="onRetry">Retry</button>
     </div>
     
     <div v-else class="heatmap-container">
@@ -29,8 +29,9 @@
               {{ monthData.monthName.slice(0, 3) }}
             </div>
             <div class="month-calendar">
-              <div class="week-row" v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex">
-                <div v-for="(day, dayIndex) in week" :key="dayIndex" class="day-cell"
+              <div v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex" class="week-row">
+                <div
+v-for="(day, dayIndex) in week" :key="dayIndex" class="day-cell"
                   :class="{
                     'has-trades': day && day.tradeCount > 0,
                     'profit': day && day.pnl > 0,
@@ -77,7 +78,8 @@
     >
       <div v-if="tooltip.data && tooltip.data.tradeCount > 0" class="tooltip-content">
         <div class="tooltip-date">{{ formatDate(tooltip.data.date) }}</div>
-        <div class="tooltip-pnl" :class="{
+        <div
+class="tooltip-pnl" :class="{
           'profit-text': tooltip.data.pnl > 0,
           'loss-text': tooltip.data.pnl < 0,
           'neutral-text': tooltip.data.pnl === 0

@@ -26,7 +26,7 @@ export function useMultiYearHeatmap() {
 
   // Multi-year heatmap data 
   const heatmapData = computed(() => {
-    if (!allTrades.value.length || !availableYears.value.length) return []
+    if (!allTrades.value.length || !availableYears.value.length) {return []}
 
     const allYearData = []
 
@@ -36,7 +36,7 @@ export function useMultiYearHeatmap() {
         new Date(trade.entryDate).getFullYear() === year
       )
 
-      if (yearTrades.length === 0) return
+      if (yearTrades.length === 0) {return}
 
       const yearData = {
         year,

@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -8,7 +9,54 @@ export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        manifest: {
+          name: 'My Trade Journal',
+          short_name: 'TradeJournal',
+          description: 'A modern trading journal application for tracking and analyzing trades',
+          theme_color: '#42b883',
+          background_color: '#ffffff',
+          icons: [
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable'
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/firestore\.googleapis\.com/,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'firestore-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 300 // 5 minutes
+                }
+              }
+            }
+          ]
+        }
+      })
+    ],
     base: '/MyTradeJournal/', // Replace with your repository name
     build: {
       target: 'es2015',

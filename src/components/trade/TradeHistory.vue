@@ -7,7 +7,7 @@
         <div class="filters">
             <div class="filter-group date-filter">
                 <label for="dateRange">Date Range</label>
-                <select v-model="filters.dateRange" id="dateRange">
+                <select id="dateRange" v-model="filters.dateRange">
                     <option value="7">Last 7 days</option>
                     <option value="30">Last 30 days</option>
                     <option value="90">Last 90 days</option>
@@ -18,19 +18,21 @@
                 <div v-if="filters.dateRange === 'custom'" class="custom-date-range">
                     <div class="date-input">
                         <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" v-model="filters.startDate"
+                        <input
+id="startDate" v-model="filters.startDate" type="date"
                             :max="filters.endDate || new Date().toISOString().slice(0, 10)" />
                     </div>
                     <div class="date-input">
                         <label for="endDate">End Date</label>
-                        <input type="date" id="endDate" v-model="filters.endDate" :min="filters.startDate"
+                        <input
+id="endDate" v-model="filters.endDate" type="date" :min="filters.startDate"
                             :max="new Date().toISOString().slice(0, 10)" />
                     </div>
                 </div>
             </div>
             <div class="filter-group">
                 <label for="symbol">Symbol</label>
-                <select v-model="filters.symbol" id="symbol">
+                <select id="symbol" v-model="filters.symbol">
                     <option value="all">All Symbols</option>
                     <option v-for="symbol in uniqueSymbols" :key="symbol" :value="symbol">
                         {{ symbol }}
@@ -39,7 +41,7 @@
             </div>
             <div class="filter-group">
                 <label for="type">Type</label>
-                <select v-model="filters.type" id="type">
+                <select id="type" v-model="filters.type">
                     <option value="all">All Types</option>
                     <option value="BUY">Buy</option>
                     <option value="SELL">Sell</option>
@@ -47,7 +49,7 @@
             </div>
             <div class="filter-group">
                 <label for="profitability">Profitability</label>
-                <select v-model="filters.profitability" id="profitability">
+                <select id="profitability" v-model="filters.profitability">
                     <option value="all">All Trades</option>
                     <option value="profit">Profitable</option>
                     <option value="loss">Loss Making</option>
@@ -72,7 +74,8 @@
                                     Breakeven: {{sortedTrades.filter(t => t.pnlAmount === 0).length}}
                                 </span>
                     </div>
-                    <div class="net-profit" :class="{
+                    <div
+class="net-profit" :class="{
                         'profit': calculateNetProfit > 0,
                         'loss': calculateNetProfit < 0
                     }">
@@ -92,27 +95,27 @@
             <table>
                 <thead>
                     <tr>
-                        <th @click="sortBy('entryDate')" :class="{ active: sortKey === 'entryDate' }">
+                        <th :class="{ active: sortKey === 'entryDate' }" @click="sortBy('entryDate')">
                             Date
                             <span class="sort-arrow">{{ getSortArrow('entryDate') }}</span>
                         </th>
-                        <th @click="sortBy('symbol')" :class="{ active: sortKey === 'symbol' }">
+                        <th :class="{ active: sortKey === 'symbol' }" @click="sortBy('symbol')">
                             Symbol
                             <span class="sort-arrow">{{ getSortArrow('symbol') }}</span>
                         </th>
-                        <th @click="sortBy('type')" :class="{ active: sortKey === 'type' }">
+                        <th :class="{ active: sortKey === 'type' }" @click="sortBy('type')">
                             Type
                             <span class="sort-arrow">{{ getSortArrow('type') }}</span>
                         </th>
-                        <th @click="sortBy('entryPrice')" :class="{ active: sortKey === 'entryPrice' }">
+                        <th :class="{ active: sortKey === 'entryPrice' }" @click="sortBy('entryPrice')">
                             Entry Price
                             <span class="sort-arrow">{{ getSortArrow('entryPrice') }}</span>
                         </th>
-                        <th @click="sortBy('exitPrice')" :class="{ active: sortKey === 'exitPrice' }">
+                        <th :class="{ active: sortKey === 'exitPrice' }" @click="sortBy('exitPrice')">
                             Exit Price
                             <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
                         </th>
-                        <th @click="sortBy('pnlAmount')" :class="{ active: sortKey === 'pnlAmount' }">
+                        <th :class="{ active: sortKey === 'pnlAmount' }" @click="sortBy('pnlAmount')">
                             P&L
                             <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
                         </th>
@@ -120,7 +123,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="trade in sortedTrades" :key="trade.id"
+                    <tr
+v-for="trade in sortedTrades" :key="trade.id"
                         :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
                         <td>{{ formatDate(trade.entryDate) }}</td>
                         <td>{{ trade.symbol }}</td>
@@ -177,7 +181,8 @@
             </div>
 
             <div class="trade-cards">
-                <div v-for="trade in sortedTrades" :key="trade.id" class="trade-card"
+                <div
+v-for="trade in sortedTrades" :key="trade.id" class="trade-card"
                     :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
                     <div class="trade-card-header">
                         <div class="trade-symbol">{{ trade.symbol }}</div>
@@ -241,7 +246,8 @@
                     </div>
                     <div class="detail-row">
                         <span class="label">Type:</span>
-                        <span class="value"
+                        <span
+class="value"
                             :class="{ 'type-buy': selectedTrade.type === 'BUY', 'type-sell': selectedTrade.type === 'SELL' }">
                             {{ selectedTrade.type }}
                         </span>
@@ -272,14 +278,16 @@
                     </div>
                     <div class="detail-row">
                         <span class="label">P&L:</span>
-                        <span class="value"
+                        <span
+class="value"
                             :class="{ 'profit': selectedTrade.pnlAmount > 0, 'loss': selectedTrade.pnlAmount < 0 }">
                             {{ formatCurrency(selectedTrade.pnlAmount) }}
                         </span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Return %:</span>
-                        <span class="value"
+                        <span
+class="value"
                             :class="{ 'profit': selectedTrade.pnlPercentage > 0, 'loss': selectedTrade.pnlPercentage < 0 }">
                             {{ (selectedTrade.pnlPercentage || 0).toFixed(2) }}%
                         </span>
@@ -288,15 +296,15 @@
                         <span class="label">Days Held:</span>
                         <span class="value">{{ selectedTrade.daysHeld }}</span>
                     </div>
-                    <div class="detail-row" v-if="selectedTrade.remarks">
+                    <div v-if="selectedTrade.remarks" class="detail-row">
                         <span class="label">Remarks:</span>
                         <span class="value">{{ selectedTrade.remarks }}</span>
                     </div>
-                    <div class="detail-notes" v-if="selectedTrade.notes">
+                    <div v-if="selectedTrade.notes" class="detail-notes">
                         <span class="label">Notes:</span>
                         <p class="value">{{ selectedTrade.notes }}</p>
                     </div>
-                    <div class="detail-notes" v-if="selectedTrade.lessonsLearned">
+                    <div v-if="selectedTrade.lessonsLearned" class="detail-notes">
                         <span class="label">Lessons Learned:</span>
                         <p class="value">{{ selectedTrade.lessonsLearned }}</p>
                     </div>
@@ -313,11 +321,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editSymbol">Symbol</label>
-                            <input type="text" id="editSymbol" v-model="editedTrade.symbol" required />
+                            <input id="editSymbol" v-model="editedTrade.symbol" type="text" required />
                         </div>
                         <div class="form-group">
                             <label for="editContract">Contract (Optional)</label>
-                            <input type="text" id="editContract" v-model="editedTrade.contract" />
+                            <input id="editContract" v-model="editedTrade.contract" type="text" />
                         </div>
                         <div class="form-group">
                             <label for="editType">Type</label>
@@ -331,11 +339,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editEntryDate">Entry Date</label>
-                            <input type="date" id="editEntryDate" v-model="editedTrade.entryDate" required />
+                            <input id="editEntryDate" v-model="editedTrade.entryDate" type="date" required />
                         </div>
                         <div class="form-group">
                             <label for="editExitDate">Exit Date (Optional)</label>
-                            <input type="date" id="editExitDate" v-model="editedTrade.exitDate" 
+                            <input
+id="editExitDate" v-model="editedTrade.exitDate" type="date" 
                                 :max="new Date().toISOString().slice(0, 10)" />
                         </div>
                     </div>
@@ -345,7 +354,8 @@
                             <label for="editEntryPrice">Entry Price</label>
                             <div class="input-with-prefix">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="editEntryPrice" v-model="editedTrade.entryPrice" required
+                                <input
+id="editEntryPrice" v-model="editedTrade.entryPrice" type="number" required
                                     step="0.01" />
                             </div>
                         </div>
@@ -353,7 +363,7 @@
                             <label for="editExitPrice">Exit Price</label>
                             <div class="input-with-prefix">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="editExitPrice" v-model="editedTrade.exitPrice" step="0.01" />
+                                <input id="editExitPrice" v-model="editedTrade.exitPrice" type="number" step="0.01" />
                             </div>
                         </div>
                     </div>
@@ -361,13 +371,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="editLots">Lots</label>
-                            <input type="number" id="editLots" v-model="editedTrade.lots" required min="1" />
+                            <input id="editLots" v-model="editedTrade.lots" type="number" required min="1" />
                         </div>
                         <div class="form-group">
                             <label for="editCapitalUsed">Capital Used</label>
                             <div class="input-with-prefix">
                                 <span class="currency-prefix">₹</span>
-                                <input type="number" id="editCapitalUsed" v-model="editedTrade.capitalUsed" required
+                                <input
+id="editCapitalUsed" v-model="editedTrade.capitalUsed" type="number" required
                                     step="0.01" min="0" />
                             </div>
                         </div>
@@ -480,7 +491,7 @@ const formatDate = (dateStr) => {
 
 // Format currency
 const formatCurrency = (amount) => {
-    if (amount === null || amount === undefined) return ''
+    if (amount === null || amount === undefined) {return ''}
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR',
@@ -555,7 +566,7 @@ const sortBy = (key) => {
 }
 
 const getSortArrow = (key) => {
-    if (sortKey.value !== key) return ''
+    if (sortKey.value !== key) {return ''}
     return sortDir.value === 'asc' ? '↑' : '↓'
 }
 

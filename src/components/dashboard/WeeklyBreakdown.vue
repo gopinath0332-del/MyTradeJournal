@@ -5,8 +5,9 @@
       <div class="filters-container">
         <div class="month-selector">
           <label for="monthSelect">Month:</label>
-          <select id="monthSelect" :value="selectedMonth" @change="$emit('month-change', $event.target.value)"
-            :disabled="availableMonths.length === 0">
+          <select
+id="monthSelect" :value="selectedMonth" :disabled="availableMonths.length === 0"
+            @change="$emit('month-change', $event.target.value)">
             <option v-if="availableMonths.length === 0" value="">No data available</option>
             <option v-for="monthIndex in availableMonths" :key="monthIndex" :value="monthIndex">
               {{ monthNames[monthIndex] }}
@@ -26,14 +27,15 @@
       <div class="error-card">
         <div class="error-icon">⚠️</div>
         <div class="error-message">{{ error }}</div>
-        <button v-if="onRetry" @click="onRetry" class="retry-button">
+        <button v-if="onRetry" class="retry-button" @click="onRetry">
           Try Again
         </button>
       </div>
     </div>
 
     <div v-else-if="weeklyData.length > 0" class="weekly-grid">
-      <div v-for="week in weeklyData" :key="week.weekRange" class="weekly-card" :class="{
+      <div
+v-for="week in weeklyData" :key="week.weekRange" class="weekly-card" :class="{
         'profitable': week.totalPnL > 0,
         'loss': week.totalPnL < 0
       }">
@@ -61,7 +63,8 @@
           </div>
           <div class="weekly-stat">
             <span class="stat-label">R:R Ratio:</span>
-            <span class="stat-value"
+            <span
+class="stat-value"
               :class="{ 'positive': week.riskRewardRatio >= 1, 'neutral': week.riskRewardRatio < 1 && week.riskRewardRatio > 0 }">
               {{ week.riskRewardRatio > 0 ? week.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>

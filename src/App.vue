@@ -69,7 +69,7 @@ provide('refreshDashboard', refreshDashboard)
         <h1>📈 Trade Journal</h1>
         
         <!-- Mobile Menu Button -->
-        <button class="mobile-menu-toggle" @click="toggleMobileMenu" aria-label="Toggle navigation menu">
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
           <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
@@ -83,7 +83,8 @@ provide('refreshDashboard', refreshDashboard)
       <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="#" class="nav-link" 
+            <a
+href="#" class="nav-link" 
                :class="{ active: activeTab === 'dashboard' }" 
                @click.prevent="navigateTo('dashboard')">
               <span class="nav-icon">📊</span>
@@ -91,7 +92,8 @@ provide('refreshDashboard', refreshDashboard)
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
+            <a
+href="#" class="nav-link" 
                :class="{ active: activeTab === 'history' }" 
                @click.prevent="navigateTo('history')">
               <span class="nav-icon">📋</span>
@@ -99,7 +101,8 @@ provide('refreshDashboard', refreshDashboard)
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
+            <a
+href="#" class="nav-link" 
                :class="{ active: activeTab === 'heatmap' }" 
                @click.prevent="navigateTo('heatmap')">
               <span class="nav-icon">🔥</span>
@@ -107,7 +110,8 @@ provide('refreshDashboard', refreshDashboard)
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
+            <a
+href="#" class="nav-link" 
                :class="{ active: activeTab === 'trade' }" 
                @click.prevent="navigateTo('trade')">
               <span class="nav-icon">➕</span>

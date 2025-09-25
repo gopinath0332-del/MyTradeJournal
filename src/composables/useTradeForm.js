@@ -1,5 +1,5 @@
 import { ref, computed, reactive, watch } from 'vue'
-import { tradeService } from '../../firebase/tradeService'
+import { tradeService } from '../firebase/tradeService'
 
 export function useTradeForm(initialTrade = null) {
   // Form state
@@ -37,20 +37,20 @@ export function useTradeForm(initialTrade = null) {
   // Computed calculations
   const positionSize = computed(() => {
     const { entryPrice, quantity } = formData
-    if (!entryPrice || !quantity) return 0
+    if (!entryPrice || !quantity) {return 0}
     return parseFloat((entryPrice * quantity).toFixed(2))
   })
 
   const pnl = computed(() => {
     const { entryPrice, exitPrice, quantity, fees } = formData
-    if (!entryPrice || !exitPrice || !quantity) return 0
+    if (!entryPrice || !exitPrice || !quantity) {return 0}
     
     const grossPnL = (exitPrice - entryPrice) * quantity
     return parseFloat((grossPnL - (fees || 0)).toFixed(2))
   })
 
   const pnlPercentage = computed(() => {
-    if (!positionSize.value || !pnl.value) return 0
+    if (!positionSize.value || !pnl.value) {return 0}
     return parseFloat(((pnl.value / positionSize.value) * 100).toFixed(2))
   })
 
@@ -137,7 +137,7 @@ export function useTradeForm(initialTrade = null) {
 
   // File upload handling
   const uploadScreenshots = async (files) => {
-    if (!files || files.length === 0) return []
+    if (!files || files.length === 0) {return []}
 
     try {
       loading.value = true

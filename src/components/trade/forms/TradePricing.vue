@@ -6,14 +6,14 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
           <input 
-            type="number" 
             id="entryPrice" 
+            type="number" 
             :value="modelValue.entryPrice" 
-            @input="handlePriceChange('entryPrice', $event)"
-            required 
-            step="0.01"
+            required
+            step="0.01" 
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
+            @input="handlePriceChange('entryPrice', $event)"
           />
         </div>
       </div>
@@ -22,13 +22,13 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
           <input 
-            type="number" 
             id="exitPrice" 
+            type="number" 
             :value="modelValue.exitPrice" 
-            @input="handlePriceChange('exitPrice', $event)"
             step="0.01"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
+            @input="handlePriceChange('exitPrice', $event)"
           />
         </div>
       </div>
@@ -38,15 +38,15 @@
       <div class="form-group">
         <label for="lots">Lots</label>
         <input 
-          type="number" 
           id="lots" 
+          type="number" 
           :value="modelValue.lots" 
-          @input="handleNumberChange('lots', $event)"
-          required 
+          required
           min="1" 
-          step="1"
+          step="1" 
           inputmode="numeric"
           pattern="[0-9]*"
+          @input="handleNumberChange('lots', $event)"
         />
       </div>
       <div class="form-group">
@@ -54,15 +54,15 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
           <input 
-            type="number" 
             id="capitalUsed" 
+            type="number" 
             :value="modelValue.capitalUsed" 
-            @input="handlePriceChange('capitalUsed', $event)"
-            required 
+            required
             step="0.01" 
-            min="0"
+            min="0" 
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
+            @input="handlePriceChange('capitalUsed', $event)"
           />
         </div>
       </div>

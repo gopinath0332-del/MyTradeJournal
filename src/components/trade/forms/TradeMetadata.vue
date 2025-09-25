@@ -3,12 +3,12 @@
     <div class="form-group">
       <label for="screenshot">Screenshots</label>
       <input 
-        type="file" 
         id="screenshot" 
-        @change="handleScreenshotUpload" 
+        type="file" 
         multiple 
         accept="image/*" 
-        class="file-input"
+        class="file-input" 
+        @change="handleScreenshotUpload"
       />
     </div>
 
@@ -17,13 +17,13 @@
         <label for="confidence">Confidence Level (1-5)</label>
         <div class="range-input">
           <input 
-            type="range" 
             id="confidence" 
+            type="range" 
             :value="modelValue.confidence" 
-            @input="updateField('confidence', parseInt($event.target.value))"
-            min="1" 
+            min="1"
             max="5" 
             step="1" 
+            @input="updateField('confidence', parseInt($event.target.value))" 
           />
           <span class="range-value">{{ modelValue.confidence }}</span>
         </div>
@@ -33,13 +33,13 @@
         <label for="executionQuality">Execution Quality (1-5)</label>
         <div class="range-input">
           <input 
-            type="range" 
             id="executionQuality" 
+            type="range" 
             :value="modelValue.executionQuality" 
-            @input="updateField('executionQuality', parseInt($event.target.value))"
-            min="1" 
+            min="1"
             max="5" 
             step="1" 
+            @input="updateField('executionQuality', parseInt($event.target.value))" 
           />
           <span class="range-value">{{ modelValue.executionQuality }}</span>
         </div>
@@ -70,9 +70,9 @@
       <textarea 
         id="lessonsLearned" 
         :value="modelValue.lessonsLearned"
-        @input="updateField('lessonsLearned', $event.target.value)"
         rows="4"
         placeholder="What did you learn from this trade?"
+        @input="updateField('lessonsLearned', $event.target.value)"
       ></textarea>
     </div>
   </div>

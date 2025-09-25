@@ -14,14 +14,15 @@
       <div class="error-card">
         <div class="error-icon">⚠️</div>
         <div class="error-message">{{ error }}</div>
-        <button v-if="onRetry" @click="onRetry" class="retry-button">
+        <button v-if="onRetry" class="retry-button" @click="onRetry">
           Try Again
         </button>
       </div>
     </div>
 
     <div v-else-if="monthlyData.length > 0" class="monthly-grid">
-      <div v-for="month in monthlyData" :key="month.month" class="monthly-card" :class="{
+      <div
+v-for="month in monthlyData" :key="month.month" class="monthly-card" :class="{
         'profitable': month.totalPnL > 0,
         'loss': month.totalPnL < 0
       }">
@@ -49,7 +50,8 @@
           </div>
           <div class="monthly-stat">
             <span class="stat-label">R:R Ratio:</span>
-            <span class="stat-value"
+            <span
+class="stat-value"
               :class="{ 'positive': month.riskRewardRatio >= 1, 'neutral': month.riskRewardRatio < 1 && month.riskRewardRatio > 0 }">
               {{ month.riskRewardRatio > 0 ? month.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>

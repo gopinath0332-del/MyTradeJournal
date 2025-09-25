@@ -10,7 +10,7 @@
       <div class="dashboard-error-card">
         <div class="dashboard-error-icon">⚠️</div>
         <div class="dashboard-error-message">{{ error }}</div>
-        <button v-if="onRetry" @click="onRetry" class="dashboard-retry-button">
+        <button v-if="onRetry" class="dashboard-retry-button" @click="onRetry">
           Try Again
         </button>
       </div>

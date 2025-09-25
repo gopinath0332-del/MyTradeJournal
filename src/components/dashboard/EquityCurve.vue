@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="chart-container" v-if="equityData.length > 0">
+    <div v-if="equityData.length > 0" class="chart-container">
       <div class="chart-wrapper">
         <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="equity-chart">
           <!-- Grid lines -->
@@ -188,17 +188,17 @@ const selectedMonthName = computed(() => {
 })
 
 const currentPnL = computed(() => {
-  if (props.equityData.length === 0) return 0
+  if (props.equityData.length === 0) {return 0}
   return props.equityData[props.equityData.length - 1].cumulativePnL
 })
 
 const minPnL = computed(() => {
-  if (props.equityData.length === 0) return 0
+  if (props.equityData.length === 0) {return 0}
   return Math.min(0, ...props.equityData.map(d => d.cumulativePnL))
 })
 
 const maxPnL = computed(() => {
-  if (props.equityData.length === 0) return 0
+  if (props.equityData.length === 0) {return 0}
   return Math.max(0, ...props.equityData.map(d => d.cumulativePnL))
 })
 
@@ -230,7 +230,7 @@ const zeroLineY = computed(() => {
 
 // P&L curve path
 const pnlPath = computed(() => {
-  if (props.equityData.length === 0) return ''
+  if (props.equityData.length === 0) {return ''}
   
   let path = `M ${getX(0)} ${getY(props.equityData[0].cumulativePnL)}`
   
@@ -261,7 +261,7 @@ const horizontalGridLines = computed(() => {
 })
 
 const verticalGridLines = computed(() => {
-  if (props.equityData.length === 0) return []
+  if (props.equityData.length === 0) {return []}
   
   const lines = []
   const step = Math.max(1, Math.floor(props.equityData.length / 5))
@@ -285,7 +285,7 @@ const yAxisLabels = computed(() => {
 })
 
 const xAxisLabels = computed(() => {
-  if (props.equityData.length === 0) return []
+  if (props.equityData.length === 0) {return []}
   
   const labels = []
   const step = Math.max(1, Math.floor(props.equityData.length / 5))
@@ -321,7 +321,7 @@ const formatAxisCurrency = (amount) => {
 }
 
 // Tooltip functions
-const showTooltip = (event, point, index) => {
+const showTooltip = (event, point, _index) => {
   const rect = event.target.getBoundingClientRect()
   const container = event.target.closest('.chart-container').getBoundingClientRect()
   

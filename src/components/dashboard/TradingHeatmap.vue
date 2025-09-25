@@ -6,31 +6,34 @@
         {{ availableYears.length > 1 ? `${Math.min(...availableYears)} - ${Math.max(...availableYears)}` : availableYears[0] }}
       </span>
     </div>
-    
+
     <div v-if="isLoading" class="loading-state">
       <p>Loading heatmap data...</p>
     </div>
-    
+
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
-      <button @click="onRetry" class="retry-button">Retry</button>
+      <button class="retry-button" @click="onRetry">Retry</button>
     </div>
-    
+
     <div v-else class="heatmap-container">
       <!-- Display each year's data -->
       <div v-for="yearData in heatmapData" :key="yearData.year" class="year-section">
         <div class="year-header">
           <h4>{{ yearData.year }}</h4>
         </div>
-        
+
         <div class="heatmap-months">
           <div v-for="monthData in yearData.months" :key="`${yearData.year}-${monthData.month}`" class="month-grid">
             <div class="month-label" :class="{ 'has-trades': hasTradesInMonth(monthData) }">
               {{ monthData.monthName.slice(0, 3) }}
             </div>
             <div class="month-calendar">
-              <div class="week-row" v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex">
-                <div v-for="(day, dayIndex) in week" :key="dayIndex" class="day-cell"
+              <div v-for="(week, weekIndex) in monthData.weeks" :key="weekIndex" class="week-row">
+                <div
+                  v-for="(day, dayIndex) in week"
+                  :key="dayIndex"
+                  class="day-cell"
                   :class="{
                     'has-trades': day && day.tradeCount > 0,
                     'profit': day && day.pnl > 0,
@@ -49,23 +52,23 @@
           </div>
         </div>
       </div>
-      
+
       <div class="heatmap-legend">
         <span class="legend-label">Less</span>
         <div class="legend-levels">
-          <div class="legend-cell no-trade"></div>
-          <div class="legend-cell intensity-1"></div>
-          <div class="legend-cell intensity-2"></div>
-          <div class="legend-cell intensity-3"></div>
-          <div class="legend-cell intensity-4"></div>
+          <div class="legend-cell no-trade" />
+          <div class="legend-cell intensity-1" />
+          <div class="legend-cell intensity-2" />
+          <div class="legend-cell intensity-3" />
+          <div class="legend-cell intensity-4" />
         </div>
         <span class="legend-label">More</span>
       </div>
     </div>
-    
+
     <!-- Custom Tooltip -->
-    <div 
-      v-if="tooltip.visible" 
+    <div
+      v-if="tooltip.visible"
       class="custom-tooltip"
       :class="{
         'profit-tooltip': tooltip.data?.pnl > 0,
@@ -77,11 +80,14 @@
     >
       <div v-if="tooltip.data && tooltip.data.tradeCount > 0" class="tooltip-content">
         <div class="tooltip-date">{{ formatDate(tooltip.data.date) }}</div>
-        <div class="tooltip-pnl" :class="{
-          'profit-text': tooltip.data.pnl > 0,
-          'loss-text': tooltip.data.pnl < 0,
-          'neutral-text': tooltip.data.pnl === 0
-        }">
+        <div
+          class="tooltip-pnl"
+          :class="{
+            'profit-text': tooltip.data.pnl > 0,
+            'loss-text': tooltip.data.pnl < 0,
+            'neutral-text': tooltip.data.pnl === 0
+          }"
+        >
           {{ tooltip.data.pnl >= 0 ? '+' : '' }}₹{{ formatCurrency(tooltip.data.pnl) }}
         </div>
         <div class="tooltip-trades">{{ tooltip.data.tradeCount }} trade{{ tooltip.data.tradeCount !== 1 ? 's' : '' }}</div>
@@ -148,7 +154,7 @@ const hasTradesInMonth = (monthData) => {
   if (!monthData || !monthData.weeks || !Array.isArray(monthData.weeks)) {
     return false
   }
-  return monthData.weeks.some(week => 
+  return monthData.weeks.some(week =>
     week && Array.isArray(week) && week.some(day => day && day.tradeCount > 0)
   )
 }
@@ -160,10 +166,10 @@ const showTooltip = (event, day) => {
     visible: true,
     x: event.clientX + 16, // 16px to the right of cursor
     y: event.clientY - 16, // 16px above the cursor
-    data: day || { 
-      date: new Date().toISOString().split('T')[0], 
-      tradeCount: 0, 
-      pnl: 0 
+    data: day || {
+      date: new Date().toISOString().split('T')[0],
+      tradeCount: 0,
+      pnl: 0
     }
   }
 }
@@ -514,20 +520,20 @@ const hideTooltip = () => {
   .heatmap-months {
     gap: 2px;
   }
-  
+
   .month-calendar {
     gap: 2px;
   }
-  
+
   .week-row {
     gap: 2px;
   }
-  
+
   .day-cell {
     width: 9px;
     height: 9px;
   }
-  
+
   .legend-cell {
     width: 9px;
     height: 9px;

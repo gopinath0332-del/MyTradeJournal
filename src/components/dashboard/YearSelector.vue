@@ -1,9 +1,9 @@
 <template>
   <div class="year-selector">
     <label for="yearSelect">Year:</label>
-    <select 
-      id="yearSelect" 
-      :value="selectedYear" 
+    <select
+      id="yearSelect"
+      :value="selectedYear"
       @change="$emit('year-change', parseInt($event.target.value))"
     >
       <option v-for="year in availableYears" :key="year" :value="year">
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+const _props = defineProps({
   selectedYear: {
     type: Number,
     required: true
@@ -25,7 +25,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['year-change'])
+const _emit = defineEmits(['year-change'])
 </script>
 
 <style scoped>

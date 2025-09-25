@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="chart-container" v-if="equityData.length > 0">
+    <div v-if="equityData.length > 0" class="chart-container">
       <div class="chart-wrapper">
         <svg :viewBox="`0 0 ${chartWidth} ${chartHeight}`" class="equity-chart">
           <!-- Grid lines -->
@@ -123,7 +123,7 @@
     </div>
 
     <div v-else-if="isLoading" class="loading-state">
-      <div class="spinner"></div>
+      <div class="spinner" />
       <span>Loading equity data...</span>
     </div>
 
@@ -219,7 +219,7 @@ const getY = (pnl) => {
   const adjustedMin = minPnL.value - padding
   const adjustedMax = maxPnL.value + padding
   const adjustedRange = adjustedMax - adjustedMin
-  
+
   return chartHeight - margin.bottom - ((pnl - adjustedMin) / adjustedRange) * dataHeight
 }
 
@@ -231,13 +231,13 @@ const zeroLineY = computed(() => {
 // P&L curve path
 const pnlPath = computed(() => {
   if (props.equityData.length === 0) return ''
-  
+
   let path = `M ${getX(0)} ${getY(props.equityData[0].cumulativePnL)}`
-  
+
   for (let i = 1; i < props.equityData.length; i++) {
     path += ` L ${getX(i)} ${getY(props.equityData[i].cumulativePnL)}`
   }
-  
+
   return path
 })
 
@@ -248,7 +248,7 @@ const horizontalGridLines = computed(() => {
   const adjustedMin = minPnL.value - padding
   const adjustedMax = maxPnL.value + padding
   const step = (adjustedMax - adjustedMin) / 5
-  
+
   for (let i = 0; i <= 5; i++) {
     const value = adjustedMin + i * step
     lines.push({
@@ -256,23 +256,23 @@ const horizontalGridLines = computed(() => {
       value
     })
   }
-  
+
   return lines
 })
 
 const verticalGridLines = computed(() => {
   if (props.equityData.length === 0) return []
-  
+
   const lines = []
   const step = Math.max(1, Math.floor(props.equityData.length / 5))
-  
+
   for (let i = 0; i < props.equityData.length; i += step) {
     lines.push({
       x: getX(i),
       index: i
     })
   }
-  
+
   return lines
 })
 
@@ -286,10 +286,10 @@ const yAxisLabels = computed(() => {
 
 const xAxisLabels = computed(() => {
   if (props.equityData.length === 0) return []
-  
+
   const labels = []
   const step = Math.max(1, Math.floor(props.equityData.length / 5))
-  
+
   for (let i = 0; i < props.equityData.length; i += step) {
     const date = new Date(props.equityData[i].date)
     labels.push({
@@ -297,7 +297,7 @@ const xAxisLabels = computed(() => {
       text: date.getDate().toString()
     })
   }
-  
+
   return labels
 })
 
@@ -321,10 +321,10 @@ const formatAxisCurrency = (amount) => {
 }
 
 // Tooltip functions
-const showTooltip = (event, point, index) => {
+const showTooltip = (event, point, _index) => {
   const rect = event.target.getBoundingClientRect()
   const container = event.target.closest('.chart-container').getBoundingClientRect()
-  
+
   tooltip.value = {
     visible: true,
     x: rect.left - container.left + rect.width / 2,
@@ -566,11 +566,11 @@ onUnmounted(() => {
   .equity-curve {
     padding: 1rem;
   }
-  
+
   .chart-container {
     height: 300px;
   }
-  
+
   .equity-summary {
     font-size: 0.8rem;
   }

@@ -2,9 +2,9 @@
 <template>
   <div class="trade-form">
     <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
-    
+
     <!-- Toast notification -->
-    <div class="toast" v-if="showToastOverlay" :class="toastVariant">
+    <div v-if="showToastOverlay" class="toast" :class="toastVariant">
       <div class="toast-header">
         <strong>{{ toastTitle }}</strong>
         <button type="button" class="close-button" @click="showToastOverlay = false">&times;</button>
@@ -13,39 +13,39 @@
         {{ toastMessage }}
       </div>
     </div>
-    
+
     <form @submit.prevent="handleSubmit">
       <!-- Basic Trade Information -->
-      <TradeBasicInfo 
+      <TradeBasicInfo
         v-model="trade"
       />
-      
+
       <!-- Date Information -->
-      <TradeDates 
+      <TradeDates
         v-model="trade"
       />
-      
+
       <!-- Pricing Information -->
-      <TradePricing 
+      <TradePricing
         v-model="trade"
         @calculate-pnl="calculatePnL"
       />
-      
+
       <!-- Trade Summary -->
-      <TradeSummary 
+      <TradeSummary
         :pnl="pnl"
         :capital-used="trade.capitalUsed"
         @update-pnl="updatePnLFromAmount"
       />
-      
+
       <!-- Additional Metadata -->
-      <TradeMetadata 
+      <TradeMetadata
         v-model="trade"
         @screenshot-upload="handleScreenshotUpload"
       />
-      
+
       <!-- Form Actions -->
-      <TradeActions 
+      <TradeActions
         :is-submitting="isSubmitting"
         :is-edit-mode="!!trade.id"
         :show-cancel="!!trade.id"
@@ -153,7 +153,7 @@ const handleScreenshotUpload = (files) => {
 }
 
 // Form submission
-const handleSubmit = async () => {
+const handleSubmit = async() => {
   isSubmitting.value = true
   try {
     const tradeData = {
@@ -176,7 +176,7 @@ const handleSubmit = async () => {
     if (editingTrade) {
       editingTrade.value = null
     }
-    
+
     setTimeout(() => {
       activeTab.value = 'history'
       resetForm()
@@ -202,7 +202,7 @@ const handleCancel = () => {
 // Form reset
 const resetForm = () => {
   const today = new Date().toISOString().slice(0, 10)
-  
+
   trade.value = {
     tradeId: uuidv4(),
     symbol: '',

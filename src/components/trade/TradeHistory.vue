@@ -1,386 +1,447 @@
 # Implementing trade history component with filtering and sorting capabilities
 <template>
-    <div class="trade-history">
-        <h2>Trade History</h2>
+  <div class="trade-history">
+    <h2>Trade History</h2>
 
-        <!-- Filters -->
-        <div class="filters">
-            <div class="filter-group date-filter">
-                <label for="dateRange">Date Range</label>
-                <select v-model="filters.dateRange" id="dateRange">
-                    <option value="7">Last 7 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="90">Last 90 days</option>
-                    <option value="current-month">Current Month</option>
-                    <option value="custom">Custom Range</option>
-                    <option value="all">All time</option>
-                </select>
-                <div v-if="filters.dateRange === 'custom'" class="custom-date-range">
-                    <div class="date-input">
-                        <label for="startDate">Start Date</label>
-                        <input type="date" id="startDate" v-model="filters.startDate"
-                            :max="filters.endDate || new Date().toISOString().slice(0, 10)" />
-                    </div>
-                    <div class="date-input">
-                        <label for="endDate">End Date</label>
-                        <input type="date" id="endDate" v-model="filters.endDate" :min="filters.startDate"
-                            :max="new Date().toISOString().slice(0, 10)" />
-                    </div>
-                </div>
-            </div>
-            <div class="filter-group">
-                <label for="symbol">Symbol</label>
-                <select v-model="filters.symbol" id="symbol">
-                    <option value="all">All Symbols</option>
-                    <option v-for="symbol in uniqueSymbols" :key="symbol" :value="symbol">
-                        {{ symbol }}
-                    </option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="type">Type</label>
-                <select v-model="filters.type" id="type">
-                    <option value="all">All Types</option>
-                    <option value="BUY">Buy</option>
-                    <option value="SELL">Sell</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="profitability">Profitability</label>
-                <select v-model="filters.profitability" id="profitability">
-                    <option value="all">All Trades</option>
-                    <option value="profit">Profitable</option>
-                    <option value="loss">Loss Making</option>
-                </select>
-            </div>
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group date-filter">
+        <label for="dateRange">Date Range</label>
+        <select id="dateRange" v-model="filters.dateRange">
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="current-month">Current Month</option>
+          <option value="custom">Custom Range</option>
+          <option value="all">All time</option>
+        </select>
+        <div v-if="filters.dateRange === 'custom'" class="custom-date-range">
+          <div class="date-input">
+            <label for="startDate">Start Date</label>
+            <input
+              id="startDate"
+              v-model="filters.startDate"
+              type="date"
+              :max="filters.endDate || new Date().toISOString().slice(0, 10)"
+            >
+          </div>
+          <div class="date-input">
+            <label for="endDate">End Date</label>
+            <input
+              id="endDate"
+              v-model="filters.endDate"
+              type="date"
+              :min="filters.startDate"
+              :max="new Date().toISOString().slice(0, 10)"
+            >
+          </div>
         </div>
-
-        <!-- Results Summary -->
-        <div class="results-summary">
-            <div class="total-results">
-                Showing {{ sortedTrades.length }} trade{{ sortedTrades.length !== 1 ? 's' : '' }}
-            </div>
-            <div class="trades-summary">
-                <div class="trades-summary">
-                    <div class="summary-stats">
-                        <span class="profit-count">
-                            Profitable: {{sortedTrades.filter(t => t.pnlAmount > 0).length}}
-                        </span>
-                        <span class="loss-count">
-                            Loss: {{sortedTrades.filter(t => t.pnlAmount < 0).length}} </span>
-                                <span class="breakeven-count">
-                                    Breakeven: {{sortedTrades.filter(t => t.pnlAmount === 0).length}}
-                                </span>
-                    </div>
-                    <div class="net-profit" :class="{
-                        'profit': calculateNetProfit > 0,
-                        'loss': calculateNetProfit < 0
-                    }">
-                        Net P&L: {{ formatCurrency(calculateNetProfit) }}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trade Table for Desktop -->
-        <div class="table-container desktop-table" style="position: relative;">
-            <!-- Loading overlay for trades table -->
-            <div v-if="isLoadingTrades" class="loader-overlay">
-                <div class="spinner"></div>
-            </div>
-            
-            <table>
-                <thead>
-                    <tr>
-                        <th @click="sortBy('entryDate')" :class="{ active: sortKey === 'entryDate' }">
-                            Date
-                            <span class="sort-arrow">{{ getSortArrow('entryDate') }}</span>
-                        </th>
-                        <th @click="sortBy('symbol')" :class="{ active: sortKey === 'symbol' }">
-                            Symbol
-                            <span class="sort-arrow">{{ getSortArrow('symbol') }}</span>
-                        </th>
-                        <th @click="sortBy('type')" :class="{ active: sortKey === 'type' }">
-                            Type
-                            <span class="sort-arrow">{{ getSortArrow('type') }}</span>
-                        </th>
-                        <th @click="sortBy('entryPrice')" :class="{ active: sortKey === 'entryPrice' }">
-                            Entry Price
-                            <span class="sort-arrow">{{ getSortArrow('entryPrice') }}</span>
-                        </th>
-                        <th @click="sortBy('exitPrice')" :class="{ active: sortKey === 'exitPrice' }">
-                            Exit Price
-                            <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
-                        </th>
-                        <th @click="sortBy('pnlAmount')" :class="{ active: sortKey === 'pnlAmount' }">
-                            P&L
-                            <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
-                        </th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="trade in sortedTrades" :key="trade.id"
-                        :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-                        <td>{{ formatDate(trade.entryDate) }}</td>
-                        <td>{{ trade.symbol }}</td>
-                        <td :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
-                            {{ trade.type }}
-                        </td>
-                        <td>{{ formatCurrency(trade.entryPrice) }}</td>
-                        <td>{{ formatCurrency(trade.exitPrice) }}</td>
-                        <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-                            {{ formatCurrency(trade.pnlAmount) }}
-                        </td>
-                        <td class="actions-cell">
-                            <div class="actions-container">
-                                <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
-                                    View
-                                </button>
-                                <button class="action-btn edit-btn" @click="handleEdit(trade)">
-                                    Edit
-                                </button>
-                                <button class="action-btn delete-btn" @click="deleteTrade(trade)">
-                                    Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr v-if="sortedTrades.length === 0">
-                        <td colspan="7" class="no-data">No trades found matching your filters</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Mobile Card Layout -->
-        <div class="mobile-trades">
-            <!-- Loading overlay for mobile cards -->
-            <div v-if="isLoadingTrades" class="loader-overlay">
-                <div class="spinner"></div>
-            </div>
-            
-            <!-- Sort controls for mobile -->
-            <div class="mobile-sort-controls">
-                <label for="mobileSortSelect">Sort by:</label>
-                <select id="mobileSortSelect" v-model="sortKey" @change="toggleSortOrder">
-                    <option value="entryDate">Date</option>
-                    <option value="symbol">Symbol</option>
-                    <option value="type">Type</option>
-                    <option value="entryPrice">Entry Price</option>
-                    <option value="exitPrice">Exit Price</option>
-                    <option value="pnlAmount">P&L</option>
-                </select>
-                <button class="sort-direction-btn" @click="toggleSortOrder">
-                    {{ sortOrder === 'asc' ? '↑' : '↓' }}
-                </button>
-            </div>
-
-            <div class="trade-cards">
-                <div v-for="trade in sortedTrades" :key="trade.id" class="trade-card"
-                    :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-                    <div class="trade-card-header">
-                        <div class="trade-symbol">{{ trade.symbol }}</div>
-                        <div class="trade-date">{{ formatDate(trade.entryDate) }}</div>
-                    </div>
-                    
-                    <div class="trade-card-body">
-                        <div class="trade-row">
-                            <span class="trade-label">Type:</span>
-                            <span class="trade-value" :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
-                                {{ trade.type }}
-                            </span>
-                        </div>
-                        <div class="trade-row">
-                            <span class="trade-label">Entry:</span>
-                            <span class="trade-value">{{ formatCurrency(trade.entryPrice) }}</span>
-                        </div>
-                        <div class="trade-row">
-                            <span class="trade-label">Exit:</span>
-                            <span class="trade-value">{{ formatCurrency(trade.exitPrice) }}</span>
-                        </div>
-                        <div class="trade-row">
-                            <span class="trade-label">P&L:</span>
-                            <span class="trade-value pnl-value" :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-                                {{ formatCurrency(trade.pnlAmount) }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="trade-card-actions">
-                        <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
-                            View
-                        </button>
-                        <button class="action-btn edit-btn" @click="handleEdit(trade)">
-                            Edit
-                        </button>
-                        <button class="action-btn delete-btn" @click="deleteTrade(trade)">
-                            Delete
-                        </button>
-                    </div>
-                </div>
-                
-                <div v-if="sortedTrades.length === 0" class="no-data-mobile">
-                    No trades found matching your filters
-                </div>
-            </div>
-        </div>
-
-        <!-- Trade Details Modal -->
-        <div v-if="selectedTrade" class="modal">
-            <div class="modal-content">
-                <h3>Trade Details</h3>
-                <div class="trade-details">
-                    <div class="detail-row">
-                        <span class="label">Symbol:</span>
-                        <span class="value">{{ selectedTrade.symbol }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Contract:</span>
-                        <span class="value">{{ selectedTrade.contract }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Type:</span>
-                        <span class="value"
-                            :class="{ 'type-buy': selectedTrade.type === 'BUY', 'type-sell': selectedTrade.type === 'SELL' }">
-                            {{ selectedTrade.type }}
-                        </span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Entry Date:</span>
-                        <span class="value">{{ formatDate(selectedTrade.entryDate) }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Exit Date:</span>
-                        <span class="value">{{ formatDate(selectedTrade.exitDate) }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Entry Price:</span>
-                        <span class="value">{{ formatCurrency(selectedTrade.entryPrice) }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Exit Price:</span>
-                        <span class="value">{{ formatCurrency(selectedTrade.exitPrice) }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Lots:</span>
-                        <span class="value">{{ selectedTrade.lots }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Capital Used:</span>
-                        <span class="value">{{ formatCurrency(selectedTrade.capitalUsed) }}</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">P&L:</span>
-                        <span class="value"
-                            :class="{ 'profit': selectedTrade.pnlAmount > 0, 'loss': selectedTrade.pnlAmount < 0 }">
-                            {{ formatCurrency(selectedTrade.pnlAmount) }}
-                        </span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Return %:</span>
-                        <span class="value"
-                            :class="{ 'profit': selectedTrade.pnlPercentage > 0, 'loss': selectedTrade.pnlPercentage < 0 }">
-                            {{ (selectedTrade.pnlPercentage || 0).toFixed(2) }}%
-                        </span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="label">Days Held:</span>
-                        <span class="value">{{ selectedTrade.daysHeld }}</span>
-                    </div>
-                    <div class="detail-row" v-if="selectedTrade.remarks">
-                        <span class="label">Remarks:</span>
-                        <span class="value">{{ selectedTrade.remarks }}</span>
-                    </div>
-                    <div class="detail-notes" v-if="selectedTrade.notes">
-                        <span class="label">Notes:</span>
-                        <p class="value">{{ selectedTrade.notes }}</p>
-                    </div>
-                    <div class="detail-notes" v-if="selectedTrade.lessonsLearned">
-                        <span class="label">Lessons Learned:</span>
-                        <p class="value">{{ selectedTrade.lessonsLearned }}</p>
-                    </div>
-                </div>
-                <button class="close-btn" @click="selectedTrade = null">Close</button>
-            </div>
-        </div>
-
-        <!-- Edit Trade Modal -->
-        <div v-if="showEditModal" class="modal">
-            <div class="modal-content">
-                <h3>Edit Trade</h3>
-                <form @submit.prevent="handleEditSubmit">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editSymbol">Symbol</label>
-                            <input type="text" id="editSymbol" v-model="editedTrade.symbol" required />
-                        </div>
-                        <div class="form-group">
-                            <label for="editContract">Contract (Optional)</label>
-                            <input type="text" id="editContract" v-model="editedTrade.contract" />
-                        </div>
-                        <div class="form-group">
-                            <label for="editType">Type</label>
-                            <select id="editType" v-model="editedTrade.type" required>
-                                <option value="BUY">Buy</option>
-                                <option value="SELL">Sell</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editEntryDate">Entry Date</label>
-                            <input type="date" id="editEntryDate" v-model="editedTrade.entryDate" required />
-                        </div>
-                        <div class="form-group">
-                            <label for="editExitDate">Exit Date (Optional)</label>
-                            <input type="date" id="editExitDate" v-model="editedTrade.exitDate" 
-                                :max="new Date().toISOString().slice(0, 10)" />
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editEntryPrice">Entry Price</label>
-                            <div class="input-with-prefix">
-                                <span class="currency-prefix">₹</span>
-                                <input type="number" id="editEntryPrice" v-model="editedTrade.entryPrice" required
-                                    step="0.01" />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="editExitPrice">Exit Price</label>
-                            <div class="input-with-prefix">
-                                <span class="currency-prefix">₹</span>
-                                <input type="number" id="editExitPrice" v-model="editedTrade.exitPrice" step="0.01" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editLots">Lots</label>
-                            <input type="number" id="editLots" v-model="editedTrade.lots" required min="1" />
-                        </div>
-                        <div class="form-group">
-                            <label for="editCapitalUsed">Capital Used</label>
-                            <div class="input-with-prefix">
-                                <span class="currency-prefix">₹</span>
-                                <input type="number" id="editCapitalUsed" v-model="editedTrade.capitalUsed" required
-                                    step="0.01" min="0" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" class="cancel-btn" @click="closeEditModal">Cancel</button>
-                        <button type="submit" class="save-btn">Save Changes</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+      </div>
+      <div class="filter-group">
+        <label for="symbol">Symbol</label>
+        <select id="symbol" v-model="filters.symbol">
+          <option value="all">All Symbols</option>
+          <option v-for="symbol in uniqueSymbols" :key="symbol" :value="symbol">
+            {{ symbol }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="type">Type</label>
+        <select id="type" v-model="filters.type">
+          <option value="all">All Types</option>
+          <option value="BUY">Buy</option>
+          <option value="SELL">Sell</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="profitability">Profitability</label>
+        <select id="profitability" v-model="filters.profitability">
+          <option value="all">All Trades</option>
+          <option value="profit">Profitable</option>
+          <option value="loss">Loss Making</option>
+        </select>
+      </div>
     </div>
+
+    <!-- Results Summary -->
+    <div class="results-summary">
+      <div class="total-results">
+        Showing {{ sortedTrades.length }} trade{{ sortedTrades.length !== 1 ? 's' : '' }}
+      </div>
+      <div class="trades-summary">
+        <div class="trades-summary">
+          <div class="summary-stats">
+            <span class="profit-count">
+              Profitable: {{ sortedTrades.filter(t => t.pnlAmount > 0).length }}
+            </span>
+            <span class="loss-count">
+              Loss: {{ sortedTrades.filter(t => t.pnlAmount < 0).length }} </span>
+            <span class="breakeven-count">
+              Breakeven: {{ sortedTrades.filter(t => t.pnlAmount === 0).length }}
+            </span>
+          </div>
+          <div
+            class="net-profit"
+            :class="{
+              'profit': calculateNetProfit > 0,
+              'loss': calculateNetProfit < 0
+            }"
+          >
+            Net P&L: {{ formatCurrency(calculateNetProfit) }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trade Table for Desktop -->
+    <div class="table-container desktop-table" style="position: relative;">
+      <!-- Loading overlay for trades table -->
+      <div v-if="isLoadingTrades" class="loader-overlay">
+        <div class="spinner" />
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th :class="{ active: sortKey === 'entryDate' }" @click="sortBy('entryDate')">
+              Date
+              <span class="sort-arrow">{{ getSortArrow('entryDate') }}</span>
+            </th>
+            <th :class="{ active: sortKey === 'symbol' }" @click="sortBy('symbol')">
+              Symbol
+              <span class="sort-arrow">{{ getSortArrow('symbol') }}</span>
+            </th>
+            <th :class="{ active: sortKey === 'type' }" @click="sortBy('type')">
+              Type
+              <span class="sort-arrow">{{ getSortArrow('type') }}</span>
+            </th>
+            <th :class="{ active: sortKey === 'entryPrice' }" @click="sortBy('entryPrice')">
+              Entry Price
+              <span class="sort-arrow">{{ getSortArrow('entryPrice') }}</span>
+            </th>
+            <th :class="{ active: sortKey === 'exitPrice' }" @click="sortBy('exitPrice')">
+              Exit Price
+              <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
+            </th>
+            <th :class="{ active: sortKey === 'pnlAmount' }" @click="sortBy('pnlAmount')">
+              P&L
+              <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="trade in sortedTrades"
+            :key="trade.id"
+            :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
+          >
+            <td>{{ formatDate(trade.entryDate) }}</td>
+            <td>{{ trade.symbol }}</td>
+            <td :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
+              {{ trade.type }}
+            </td>
+            <td>{{ formatCurrency(trade.entryPrice) }}</td>
+            <td>{{ formatCurrency(trade.exitPrice) }}</td>
+            <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
+              {{ formatCurrency(trade.pnlAmount) }}
+            </td>
+            <td class="actions-cell">
+              <div class="actions-container">
+                <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
+                  View
+                </button>
+                <button class="action-btn edit-btn" @click="handleEdit(trade)">
+                  Edit
+                </button>
+                <button class="action-btn delete-btn" @click="deleteTrade(trade)">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="sortedTrades.length === 0">
+            <td colspan="7" class="no-data">No trades found matching your filters</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card Layout -->
+    <div class="mobile-trades">
+      <!-- Loading overlay for mobile cards -->
+      <div v-if="isLoadingTrades" class="loader-overlay">
+        <div class="spinner" />
+      </div>
+
+      <!-- Sort controls for mobile -->
+      <div class="mobile-sort-controls">
+        <label for="mobileSortSelect">Sort by:</label>
+        <select id="mobileSortSelect" v-model="sortKey" @change="toggleSortOrder">
+          <option value="entryDate">Date</option>
+          <option value="symbol">Symbol</option>
+          <option value="type">Type</option>
+          <option value="entryPrice">Entry Price</option>
+          <option value="exitPrice">Exit Price</option>
+          <option value="pnlAmount">P&L</option>
+        </select>
+        <button class="sort-direction-btn" @click="toggleSortOrder">
+          {{ sortOrder === 'asc' ? '↑' : '↓' }}
+        </button>
+      </div>
+
+      <div class="trade-cards">
+        <div
+          v-for="trade in sortedTrades"
+          :key="trade.id"
+          class="trade-card"
+          :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
+        >
+          <div class="trade-card-header">
+            <div class="trade-symbol">{{ trade.symbol }}</div>
+            <div class="trade-date">{{ formatDate(trade.entryDate) }}</div>
+          </div>
+
+          <div class="trade-card-body">
+            <div class="trade-row">
+              <span class="trade-label">Type:</span>
+              <span class="trade-value" :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
+                {{ trade.type }}
+              </span>
+            </div>
+            <div class="trade-row">
+              <span class="trade-label">Entry:</span>
+              <span class="trade-value">{{ formatCurrency(trade.entryPrice) }}</span>
+            </div>
+            <div class="trade-row">
+              <span class="trade-label">Exit:</span>
+              <span class="trade-value">{{ formatCurrency(trade.exitPrice) }}</span>
+            </div>
+            <div class="trade-row">
+              <span class="trade-label">P&L:</span>
+              <span class="trade-value pnl-value" :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
+                {{ formatCurrency(trade.pnlAmount) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="trade-card-actions">
+            <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
+              View
+            </button>
+            <button class="action-btn edit-btn" @click="handleEdit(trade)">
+              Edit
+            </button>
+            <button class="action-btn delete-btn" @click="deleteTrade(trade)">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <div v-if="sortedTrades.length === 0" class="no-data-mobile">
+          No trades found matching your filters
+        </div>
+      </div>
+    </div>
+
+    <!-- Trade Details Modal -->
+    <div v-if="selectedTrade" class="modal">
+      <div class="modal-content">
+        <h3>Trade Details</h3>
+        <div class="trade-details">
+          <div class="detail-row">
+            <span class="label">Symbol:</span>
+            <span class="value">{{ selectedTrade.symbol }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Contract:</span>
+            <span class="value">{{ selectedTrade.contract }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Type:</span>
+            <span
+              class="value"
+              :class="{ 'type-buy': selectedTrade.type === 'BUY', 'type-sell': selectedTrade.type === 'SELL' }"
+            >
+              {{ selectedTrade.type }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Entry Date:</span>
+            <span class="value">{{ formatDate(selectedTrade.entryDate) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Exit Date:</span>
+            <span class="value">{{ formatDate(selectedTrade.exitDate) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Entry Price:</span>
+            <span class="value">{{ formatCurrency(selectedTrade.entryPrice) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Exit Price:</span>
+            <span class="value">{{ formatCurrency(selectedTrade.exitPrice) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Lots:</span>
+            <span class="value">{{ selectedTrade.lots }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Capital Used:</span>
+            <span class="value">{{ formatCurrency(selectedTrade.capitalUsed) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">P&L:</span>
+            <span
+              class="value"
+              :class="{ 'profit': selectedTrade.pnlAmount > 0, 'loss': selectedTrade.pnlAmount < 0 }"
+            >
+              {{ formatCurrency(selectedTrade.pnlAmount) }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Return %:</span>
+            <span
+              class="value"
+              :class="{ 'profit': selectedTrade.pnlPercentage > 0, 'loss': selectedTrade.pnlPercentage < 0 }"
+            >
+              {{ (selectedTrade.pnlPercentage || 0).toFixed(2) }}%
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Days Held:</span>
+            <span class="value">{{ selectedTrade.daysHeld }}</span>
+          </div>
+          <div v-if="selectedTrade.remarks" class="detail-row">
+            <span class="label">Remarks:</span>
+            <span class="value">{{ selectedTrade.remarks }}</span>
+          </div>
+          <div v-if="selectedTrade.notes" class="detail-notes">
+            <span class="label">Notes:</span>
+            <p class="value">{{ selectedTrade.notes }}</p>
+          </div>
+          <div v-if="selectedTrade.lessonsLearned" class="detail-notes">
+            <span class="label">Lessons Learned:</span>
+            <p class="value">{{ selectedTrade.lessonsLearned }}</p>
+          </div>
+        </div>
+        <button class="close-btn" @click="selectedTrade = null">Close</button>
+      </div>
+    </div>
+
+    <!-- Edit Trade Modal -->
+    <div v-if="showEditModal" class="modal">
+      <div class="modal-content">
+        <h3>Edit Trade</h3>
+        <form @submit.prevent="handleEditSubmit">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editSymbol">Symbol</label>
+              <input
+                id="editSymbol"
+                v-model="editedTrade.symbol"
+                type="text"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="editContract">Contract (Optional)</label>
+              <input id="editContract" v-model="editedTrade.contract" type="text">
+            </div>
+            <div class="form-group">
+              <label for="editType">Type</label>
+              <select id="editType" v-model="editedTrade.type" required>
+                <option value="BUY">Buy</option>
+                <option value="SELL">Sell</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editEntryDate">Entry Date</label>
+              <input
+                id="editEntryDate"
+                v-model="editedTrade.entryDate"
+                type="date"
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="editExitDate">Exit Date (Optional)</label>
+              <input
+                id="editExitDate"
+                v-model="editedTrade.exitDate"
+                type="date"
+                :max="new Date().toISOString().slice(0, 10)"
+              >
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editEntryPrice">Entry Price</label>
+              <div class="input-with-prefix">
+                <span class="currency-prefix">₹</span>
+                <input
+                  id="editEntryPrice"
+                  v-model="editedTrade.entryPrice"
+                  type="number"
+                  required
+                  step="0.01"
+                >
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="editExitPrice">Exit Price</label>
+              <div class="input-with-prefix">
+                <span class="currency-prefix">₹</span>
+                <input
+                  id="editExitPrice"
+                  v-model="editedTrade.exitPrice"
+                  type="number"
+                  step="0.01"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editLots">Lots</label>
+              <input
+                id="editLots"
+                v-model="editedTrade.lots"
+                type="number"
+                required
+                min="1"
+              >
+            </div>
+            <div class="form-group">
+              <label for="editCapitalUsed">Capital Used</label>
+              <div class="input-with-prefix">
+                <span class="currency-prefix">₹</span>
+                <input
+                  id="editCapitalUsed"
+                  v-model="editedTrade.capitalUsed"
+                  type="number"
+                  required
+                  step="0.01"
+                  min="0"
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="button" class="cancel-btn" @click="closeEditModal">Cancel</button>
+            <button type="submit" class="save-btn">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -423,7 +484,7 @@ const filters = ref({
 })
 
 // Load trades with current filters
-const loadTrades = async () => {
+const loadTrades = async() => {
     isLoadingTrades.value = true
     try {
         // Build filter object for API call
@@ -435,7 +496,7 @@ const loadTrades = async () => {
             type: filters.value.type,
             profitability: filters.value.profitability
         }
-        
+
         trades.value = await tradeService.getFilteredTrades(filterParams)
     } catch (error) {
         console.error('Error loading trades:', error)
@@ -447,7 +508,7 @@ const loadTrades = async () => {
 }
 
 // Load unique symbols for filter dropdown
-const loadUniqueSymbols = async () => {
+const loadUniqueSymbols = async() => {
     try {
         uniqueSymbols.value = await tradeService.getUniqueSymbols()
     } catch (error) {
@@ -462,7 +523,7 @@ watch(filters, () => {
 }, { deep: true })
 
 // Initialize data on component mount
-onMounted(async () => {
+onMounted(async() => {
     await Promise.all([
         loadTrades(),
         loadUniqueSymbols()
@@ -605,21 +666,21 @@ const viewTradeDetails = (trade) => {
 }
 
 // Delete trade
-const deleteTrade = async (trade) => {
+const deleteTrade = async(trade) => {
     if (confirm('Are you sure you want to delete this trade?')) {
         isDeletingTrade.value = true
         try {
             await tradeService.deleteTrade(trade.id)
-            
+
             // Reload filtered data instead of client-side filtering
             await loadTrades()
-            
+
             // Also reload unique symbols in case this was the only trade for that symbol
             await loadUniqueSymbols()
-            
+
             // Refresh dashboard data
             refreshDashboard()
-            
+
             displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
         } catch (error) {
             console.error('Error deleting trade:', error)
@@ -1155,24 +1216,24 @@ td.loss {
         max-height: 85vh;
         border-radius: 12px;
     }
-    
+
     .modal-content h3 {
         font-size: 1.1rem;
         margin: 0 0 16px 0;
         text-align: center;
         color: #1e293b;
     }
-    
+
     .trade-details {
         margin-top: 12px;
     }
-    
+
     .detail-row {
         padding: 8px 0;
         font-size: 0.9rem;
         align-items: center;
     }
-    
+
     .detail-row .label {
         font-size: 0.85rem;
         color: #64748b;
@@ -1180,24 +1241,24 @@ td.loss {
         flex-shrink: 0;
         min-width: 85px;
     }
-    
+
     .detail-row .value {
         font-size: 0.9rem;
         font-weight: 600;
         text-align: right;
         word-break: break-word;
     }
-    
+
     .detail-notes {
         margin-top: 16px;
     }
-    
+
     .detail-notes .label {
         font-size: 0.85rem;
         margin-bottom: 6px;
         font-weight: 600;
     }
-    
+
     .detail-notes .value {
         padding: 10px;
         font-size: 0.85rem;
@@ -1205,7 +1266,7 @@ td.loss {
         border-radius: 6px;
         background: #f1f5f9;
     }
-    
+
     .close-btn {
         margin-top: 16px;
         padding: 12px;
@@ -1217,7 +1278,7 @@ td.loss {
         touch-action: manipulation;
         min-height: 44px;
     }
-    
+
     .close-btn:hover {
         background-color: #2563eb;
     }
@@ -1439,17 +1500,17 @@ td.loss {
         min-width: 100%;
         font-size: 0.75rem;
     }
-    
+
     th, td {
         padding: 6px 4px;
         font-size: 0.75rem;
     }
-    
+
     .actions-container {
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .action-btn {
         padding: 6px 8px;
         font-size: 0.75rem;

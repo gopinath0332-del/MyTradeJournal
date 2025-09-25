@@ -24,7 +24,7 @@ export function useDashboardStats() {
   const selectedEquityMonth = ref(new Date().getMonth())
 
   // Starting equity for the current month (configurable)
-  const startingEquity = ref(100000) // Default starting equity
+  const _startingEquity = ref(100000) // Default starting equity
 
   // Year and month selection
   const selectedYear = ref(new Date().getFullYear())
@@ -147,7 +147,7 @@ export function useDashboardStats() {
   const currentMonthEquityData = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const currentDate = new Date()
+    const _currentDate = new Date()
     const currentYear = selectedYear.value
 
     // Filter trades for selected equity month
@@ -160,7 +160,7 @@ export function useDashboardStats() {
 
     // Group trades by date and calculate daily P&L
     const dailyPnLMap = {}
-    
+
     selectedMonthTrades.forEach(trade => {
       const dateStr = new Date(trade.entryDate).toISOString().split('T')[0]
       if (!dailyPnLMap[dateStr]) {
@@ -176,13 +176,13 @@ export function useDashboardStats() {
 
     // Calculate cumulative P&L (starting from 0)
     let cumulativePnL = 0
-    
+
     return dailyPnLArray.map(dayData => {
       cumulativePnL += dayData.dailyPnL
       return {
         date: dayData.date,
         dailyPnL: dayData.dailyPnL,
-        cumulativePnL: cumulativePnL
+        cumulativePnL
       }
     })
   })
@@ -220,7 +220,7 @@ export function useDashboardStats() {
       const firstDay = new Date(year, month, 1)
       const lastDay = new Date(year, month + 1, 0)
       const daysInMonth = lastDay.getDate()
-      
+
       // Calculate weeks in month
       let currentWeek = []
 
@@ -234,14 +234,14 @@ export function useDashboardStats() {
       for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day)
         const dateString = date.toDateString()
-        
+
         // Find trades for this day
-        const dayTrades = currentYearTrades.value.filter(trade => 
+        const dayTrades = currentYearTrades.value.filter(trade =>
           new Date(trade.entryDate).toDateString() === dateString
         )
-        
+
         const dayPnL = dayTrades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
-        
+
         currentWeek.push({
           day,
           date: dateString,
@@ -256,7 +256,7 @@ export function useDashboardStats() {
           while (currentWeek.length < 7 && day === daysInMonth) {
             currentWeek.push(null)
           }
-          
+
           if (currentWeek.length === 7) {
             monthData.weeks.push([...currentWeek])
             currentWeek = []
@@ -334,8 +334,8 @@ export function useDashboardStats() {
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
-        riskRewardRatio: riskRewardRatio,
-        remarksCount: remarksCount
+        riskRewardRatio,
+        remarksCount
       }
     }).sort((a, b) => a.monthNumber - b.monthNumber)
   })
@@ -367,7 +367,7 @@ export function useDashboardStats() {
 
       if (!weeklyStats[weekKey]) {
         weeklyStats[weekKey] = {
-          weekStart: weekStart,
+          weekStart,
           weekRange: formatWeekRange(weekStart),
           trades: []
         }
@@ -400,7 +400,7 @@ export function useDashboardStats() {
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
-        riskRewardRatio: riskRewardRatio
+        riskRewardRatio
       }
     }).sort((a, b) => b.weekStart - a.weekStart)
   })
@@ -431,7 +431,7 @@ export function useDashboardStats() {
   }
 
   // Get trades for a year (with caching and error handling)
-  const getTradesForYear = async (year) => {
+  const getTradesForYear = async(year) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
@@ -448,7 +448,7 @@ export function useDashboardStats() {
   }
 
   // Initialize available years
-  const initializeAvailableYears = async () => {
+  const initializeAvailableYears = async() => {
     try {
       availableYears.value = await tradeService.getAvailableYears()
 
@@ -463,18 +463,14 @@ export function useDashboardStats() {
   }
 
   // Load trades and update cache
-  const loadTradesForYear = async (year) => {
-    try {
-      const trades = await getTradesForYear(year)
-      // Trades are now cached and computed properties will automatically update
-      return trades
-    } catch (error) {
-      throw error
-    }
+  const loadTradesForYear = async(year) => {
+    const trades = await getTradesForYear(year)
+    // Trades are now cached and computed properties will automatically update
+    return trades
   }
 
   // Calculate main statistics
-  const calculateStats = async () => {
+  const calculateStats = async() => {
     isLoadingStats.value = true
     statsError.value = null
 
@@ -490,7 +486,7 @@ export function useDashboardStats() {
   }
 
   // Calculate monthly breakdown
-  const calculateMonthlyBreakdown = async () => {
+  const calculateMonthlyBreakdown = async() => {
     isLoadingMonthly.value = true
     monthlyError.value = null
 
@@ -506,7 +502,7 @@ export function useDashboardStats() {
   }
 
   // Calculate weekly breakdown
-  const calculateWeeklyBreakdown = async () => {
+  const calculateWeeklyBreakdown = async() => {
     isLoadingWeekly.value = true
     weeklyError.value = null
 
@@ -538,7 +534,7 @@ export function useDashboardStats() {
   const onYearChange = (newYear) => {
     selectedYear.value = newYear
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
-    
+
     // Reset equity curve month to current month or first available month
     const currentMonth = new Date().getMonth()
     selectedEquityMonth.value = currentMonth
@@ -569,7 +565,7 @@ export function useDashboardStats() {
   }
 
   // Initialize all data
-  const initializeDashboard = async () => {
+  const initializeDashboard = async() => {
     try {
       await initializeAvailableYears()
       await Promise.all([

@@ -2,7 +2,7 @@
   <div class="stats-grid" style="position: relative;">
     <!-- Loading overlay for stats -->
     <div v-if="isLoading" class="dashboard-loader-overlay">
-      <div class="dashboard-spinner"></div>
+      <div class="dashboard-spinner" />
     </div>
 
     <!-- Error state -->
@@ -10,12 +10,12 @@
       <div class="dashboard-error-card">
         <div class="dashboard-error-icon">⚠️</div>
         <div class="dashboard-error-message">{{ error }}</div>
-        <button v-if="onRetry" @click="onRetry" class="dashboard-retry-button">
+        <button v-if="onRetry" class="dashboard-retry-button" @click="onRetry">
           Try Again
         </button>
       </div>
     </div>
-    
+
     <div class="stat-card net-pnl" :class="{ 'net-pnl-positive': stats.netPnL > 0, 'net-pnl-negative': stats.netPnL < 0, 'net-pnl-neutral': stats.netPnL === 0 }">
       <div class="stat-title">Net P&L</div>
       <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
@@ -78,10 +78,10 @@
 <script setup>
 import '../../styles/dashboard.css'
 
-const props = defineProps({
+const _props = defineProps({
   stats: {
     type: Object,
-    required: true,
+    required: false,
     default: () => ({
       tradingDays: 0,
       winDays: 0,

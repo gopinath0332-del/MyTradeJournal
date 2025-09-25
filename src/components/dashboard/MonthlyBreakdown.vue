@@ -6,7 +6,7 @@
 
     <!-- Loading state for monthly breakdown -->
     <div v-if="isLoading" class="loader-container">
-      <div class="spinner"></div>
+      <div class="spinner" />
     </div>
 
     <!-- Error state -->
@@ -14,17 +14,22 @@
       <div class="error-card">
         <div class="error-icon">⚠️</div>
         <div class="error-message">{{ error }}</div>
-        <button v-if="onRetry" @click="onRetry" class="retry-button">
+        <button v-if="onRetry" class="retry-button" @click="onRetry">
           Try Again
         </button>
       </div>
     </div>
 
     <div v-else-if="monthlyData.length > 0" class="monthly-grid">
-      <div v-for="month in monthlyData" :key="month.month" class="monthly-card" :class="{
-        'profitable': month.totalPnL > 0,
-        'loss': month.totalPnL < 0
-      }">
+      <div
+        v-for="month in monthlyData"
+        :key="month.month"
+        class="monthly-card"
+        :class="{
+          'profitable': month.totalPnL > 0,
+          'loss': month.totalPnL < 0
+        }"
+      >
         <div class="monthly-header">
           <h4>{{ month.month }}</h4>
           <span class="trade-count">{{ month.totalTrades }} trades</span>
@@ -49,12 +54,14 @@
           </div>
           <div class="monthly-stat">
             <span class="stat-label">R:R Ratio:</span>
-            <span class="stat-value"
-              :class="{ 'positive': month.riskRewardRatio >= 1, 'neutral': month.riskRewardRatio < 1 && month.riskRewardRatio > 0 }">
+            <span
+              class="stat-value"
+              :class="{ 'positive': month.riskRewardRatio >= 1, 'neutral': month.riskRewardRatio < 1 && month.riskRewardRatio > 0 }"
+            >
               {{ month.riskRewardRatio > 0 ? month.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>
           </div>
-          
+
           <!-- Remarks breakdown section -->
           <div v-if="Object.keys(month.remarksCount || {}).length > 0" class="remarks-section">
             <div class="remarks-header">
@@ -67,7 +74,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="win-loss-breakdown">
             <span class="wins">{{ month.winningTrades }}W</span>
             <span class="losses">{{ month.losingTrades }}L</span>
@@ -84,7 +91,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+const _props = defineProps({
   monthlyData: {
     type: Array,
     default: () => []

@@ -5,31 +5,31 @@
         <label for="entryPrice">Entry Price</label>
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
-          <input 
-            type="number" 
-            id="entryPrice" 
-            :value="modelValue.entryPrice" 
-            @input="handlePriceChange('entryPrice', $event)"
-            required 
+          <input
+            id="entryPrice"
+            type="number"
+            :value="modelValue.entryPrice"
+            required
             step="0.01"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
-          />
+            @input="handlePriceChange('entryPrice', $event)"
+          >
         </div>
       </div>
       <div class="form-group">
         <label for="exitPrice">Exit Price</label>
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
-          <input 
-            type="number" 
-            id="exitPrice" 
-            :value="modelValue.exitPrice" 
-            @input="handlePriceChange('exitPrice', $event)"
+          <input
+            id="exitPrice"
+            type="number"
+            :value="modelValue.exitPrice"
             step="0.01"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
-          />
+            @input="handlePriceChange('exitPrice', $event)"
+          >
         </div>
       </div>
     </div>
@@ -37,33 +37,33 @@
     <div class="form-row">
       <div class="form-group">
         <label for="lots">Lots</label>
-        <input 
-          type="number" 
-          id="lots" 
-          :value="modelValue.lots" 
-          @input="handleNumberChange('lots', $event)"
-          required 
-          min="1" 
+        <input
+          id="lots"
+          type="number"
+          :value="modelValue.lots"
+          required
+          min="1"
           step="1"
           inputmode="numeric"
           pattern="[0-9]*"
-        />
+          @input="handleNumberChange('lots', $event)"
+        >
       </div>
       <div class="form-group">
         <label for="capitalUsed">Capital Used</label>
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
-          <input 
-            type="number" 
-            id="capitalUsed" 
-            :value="modelValue.capitalUsed" 
-            @input="handlePriceChange('capitalUsed', $event)"
-            required 
-            step="0.01" 
+          <input
+            id="capitalUsed"
+            type="number"
+            :value="modelValue.capitalUsed"
+            required
+            step="0.01"
             min="0"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
-          />
+            @input="handlePriceChange('capitalUsed', $event)"
+          >
         </div>
       </div>
     </div>

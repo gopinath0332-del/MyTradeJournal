@@ -2,29 +2,29 @@
   <div class="trade-metadata">
     <div class="form-group">
       <label for="screenshot">Screenshots</label>
-      <input 
-        type="file" 
-        id="screenshot" 
-        @change="handleScreenshotUpload" 
-        multiple 
-        accept="image/*" 
+      <input
+        id="screenshot"
+        type="file"
+        multiple
+        accept="image/*"
         class="file-input"
-      />
+        @change="handleScreenshotUpload"
+      >
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label for="confidence">Confidence Level (1-5)</label>
         <div class="range-input">
-          <input 
-            type="range" 
-            id="confidence" 
-            :value="modelValue.confidence" 
+          <input
+            id="confidence"
+            type="range"
+            :value="modelValue.confidence"
+            min="1"
+            max="5"
+            step="1"
             @input="updateField('confidence', parseInt($event.target.value))"
-            min="1" 
-            max="5" 
-            step="1" 
-          />
+          >
           <span class="range-value">{{ modelValue.confidence }}</span>
         </div>
       </div>
@@ -32,15 +32,15 @@
       <div class="form-group">
         <label for="executionQuality">Execution Quality (1-5)</label>
         <div class="range-input">
-          <input 
-            type="range" 
-            id="executionQuality" 
-            :value="modelValue.executionQuality" 
+          <input
+            id="executionQuality"
+            type="range"
+            :value="modelValue.executionQuality"
+            min="1"
+            max="5"
+            step="1"
             @input="updateField('executionQuality', parseInt($event.target.value))"
-            min="1" 
-            max="5" 
-            step="1" 
-          />
+          >
           <span class="range-value">{{ modelValue.executionQuality }}</span>
         </div>
       </div>
@@ -48,8 +48,8 @@
 
     <div class="form-group">
       <label for="remarks">Remarks</label>
-      <select 
-        id="remarks" 
+      <select
+        id="remarks"
         :value="modelValue.remarks"
         @change="updateField('remarks', $event.target.value)"
       >
@@ -67,13 +67,13 @@
 
     <div class="form-group">
       <label for="lessonsLearned">Lessons Learned</label>
-      <textarea 
-        id="lessonsLearned" 
+      <textarea
+        id="lessonsLearned"
         :value="modelValue.lessonsLearned"
-        @input="updateField('lessonsLearned', $event.target.value)"
         rows="4"
         placeholder="What did you learn from this trade?"
-      ></textarea>
+        @input="updateField('lessonsLearned', $event.target.value)"
+      />
     </div>
   </div>
 </template>

@@ -4,7 +4,7 @@
       <h2>Trading Heatmap</h2>
     </div>
 
-    <TradingHeatmap 
+    <TradingHeatmap
       v-if="availableYears.length > 0"
       :heatmap-data="heatmapData"
       :is-loading="isLoadingHeatmap"
@@ -26,16 +26,16 @@ import { useMultiYearHeatmap } from '../composables/useMultiYearHeatmap.js'
 const {
   // State
   availableYears,
-  
+
   // Heatmap
   heatmapData,
-  
+
   // Loading states
   isLoadingHeatmap,
-  
+
   // Error states
   heatmapError,
-  
+
   // Methods
   initializeHeatmap,
   retryHeatmap

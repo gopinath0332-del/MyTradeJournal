@@ -24,7 +24,7 @@ export function useMultiYearHeatmap() {
     return trades.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
   })
 
-  // Multi-year heatmap data 
+  // Multi-year heatmap data
   const heatmapData = computed(() => {
     if (!allTrades.value.length || !availableYears.value.length) return []
 
@@ -32,7 +32,7 @@ export function useMultiYearHeatmap() {
 
     // Process each year's data
     availableYears.value.forEach(year => {
-      const yearTrades = allTrades.value.filter(trade => 
+      const yearTrades = allTrades.value.filter(trade =>
         new Date(trade.entryDate).getFullYear() === year
       )
 
@@ -56,7 +56,7 @@ export function useMultiYearHeatmap() {
         const firstDay = new Date(year, month, 1)
         const lastDay = new Date(year, month + 1, 0)
         const daysInMonth = lastDay.getDate()
-        
+
         // Calculate weeks in month
         let currentWeek = []
 
@@ -70,14 +70,14 @@ export function useMultiYearHeatmap() {
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(year, month, day)
           const dateString = date.toDateString()
-          
+
           // Find trades for this day
-          const dayTrades = yearTrades.filter(trade => 
+          const dayTrades = yearTrades.filter(trade =>
             new Date(trade.entryDate).toDateString() === dateString
           )
-          
+
           const dayPnL = dayTrades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
-          
+
           currentWeek.push({
             day,
             date: dateString,
@@ -92,7 +92,7 @@ export function useMultiYearHeatmap() {
             while (currentWeek.length < 7 && day === daysInMonth) {
               currentWeek.push(null)
             }
-            
+
             if (currentWeek.length === 7) {
               monthData.weeks.push([...currentWeek])
               currentWeek = []
@@ -110,7 +110,7 @@ export function useMultiYearHeatmap() {
   })
 
   // Get trades for a specific year (with caching)
-  const getTradesForYear = async (year) => {
+  const getTradesForYear = async(year) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
@@ -127,7 +127,7 @@ export function useMultiYearHeatmap() {
   }
 
   // Initialize available years
-  const initializeAvailableYears = async () => {
+  const initializeAvailableYears = async() => {
     try {
       availableYears.value = await tradeService.getAvailableYears()
     } catch (error) {
@@ -137,7 +137,7 @@ export function useMultiYearHeatmap() {
   }
 
   // Load all years' data
-  const loadAllYearsData = async () => {
+  const loadAllYearsData = async() => {
     isLoadingHeatmap.value = true
     heatmapError.value = null
 
@@ -155,7 +155,7 @@ export function useMultiYearHeatmap() {
   }
 
   // Initialize heatmap data
-  const initializeHeatmap = async () => {
+  const initializeHeatmap = async() => {
     try {
       await initializeAvailableYears()
       if (availableYears.value.length > 0) {
@@ -168,7 +168,7 @@ export function useMultiYearHeatmap() {
   }
 
   // Retry function for error recovery
-  const retryHeatmap = async () => {
+  const retryHeatmap = async() => {
     await loadAllYearsData()
   }
 

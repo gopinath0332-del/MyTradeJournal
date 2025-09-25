@@ -3,34 +3,34 @@
     <div class="form-row">
       <div class="form-group">
         <label for="entryDate">Entry Date</label>
-        <input 
-          type="date" 
-          id="entryDate" 
+        <input
+          id="entryDate"
           v-model="entryDateValue"
-          required 
-        />
+          type="date"
+          required
+        >
       </div>
       <div class="form-group">
         <label for="exitDate">Exit Date (Optional)</label>
-        <input 
-          type="date" 
-          id="exitDate" 
+        <input
+          id="exitDate"
           v-model="exitDateValue"
-          :max="maxDate" 
-        />
+          type="date"
+          :max="maxDate"
+        >
       </div>
     </div>
-    
+
     <div class="form-row">
       <div class="form-group">
         <label for="daysHeld">Days Held</label>
-        <input 
-          type="number" 
-          id="daysHeld" 
-          :value="modelValue.daysHeld" 
-          disabled 
+        <input
+          id="daysHeld"
+          type="number"
+          :value="modelValue.daysHeld"
+          disabled
           class="calculated-field"
-        />
+        >
       </div>
     </div>
   </div>

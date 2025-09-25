@@ -2,9 +2,36 @@
 
 A modern trading journal application built with Vue 3 and Firebase to help traders track, analyze, and improve their trading performance.
 
-## 🚀 Features
+## 🚀 Features- **Firebase configuration values are safe to expose in client-side code as they identify your project publicly
 
-- **Modular Trade Management**: Add, edit, and delete trades with comprehensive details using a modular form architecture
+## 🔍 Code Quality & Linting
+
+This project uses ESLint for maintaining code quality and consistency:
+
+### ESLint Configuration
+- **Vue 3 Composition API** support with recommended rules
+- **JavaScript ES2022** features and best practices
+- **Consistent formatting** (2-space indentation, single quotes, no semicolons)
+- **Vue-specific rules** for component structure and naming
+- **VS Code integration** for automatic fixing on save
+
+### Usage
+```bash
+npm run lint:check    # Check for issues
+npm run lint:fix      # Fix auto-fixable issues
+```
+
+### Key Rules
+- Use `const`/`let` appropriately
+- Single quotes for strings
+- 2-space indentation
+- PascalCase for Vue components
+- camelCase for props and variables
+- No unused variables (prefix with `_` if needed)
+
+See `ESLINT.md` for detailed configuration and troubleshooting guide.
+
+## 🔥 Firebase Integration- **Modular Trade Management**: Add, edit, and delete trades with comprehensive details using a modular form architecture
 - **Advanced Dashboard Analytics**: Visual statistics, equity curves, and performance heatmaps
 - **Historical Analysis**: View trade history with filtering and search capabilities
 - **Time-based Analysis**: Monthly/weekly breakdowns and calendar-based trading activity visualization
@@ -108,9 +135,19 @@ npm run dev
 
 ## 🔧 Available Scripts
 
+### Development
 - `npm run dev` - Start development server
+- `npm run dev:prod` - Start development server with production config
 - `npm run build` - Build for production
+- `npm run build:dev` - Build for development environment
+- `npm run build:prod` - Build for production environment
 - `npm run preview` - Preview production build locally
+- `npm run preview:prod` - Preview production build with production config
+
+### Code Quality
+- `npm run lint` - Run ESLint and fix auto-fixable issues
+- `npm run lint:check` - Check for linting issues without fixing
+- `npm run lint:fix` - Fix all auto-fixable ESLint issues
 
 ## 📊 Components Overview
 

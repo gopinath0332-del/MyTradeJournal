@@ -3,36 +3,36 @@
     <div class="form-grid">
       <div class="form-field">
         <label for="symbol">Symbol</label>
-        <input 
-          type="text" 
-          id="symbol" 
-          :value="modelValue.symbol" 
-          @input="handleSymbolInput" 
+        <input
+          id="symbol"
+          type="text"
+          :value="modelValue.symbol"
           required
-          placeholder="e.g., NIFTY" 
-        />
+          placeholder="e.g., NIFTY"
+          @input="handleSymbolInput"
+        >
       </div>
       <div class="form-field">
         <label for="contract">Contract (Optional)</label>
-        <input 
-          type="text" 
-          id="contract" 
-          :value="modelValue.contract" 
+        <input
+          id="contract"
+          type="text"
+          :value="modelValue.contract"
+          placeholder="e.g., 20OCT23"
           @input="handleContractInput"
-          placeholder="e.g., 20OCT23" 
-        />
+        >
       </div>
       <div class="form-group">
         <label for="tradeType">Type</label>
-        <select 
-          id="tradeType" 
-          :value="modelValue.type" 
-          @change="updateField('type', $event.target.value)"
-          required 
+        <select
+          id="tradeType"
+          :value="modelValue.type"
+          required
           :class="{
             'type-buy': modelValue.type === 'BUY',
             'type-sell': modelValue.type === 'SELL'
           }"
+          @change="updateField('type', $event.target.value)"
         >
           <option value="">Select type</option>
           <option value="BUY">Buy</option>

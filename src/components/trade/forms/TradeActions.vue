@@ -1,22 +1,22 @@
 <template>
   <div class="trade-actions">
     <div class="form-actions">
-      <button 
-        v-if="showCancel" 
-        type="button" 
-        class="cancel-button" 
-        @click="$emit('cancel')"
+      <button
+        v-if="showCancel"
+        type="button"
+        class="cancel-button"
         :disabled="isSubmitting"
+        @click="$emit('cancel')"
       >
         Cancel
       </button>
-      <button 
-        type="submit" 
-        class="submit-button" 
+      <button
+        type="submit"
+        class="submit-button"
         :disabled="isSubmitting"
       >
         <span v-if="isSubmitting">
-          <span class="spinner-small"></span>
+          <span class="spinner-small" />
           {{ isEditMode ? 'Saving...' : 'Logging...' }}
         </span>
         <span v-else>{{ isEditMode ? 'Save Changes' : 'Log Trade' }}</span>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-const props = defineProps({
+const _props = defineProps({
   isSubmitting: {
     type: Boolean,
     default: false

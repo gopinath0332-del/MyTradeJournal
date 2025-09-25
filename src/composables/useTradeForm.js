@@ -6,7 +6,7 @@ export function useTradeForm(initialTrade = null) {
   const loading = ref(false)
   const error = ref('')
   const submissionAttempted = ref(false)
-  
+
   // Form data with reactive object
   const formData = reactive({
     id: '',
@@ -44,7 +44,7 @@ export function useTradeForm(initialTrade = null) {
   const pnl = computed(() => {
     const { entryPrice, exitPrice, quantity, fees } = formData
     if (!entryPrice || !exitPrice || !quantity) return 0
-    
+
     const grossPnL = (exitPrice - entryPrice) * quantity
     return parseFloat((grossPnL - (fees || 0)).toFixed(2))
   })
@@ -89,9 +89,9 @@ export function useTradeForm(initialTrade = null) {
 
       // Date validation - compare only dates, not times
       if (formData.entryDate && formData.exitDate) {
-        const entryDate = new Date(formData.entryDate + 'T00:00:00')
-        const exitDate = new Date(formData.exitDate + 'T00:00:00')
-        
+        const entryDate = new Date(`${formData.entryDate}T00:00:00`)
+        const exitDate = new Date(`${formData.exitDate}T00:00:00`)
+
         if (exitDate < entryDate) {
           errors.exitDate = 'Exit date must be on or after entry date'
         }
@@ -99,10 +99,10 @@ export function useTradeForm(initialTrade = null) {
 
       // Exit date cannot be in the future (compare only dates)
       if (formData.exitDate) {
-        const exitDate = new Date(formData.exitDate + 'T00:00:00')
+        const exitDate = new Date(`${formData.exitDate}T00:00:00`)
         const today = new Date()
         today.setHours(0, 0, 0, 0) // Set to start of today
-        
+
         if (exitDate > today) {
           errors.exitDate = 'Exit date cannot be in the future'
         }
@@ -136,7 +136,7 @@ export function useTradeForm(initialTrade = null) {
   })
 
   // File upload handling
-  const uploadScreenshots = async (files) => {
+  const uploadScreenshots = async(files) => {
     if (!files || files.length === 0) return []
 
     try {
@@ -148,7 +148,7 @@ export function useTradeForm(initialTrade = null) {
       const urls = await Promise.all(uploadPromises)
       const currentUrls = formData.screenshotUrls || []
       formData.screenshotUrls = [...currentUrls, ...urls.filter(url => url)]
-      
+
       return urls
     } catch (err) {
       console.error('Error uploading screenshots:', err)
@@ -159,7 +159,7 @@ export function useTradeForm(initialTrade = null) {
   }
 
   // Form submission
-  const submitForm = async () => {
+  const submitForm = async() => {
     submissionAttempted.value = true
     error.value = ''
 
@@ -226,7 +226,7 @@ export function useTradeForm(initialTrade = null) {
       createdAt: null,
       updatedAt: null
     })
-    
+
     submissionAttempted.value = false
     error.value = ''
   }
@@ -244,7 +244,7 @@ export function useTradeForm(initialTrade = null) {
     loading,
     error,
     submissionAttempted,
-    
+
     // Computed
     positionSize,
     pnl,
@@ -253,7 +253,7 @@ export function useTradeForm(initialTrade = null) {
     validationErrors,
     isFormValid,
     hasValidationErrors,
-    
+
     // Methods
     uploadScreenshots,
     submitForm,

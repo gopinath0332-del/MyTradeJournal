@@ -6,15 +6,15 @@
       <div class="summary-value">
         <div class="input-with-prefix">
           <span class="currency-prefix">₹</span>
-          <input 
-            type="number" 
-            :value="Math.round(pnl.amount * 100) / 100" 
-            @input="handlePnLAmountChange"
-            step="0.01" 
+          <input
+            type="number"
+            :value="Math.round(pnl.amount * 100) / 100"
+            step="0.01"
             :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
-          />
+            @input="handlePnLAmountChange"
+          >
         </div>
       </div>
     </div>
@@ -31,7 +31,7 @@
 const props = defineProps({
   pnl: {
     type: Object,
-    required: true,
+    required: false,
     default: () => ({
       amount: 0,
       percentage: 0
@@ -48,7 +48,7 @@ const emit = defineEmits(['update-pnl'])
 const handlePnLAmountChange = (event) => {
   const amount = parseFloat(event.target.value) || 0
   const percentage = props.capitalUsed ? (amount / props.capitalUsed) * 100 : 0
-  
+
   emit('update-pnl', {
     amount,
     percentage

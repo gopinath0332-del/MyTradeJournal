@@ -2,7 +2,7 @@
   <div class="dashboard-stats">
     <div class="dashboard-header">
       <h2>Trading Statistics</h2>
-      <YearSelector 
+      <YearSelector
         v-if="availableYears.length > 0"
         :selected-year="selectedYear"
         :available-years="availableYears"
@@ -10,14 +10,14 @@
       />
     </div>
 
-    <StatsGrid 
+    <StatsGrid
       :stats="stats"
       :is-loading="isLoadingStats"
       :error="statsError"
       :on-retry="retryStats"
     />
 
-    <EquityCurve 
+    <EquityCurve
       :equity-data="currentMonthEquityData"
       :is-loading="isLoadingEquityCurve"
       :selected-equity-month="selectedEquityMonth"
@@ -26,7 +26,7 @@
       @month-change="onEquityMonthChange"
     />
 
-    <WeeklyBreakdown 
+    <WeeklyBreakdown
       v-if="availableYears.length > 0"
       :weekly-data="weeklyData"
       :selected-month="selectedMonth"
@@ -39,7 +39,7 @@
       @month-change="onMonthChange"
     />
 
-    <MonthlyBreakdown 
+    <MonthlyBreakdown
       v-if="availableYears.length > 0"
       :monthly-data="monthlyData"
       :selected-year="selectedYear"
@@ -69,23 +69,23 @@ const {
   selectedMonth,
   availableYears,
   availableMonths,
-  
+
   // Equity curve
   currentMonthEquityData,
   selectedEquityMonth,
   availableEquityMonths,
-  
+
   // Loading states
   isLoadingStats,
   isLoadingMonthly,
   isLoadingWeekly,
   isLoadingEquityCurve,
-  
+
   // Error states
   statsError,
   monthlyError,
   weeklyError,
-  
+
   // Methods
   initializeDashboard,
   onYearChange,

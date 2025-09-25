@@ -67,49 +67,61 @@ provide('refreshDashboard', refreshDashboard)
     <header>
       <div class="header-content">
         <h1>📈 Trade Journal</h1>
-        
+
         <!-- Mobile Menu Button -->
-        <button class="mobile-menu-toggle" @click="toggleMobileMenu" aria-label="Toggle navigation menu">
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }"></span>
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
         </button>
       </div>
-      
+
       <!-- Mobile Menu Overlay -->
-      <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false"></div>
-      
+      <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false" />
+
       <!-- Navigation Menu -->
       <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
         <ul class="nav-list">
           <li class="nav-item">
-            <a href="#" class="nav-link" 
-               :class="{ active: activeTab === 'dashboard' }" 
-               @click.prevent="navigateTo('dashboard')">
+            <a
+              href="#"
+              class="nav-link"
+              :class="{ active: activeTab === 'dashboard' }"
+              @click.prevent="navigateTo('dashboard')"
+            >
               <span class="nav-icon">📊</span>
               <span class="nav-text">Dashboard</span>
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
-               :class="{ active: activeTab === 'history' }" 
-               @click.prevent="navigateTo('history')">
+            <a
+              href="#"
+              class="nav-link"
+              :class="{ active: activeTab === 'history' }"
+              @click.prevent="navigateTo('history')"
+            >
               <span class="nav-icon">📋</span>
               <span class="nav-text">Trade History</span>
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
-               :class="{ active: activeTab === 'heatmap' }" 
-               @click.prevent="navigateTo('heatmap')">
+            <a
+              href="#"
+              class="nav-link"
+              :class="{ active: activeTab === 'heatmap' }"
+              @click.prevent="navigateTo('heatmap')"
+            >
               <span class="nav-icon">🔥</span>
               <span class="nav-text">Heatmap</span>
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link" 
-               :class="{ active: activeTab === 'trade' }" 
-               @click.prevent="navigateTo('trade')">
+            <a
+              href="#"
+              class="nav-link"
+              :class="{ active: activeTab === 'trade' }"
+              @click.prevent="navigateTo('trade')"
+            >
               <span class="nav-icon">➕</span>
               <span class="nav-text">Log Trade</span>
             </a>
@@ -127,7 +139,12 @@ provide('refreshDashboard', refreshDashboard)
 
     <!-- Toast Container -->
     <div class="toast-container">
-      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
+      <div
+        v-for="toast in toasts"
+        :key="toast.id"
+        class="toast"
+        :class="toast.type"
+      >
         <div class="toast-header">
           <strong>{{ toast.title }}</strong>
           <button class="close-button" @click="removeToast(toast.id)">&times;</button>
@@ -251,12 +268,12 @@ header h1 {
     margin-bottom: 30px;
     text-align: center;
   }
-  
+
   .header-content {
     justify-content: center;
     margin-bottom: 1.5rem;
   }
-  
+
   header h1 {
     font-size: 2.5rem;
   }
@@ -342,7 +359,7 @@ header h1 {
     z-index: 1000;
     padding: 1rem 0;
   }
-  
+
   .nav-menu--open {
     transform: translateY(0);
     opacity: 1;

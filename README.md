@@ -4,13 +4,13 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 
 ## 🚀 Features
 
-- **Trade Management**: Add, edit, and delete trades with comprehensive trade details
-- **Modular Form Design**: Trade form broken into focused, reusable components
-- **Dashboard Analytics**: Visual statistics and performance metrics
+- **Modular Trade Management**: Add, edit, and delete trades with comprehensive details using a modular form architecture
+- **Advanced Dashboard Analytics**: Visual statistics, equity curves, and performance heatmaps
 - **Historical Analysis**: View trade history with filtering and search capabilities
-- **Trading Heatmap**: Visual representation of trading performance patterns
-- **Real-time Data**: Firebase integration for real-time data synchronization
-- **Responsive Design**: Mobile-friendly interface with adaptive layouts
+- **Time-based Analysis**: Monthly/weekly breakdowns and calendar-based trading activity visualization
+- **Real-time Data Sync**: Firebase integration for seamless data synchronization
+- **Component-based Architecture**: Reusable, maintainable components for scalable development
+- **Responsive Design**: Mobile-first design with adaptive layouts for all devices
 
 ## 🛠️ Tech Stack
 
@@ -18,8 +18,7 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 - **Build Tool**: Vite
 - **Database**: Firebase Firestore
 - **Styling**: Custom CSS with responsive design
-- **Architecture**: Modular component design with reusable sub-components
-- **State Management**: Vue 3 Composition API with provide/inject pattern
+- **State Management**: Vue 3 Composition API with provide/inject
 
 ## 📁 Project Structure
 
@@ -27,23 +26,31 @@ A modern trading journal application built with Vue 3 and Firebase to help trade
 src/
 ├── components/
 │   ├── dashboard/          # Dashboard analytics components
-│   │   └── DashboardStats.vue
-│   ├── trade/              # Trade management components
-│   │   ├── forms/          # Modular trade form components
-│   │   │   ├── TradeActions.vue      # Save/Delete actions
-│   │   │   ├── TradeBasicInfo.vue    # Symbol, quantity, type
-│   │   │   ├── TradeDates.vue        # Entry/exit dates
-│   │   │   ├── TradeMetadata.vue     # Strategy, notes, tags
-│   │   │   ├── TradePricing.vue      # Price, fees, P&L
-│   │   │   └── TradeSummary.vue      # Calculated summaries
-│   │   ├── TradeForm.vue             # Main trade form container
-│   │   └── TradeHistory.vue          # Trade history table
-│   ├── HeatmapView.vue     # Trading performance heatmap
+│   │   ├── DashboardStats.vue
+│   │   ├── EquityCurve.vue
+│   │   ├── MonthlyBreakdown.vue
+│   │   ├── StatsGrid.vue
+│   │   ├── TradingHeatmap.vue
+│   │   ├── WeeklyBreakdown.vue
+│   │   └── YearSelector.vue
+│   └── trade/              # Trade management components
+│       ├── forms/          # Modular trade form components
+│       │   ├── TradeActions.vue
+│       │   ├── TradeBasicInfo.vue
+│       │   ├── TradeDates.vue
+│       │   ├── TradeMetadata.vue
+│       │   ├── TradePricing.vue
+│       │   └── TradeSummary.vue
+│       ├── TradeForm.vue   # Main trade form container
+│       └── TradeHistory.vue
 ├── composables/            # Reusable composition functions
+│   ├── useDashboardStats.js
+│   └── useTradeForm.js
 ├── firebase/               # Firebase configuration and services
-│   ├── config.js           # Firebase configuration
-│   └── tradeService.js     # Firestore service functions
+│   ├── config.js
+│   └── tradeService.js
 ├── styles/                 # CSS stylesheets
+│   └── dashboard.css
 ├── App.vue                 # Main application component
 ├── main.js                 # Application entry point
 └── style.css              # Global styles
@@ -92,36 +99,28 @@ npm run dev
 
 ### Dashboard Components
 - **DashboardStats**: Main dashboard with key performance indicators
+- **StatsGrid**: Grid layout for displaying trading statistics
+- **MonthlyBreakdown**: Monthly performance analysis
+- **WeeklyBreakdown**: Weekly performance trends
+- **YearSelector**: Year selection for filtering data
+- **EquityCurve**: Visual representation of account equity over time
+- **TradingHeatmap**: Calendar-based heatmap showing trading activity
 
 ### Trade Components
-- **TradeForm**: Main container component that orchestrates all trade form sub-components
+- **TradeForm**: Main container for trade form using modular components
 - **TradeHistory**: Table view of all trades with filtering options
 
-#### Trade Form Sub-Components (Modular Architecture)
-- **TradeBasicInfo**: Symbol, quantity, and trade type selection
-- **TradeDates**: Entry date, exit date, and automatic days held calculation
-- **TradePricing**: Entry/exit prices, fees, and P&L calculations
-- **TradeSummary**: Calculated trade summaries and performance metrics
-- **TradeMetadata**: Strategy, notes, and tags for trade categorization
-- **TradeActions**: Save and delete action buttons with form validation
+### Trade Form Components (Modular Architecture)
+- **TradeBasicInfo**: Symbol, type, and basic trade information
+- **TradeDates**: Entry/exit dates and holding period calculation
+- **TradePricing**: Entry/exit prices, quantity, and commission
+- **TradeSummary**: P&L calculations and performance metrics
+- **TradeMetadata**: Notes, tags, and additional trade information
+- **TradeActions**: Form submission and action buttons
 
-### Additional Components
-- **HeatmapView**: Visual heatmap representation of trading performance patterns
-
-## 🏗️ Architecture Highlights
-
-### Modular Component Design
-The application follows a modular architecture pattern, particularly evident in the TradeForm component which has been decomposed into focused sub-components:
-
-- **Separation of Concerns**: Each form section is isolated into its own component
-- **Reusability**: Sub-components can be easily reused across different contexts
-- **Maintainability**: Smaller, focused components are easier to test and maintain
-- **Vue 3 Composition API**: Leverages reactive refs and computed properties for optimal reactivity
-
-### Component Communication
-- **Props/Events Pattern**: Parent-child communication using props down, events up
-- **v-model Binding**: Two-way data binding with computed properties (getter/setter pattern)
-- **Reactive Updates**: Automatic recalculation of derived values (e.g., days held, P&L)
+### Composables
+- **useDashboardStats**: Logic for dashboard statistics and calculations
+- **useTradeForm**: Form validation and trade management logic
 
 ## 🔥 Firebase Integration
 

@@ -122,19 +122,27 @@
       </div>
     </div>
 
-    <div v-else-if="isLoading" class="loading-state">
-      <div class="spinner" />
-      <span>Loading equity data...</span>
-    </div>
+    <LoadingSpinner
+      v-else-if="isLoading"
+      message="Loading equity curve..."
+      size="large"
+      full-height
+    />
 
-    <div v-else class="no-data">
-      <p>No trading data available for current month</p>
-    </div>
+    <EmptyState
+      v-else
+      icon="📈"
+      title="No equity data"
+      message="No trading data available for the selected month"
+      :full-height="true"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import EmptyState from '../ui/EmptyState.vue'
 
 const props = defineProps({
   equityData: {

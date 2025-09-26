@@ -95,13 +95,17 @@
     </div>
 
     <!-- Trade Table for Desktop -->
-    <div class="table-container desktop-table" style="position: relative;">
-      <!-- Loading overlay for trades table -->
-      <div v-if="isLoadingTrades" class="loader-overlay">
-        <div class="spinner" />
-      </div>
+    <div class="table-container desktop-table">
+      <!-- Loading state -->
+      <LoadingSpinner
+        v-if="isLoadingTrades"
+        message="Loading trades..."
+        size="large"
+        full-height
+      />
 
-      <table>
+      <!-- Desktop table -->
+      <table v-else-if="!isLoadingTrades">
         <thead>
           <tr>
             <th :class="{ active: sortKey === 'entryDate' }" @click="sortBy('entryDate')">
@@ -161,8 +165,16 @@
               </div>
             </td>
           </tr>
-          <tr v-if="sortedTrades.length === 0">
-            <td colspan="7" class="no-data">No trades found matching your filters</td>
+          <!-- Empty state row -->
+          <tr v-if="!isLoadingTrades && sortedTrades.length === 0">
+            <td colspan="7" class="empty-state-cell">
+              <EmptyState
+                icon="📈"
+                title="No trades found"
+                message="Try adjusting your filters or add some trades to get started"
+                :full-height="false"
+              />
+            </td>
           </tr>
         </tbody>
       </table>
@@ -170,10 +182,13 @@
 
     <!-- Mobile Card Layout -->
     <div class="mobile-trades">
-      <!-- Loading overlay for mobile cards -->
-      <div v-if="isLoadingTrades" class="loader-overlay">
-        <div class="spinner" />
-      </div>
+      <!-- Loading state for mobile -->
+      <LoadingSpinner
+        v-if="isLoadingTrades"
+        message="Loading trades..."
+        size="large"
+        full-height
+      />
 
       <!-- Sort controls for mobile -->
       <div class="mobile-sort-controls">
@@ -239,8 +254,13 @@
           </div>
         </div>
 
-        <div v-if="sortedTrades.length === 0" class="no-data-mobile">
-          No trades found matching your filters
+        <div v-if="!isLoadingTrades && sortedTrades.length === 0" class="empty-state-mobile">
+          <EmptyState
+            icon="📊"
+            title="No trades found"
+            message="Try adjusting your filters or add your first trade to get started"
+            :full-height="true"
+          />
         </div>
       </div>
     </div>
@@ -447,6 +467,8 @@
 <script setup>
 import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import EmptyState from '../ui/EmptyState.vue'
 
 // Loading states
 const isLoadingTrades = ref(false)
@@ -1516,5 +1538,15 @@ td.loss {
         font-size: 0.75rem;
         min-width: 50px;
     }
+}
+
+/* Empty state styles */
+.empty-state-cell {
+    border: none !important;
+    padding: 0 !important;
+}
+
+.empty-state-mobile {
+    width: 100%;
 }
 </style>

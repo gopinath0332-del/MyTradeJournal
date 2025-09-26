@@ -1,9 +1,12 @@
 <template>
   <div class="stats-grid" style="position: relative;">
-    <!-- Loading overlay for stats -->
-    <div v-if="isLoading" class="dashboard-loader-overlay">
-      <div class="dashboard-spinner" />
-    </div>
+    <!-- Loading state -->
+    <LoadingSpinner
+      v-if="isLoading"
+      message="Loading statistics..."
+      size="large"
+      full-height
+    />
 
     <!-- Error state -->
     <div v-else-if="error" class="dashboard-loader-overlay">
@@ -16,67 +19,82 @@
       </div>
     </div>
 
-    <div class="stat-card net-pnl" :class="{ 'net-pnl-positive': stats.netPnL > 0, 'net-pnl-negative': stats.netPnL < 0, 'net-pnl-neutral': stats.netPnL === 0 }">
-      <div class="stat-title">Net P&L</div>
-      <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
+    <!-- Empty state -->
+    <div v-else-if="!isLoading && stats.tradingDays === 0" class="empty-state-container">
+      <EmptyState
+        icon="📊"
+        title="No trading data yet"
+        message="Start logging trades to see your statistics here"
+        :full-height="false"
+      />
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Total Trading Days</div>
-      <div class="stat-value">{{ stats.tradingDays }}</div>
-    </div>
-    <div class="stat-card profit">
-      <div class="stat-title">Winning Days</div>
-      <div class="stat-value">{{ stats.winDays }}</div>
-    </div>
-    <div class="stat-card loss">
-      <div class="stat-title">Loss Days</div>
-      <div class="stat-value">{{ stats.lossDays }}</div>
-    </div>
-    <div class="stat-card streak-win">
-      <div class="stat-title">Max Win Streak</div>
-      <div class="stat-value">{{ stats.maxWinStreak }} days</div>
-    </div>
-    <div class="stat-card streak-loss">
-      <div class="stat-title">Max Loss Streak</div>
-      <div class="stat-value">{{ stats.maxLossStreak }} days</div>
-    </div>
-    <div class="stat-card win-rate">
-      <div class="stat-title">Win Rate</div>
-      <div class="stat-value">{{ stats.winRate }}%</div>
-    </div>
-    <div class="stat-card max-profit">
-      <div class="stat-title">Max Profit in a Day</div>
-      <div class="stat-value">₹{{ stats.maxProfitDay }}</div>
-    </div>
-    <div class="stat-card max-loss">
-      <div class="stat-title">Max Loss in a Day</div>
-      <div class="stat-value">₹{{ stats.maxLossDay }}</div>
-    </div>
-    <div class="stat-card avg-profit">
-      <div class="stat-title">Avg Profit per Day</div>
-      <div class="stat-value">₹{{ stats.avgProfitDay }}</div>
-    </div>
-    <div class="stat-card avg-loss">
-      <div class="stat-title">Avg Loss per Day</div>
-      <div class="stat-value">₹{{ stats.avgLossDay }}</div>
-    </div>
-    <div class="stat-card total-profit">
-      <div class="stat-title">Total Profit</div>
-      <div class="stat-value">₹{{ stats.totalProfit }}</div>
-    </div>
-    <div class="stat-card total-loss">
-      <div class="stat-title">Total Loss</div>
-      <div class="stat-value">₹{{ stats.totalLoss }}</div>
-    </div>
-    <div class="stat-card avg-daily-pnl">
-      <div class="stat-title">Avg Daily P&L</div>
-      <div class="stat-value" :class="{ 'dashboard-text-positive': stats.avgDailyPnL > 0, 'dashboard-text-negative': stats.avgDailyPnL < 0 }">₹{{ stats.avgDailyPnL }}</div>
-    </div>
+
+    <!-- Stats cards when data is available -->
+    <template v-else-if="!isLoading && !error && stats.tradingDays > 0">
+      <div class="stat-card net-pnl" :class="{ 'net-pnl-positive': stats.netPnL > 0, 'net-pnl-negative': stats.netPnL < 0, 'net-pnl-neutral': stats.netPnL === 0 }">
+        <div class="stat-title">Net P&L</div>
+        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Total Trading Days</div>
+        <div class="stat-value">{{ stats.tradingDays }}</div>
+      </div>
+      <div class="stat-card profit">
+        <div class="stat-title">Winning Days</div>
+        <div class="stat-value">{{ stats.winDays }}</div>
+      </div>
+      <div class="stat-card loss">
+        <div class="stat-title">Loss Days</div>
+        <div class="stat-value">{{ stats.lossDays }}</div>
+      </div>
+      <div class="stat-card streak-win">
+        <div class="stat-title">Max Win Streak</div>
+        <div class="stat-value">{{ stats.maxWinStreak }} days</div>
+      </div>
+      <div class="stat-card streak-loss">
+        <div class="stat-title">Max Loss Streak</div>
+        <div class="stat-value">{{ stats.maxLossStreak }} days</div>
+      </div>
+      <div class="stat-card win-rate">
+        <div class="stat-title">Win Rate</div>
+        <div class="stat-value">{{ stats.winRate }}%</div>
+      </div>
+      <div class="stat-card max-profit">
+        <div class="stat-title">Max Profit in a Day</div>
+        <div class="stat-value">₹{{ stats.maxProfitDay }}</div>
+      </div>
+      <div class="stat-card max-loss">
+        <div class="stat-title">Max Loss in a Day</div>
+        <div class="stat-value">₹{{ stats.maxLossDay }}</div>
+      </div>
+      <div class="stat-card avg-profit">
+        <div class="stat-title">Avg Profit per Day</div>
+        <div class="stat-value">₹{{ stats.avgProfitDay }}</div>
+      </div>
+      <div class="stat-card avg-loss">
+        <div class="stat-title">Avg Loss per Day</div>
+        <div class="stat-value">₹{{ stats.avgLossDay }}</div>
+      </div>
+      <div class="stat-card total-profit">
+        <div class="stat-title">Total Profit</div>
+        <div class="stat-value">₹{{ stats.totalProfit }}</div>
+      </div>
+      <div class="stat-card total-loss">
+        <div class="stat-title">Total Loss</div>
+        <div class="stat-value">₹{{ stats.totalLoss }}</div>
+      </div>
+      <div class="stat-card avg-daily-pnl">
+        <div class="stat-title">Avg Daily P&L</div>
+        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.avgDailyPnL > 0, 'dashboard-text-negative': stats.avgDailyPnL < 0 }">₹{{ stats.avgDailyPnL }}</div>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
 import '../../styles/dashboard.css'
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import EmptyState from '../ui/EmptyState.vue'
 
 const _props = defineProps({
   stats: {
@@ -263,5 +281,14 @@ const _props = defineProps({
 
 .stat-card.avg-daily-pnl {
   border-left: 4px solid #0D47A1;
+}
+
+/* Empty state styles */
+.empty-state-container {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
 </style>

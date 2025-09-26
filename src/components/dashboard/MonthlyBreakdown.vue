@@ -5,9 +5,12 @@
     </div>
 
     <!-- Loading state for monthly breakdown -->
-    <div v-if="isLoading" class="loader-container">
-      <div class="spinner" />
-    </div>
+    <LoadingSpinner
+      v-if="isLoading"
+      message="Loading monthly data..."
+      size="large"
+      full-height
+    />
 
     <!-- Error state -->
     <div v-else-if="error" class="error-container">
@@ -83,14 +86,20 @@
       </div>
     </div>
 
-    <div v-else-if="availableYears.length > 0" class="no-data-message">
-      <p>No trading data available for {{ selectedYear }}.</p>
-      <p>Select a different year or start logging trades!</p>
-    </div>
+    <EmptyState
+      v-else-if="availableYears.length > 0"
+      icon="📅"
+      title="No monthly data"
+      :message="`No trading data available for ${selectedYear}. Select a different year or start logging trades!`"
+      :full-height="true"
+    />
   </div>
 </template>
 
 <script setup>
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import EmptyState from '../ui/EmptyState.vue'
+
 const _props = defineProps({
   monthlyData: {
     type: Array,

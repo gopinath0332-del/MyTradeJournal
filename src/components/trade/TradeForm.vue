@@ -1,7 +1,15 @@
 <!-- TradeForm.vue - Modular component with sub-components -->
 <template>
-  <div class="trade-form">
+  <div class="trade-form" :class="{ 'form-submitting': isSubmitting }">
     <h2>{{ trade.id ? 'Edit Trade' : 'Log New Trade' }}</h2>
+
+    <!-- Loading overlay for form submission -->
+    <div v-if="isSubmitting" class="form-loading-overlay">
+      <LoadingSpinner
+        message="Saving trade..."
+        size="medium"
+      />
+    </div>
 
     <!-- Toast notification -->
     <div v-if="showToastOverlay" class="toast" :class="toastVariant">
@@ -67,6 +75,7 @@ import TradePricing from './forms/TradePricing.vue'
 import TradeSummary from './forms/TradeSummary.vue'
 import TradeMetadata from './forms/TradeMetadata.vue'
 import TradeActions from './forms/TradeActions.vue'
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
 
 // Loading state
 const isSubmitting = ref(false)
@@ -312,9 +321,40 @@ h2 {
   font-size: 0.875rem;
 }
 
+/* Loading overlay styles */
+.form-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: inherit;
+}
+
+.form-submitting {
+  position: relative;
+  pointer-events: none;
+}
+
+.form-submitting .form-loading-overlay {
+  pointer-events: all;
+}
+
 @media (min-width: 768px) {
   .trade-form {
     padding: 2rem;
+  }
+}
+
+/* Dark mode support for loading overlay */
+@media (prefers-color-scheme: dark) {
+  .form-loading-overlay {
+    background-color: rgba(17, 24, 39, 0.9);
   }
 }
 </style>

@@ -7,14 +7,25 @@
       </span>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      <p>Loading heatmap data...</p>
-    </div>
+    <LoadingSpinner
+      v-if="isLoading"
+      message="Loading heatmap data..."
+      size="large"
+      full-height
+    />
 
     <div v-else-if="error" class="error-state">
       <p>{{ error }}</p>
       <button class="retry-button" @click="onRetry">Retry</button>
     </div>
+
+    <EmptyState
+      v-else-if="heatmapData.length === 0"
+      icon="🗓️"
+      title="No heatmap data"
+      message="Start logging trades to see your trading activity pattern"
+      :full-height="true"
+    />
 
     <div v-else class="heatmap-container">
       <!-- Display each year's data -->
@@ -102,6 +113,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import EmptyState from '../ui/EmptyState.vue'
 
 // Props
 const props = defineProps({

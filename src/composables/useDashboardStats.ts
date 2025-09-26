@@ -163,7 +163,7 @@ export function useDashboardStats() {
     const dailyPnLMap: Record<string, number> = {}
 
     selectedMonthTrades.forEach((trade: Trade) => {
-      const dateStr = new Date(trade.entryDate).toISOString().split('T')[0]
+      const dateStr = new Date(trade.entryDate).toISOString().split('T')[0] as string
       if (!dailyPnLMap[dateStr]) {
         dailyPnLMap[dateStr] = 0
       }
@@ -294,8 +294,8 @@ export function useDashboardStats() {
     if (newMonths.length > 0) {
       // If current selected month is not available, select the first available month
       const isCurrentMonthAvailable = newMonths.some(month => month.value === selectedEquityMonth.value)
-      if (!isCurrentMonthAvailable) {
-        selectedEquityMonth.value = newMonths[0].value
+      if (!isCurrentMonthAvailable && newMonths.length > 0) {
+        selectedEquityMonth.value = newMonths[0]!.value
       }
     }
   }, { immediate: true })
@@ -315,34 +315,34 @@ export function useDashboardStats() {
 
       if (!monthlyStats[month]) {
         monthlyStats[month] = {
-          month: monthNames[month],
+          month: monthNames[month] || `Month ${month + 1}`,
           monthNumber: month,
           trades: []
         }
       }
 
-      monthlyStats[month].trades.push(trade)
+      monthlyStats[month]!.trades.push(trade)
     })
 
     return Object.values(monthlyStats).map(monthData => {
       const trades = monthData.trades
-      const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
-      const winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
-      const losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
+      const totalPnL = trades.reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0)
+      const winningTrades = trades.filter((trade: Trade) => (trade.pnlAmount || 0) > 0).length
+      const losingTrades = trades.filter((trade: Trade) => (trade.pnlAmount || 0) < 0).length
 
       // Calculate risk-reward ratio
-      const totalWins = trades.filter(trade => (trade.pnlAmount || 0) > 0)
-        .reduce((sum, trade) => sum + trade.pnlAmount, 0)
-      const totalLosses = Math.abs(trades.filter(trade => (trade.pnlAmount || 0) < 0)
-        .reduce((sum, trade) => sum + trade.pnlAmount, 0))
+      const totalWins = trades.filter((trade: Trade) => (trade.pnlAmount || 0) > 0)
+        .reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0)
+      const totalLosses = Math.abs(trades.filter((trade: Trade) => (trade.pnlAmount || 0) < 0)
+        .reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0))
 
       const avgWin = winningTrades > 0 ? totalWins / winningTrades : 0
       const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0
       const riskRewardRatio = avgLoss > 0 ? avgWin / avgLoss : 0
 
       // Calculate remarks breakdown
-      const remarksCount = {}
-      trades.forEach(trade => {
+      const remarksCount: Record<string, number> = {}
+      trades.forEach((trade: Trade) => {
         if (trade.remarks && trade.remarks.trim()) {
           const remark = trade.remarks.trim()
           remarksCount[remark] = (remarksCount[remark] || 0) + 1
@@ -381,9 +381,13 @@ export function useDashboardStats() {
 
     if (!filteredTrades.length) return []
 
-    const weeklyStats = {}
+    const weeklyStats: Record<number, {
+      weekStart: Date;
+      weekRange: string;
+      trades: Trade[];
+    }> = {}
 
-    filteredTrades.forEach(trade => {
+    filteredTrades.forEach((trade: Trade) => {
       const tradeDate = new Date(trade.entryDate)
       const weekStart = getWeekStart(tradeDate)
       const weekKey = weekStart.getTime()
@@ -396,27 +400,27 @@ export function useDashboardStats() {
         }
       }
 
-      weeklyStats[weekKey].trades.push(trade)
+      weeklyStats[weekKey]!.trades.push(trade)
     })
 
     return Object.values(weeklyStats).map(weekData => {
       const trades = weekData.trades
-      const totalPnL = trades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
-      const winningTrades = trades.filter(trade => (trade.pnlAmount || 0) > 0).length
-      const losingTrades = trades.filter(trade => (trade.pnlAmount || 0) < 0).length
+      const totalPnL = trades.reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0)
+      const winningTrades = trades.filter((trade: Trade) => (trade.pnlAmount || 0) > 0).length
+      const losingTrades = trades.filter((trade: Trade) => (trade.pnlAmount || 0) < 0).length
 
       // Calculate risk-reward ratio
-      const totalWins = trades.filter(trade => (trade.pnlAmount || 0) > 0)
-        .reduce((sum, trade) => sum + trade.pnlAmount, 0)
-      const totalLosses = Math.abs(trades.filter(trade => (trade.pnlAmount || 0) < 0)
-        .reduce((sum, trade) => sum + trade.pnlAmount, 0))
+      const totalWins = trades.filter((trade: Trade) => (trade.pnlAmount || 0) > 0)
+        .reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0)
+      const totalLosses = Math.abs(trades.filter((trade: Trade) => (trade.pnlAmount || 0) < 0)
+        .reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0))
 
       const avgWin = winningTrades > 0 ? totalWins / winningTrades : 0
       const avgLoss = losingTrades > 0 ? totalLosses / losingTrades : 0
       const riskRewardRatio = avgLoss > 0 ? avgWin / avgLoss : 0
 
       return {
-        ...weekData,
+        ...(weekData as any),
         totalTrades: trades.length,
         winningTrades,
         losingTrades,
@@ -425,7 +429,7 @@ export function useDashboardStats() {
         avgPnL: Math.round(totalPnL / trades.length),
         riskRewardRatio
       }
-    }).sort((a, b) => b.weekStart - a.weekStart)
+    }).sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())
   })
 
   const monthNames = [
@@ -434,7 +438,7 @@ export function useDashboardStats() {
   ]
 
   // Helper functions for week calculations
-  const getWeekStart = (date) => {
+  const getWeekStart = (date: Date) => {
     const d = new Date(date)
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1)

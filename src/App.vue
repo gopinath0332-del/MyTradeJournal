@@ -105,7 +105,7 @@ provide('refreshDashboard', refreshDashboard)
               <span class="nav-text">Trade History</span>
             </a>
           </li>
-          <li class="nav-item desktop-only">
+          <li class="nav-item">
             <a
               href="#"
               class="nav-link"
@@ -116,7 +116,7 @@ provide('refreshDashboard', refreshDashboard)
               <span class="nav-text">Calendar</span>
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item desktop-only">
             <a
               href="#"
               class="nav-link"
@@ -468,7 +468,7 @@ main {
   }
 }
 
-/* Hide calendar menu on mobile devices */
+/* Hide heatmap menu on mobile devices */
 @media (max-width: 767px) {
   .nav-item.desktop-only {
     display: none;

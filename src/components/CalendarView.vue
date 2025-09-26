@@ -611,32 +611,124 @@ onMounted(() => {
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .calendar-view {
-    padding: 0.5rem;
-  }
-
-  .calendar-day {
-    min-height: 70px;
     padding: 0.25rem;
   }
 
-  .trade-item {
-    font-size: 0.45rem;
-    padding: 0.0625rem 0.125rem;
+  .calendar-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
   }
 
-  .day-header {
-    padding: 0.5rem 0.25rem;
+  .calendar-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  .month-navigation {
+    gap: 0.5rem;
+  }
+
+  .nav-button {
+    padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
   }
 
+  .current-month {
+    font-size: 0.875rem;
+    min-width: 140px;
+  }
+
+  .calendar-container {
+    border-radius: 8px;
+  }
+
+  .day-header {
+    padding: 0.375rem 0.125rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+  }
+
+  .calendar-day {
+    min-height: 55px;
+    padding: 0.125rem;
+  }
+
+  .day-number {
+    font-size: 0.75rem;
+    margin-bottom: 0.0625rem;
+  }
+
+  .trades-summary {
+    font-size: 0.625rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .trade-count {
+    font-size: 0.5rem;
+    margin-bottom: 0.0625rem;
+    line-height: 1.1;
+  }
+
+  .daily-pnl {
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.0625rem 0.125rem;
+  }
+
   .trade-details-modal {
-    margin: 0.5rem;
-    max-height: 90vh;
+    margin: 0.25rem;
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
   }
 
   .day-summary {
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .summary-item .label {
+    font-size: 0.75rem;
+  }
+
+  .summary-item .value {
+    font-size: 1rem;
+  }
+
+  .trade-detail-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .trade-symbol {
+    font-size: 0.875rem;
+  }
+
+  .trade-type {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .trade-prices {
+    font-size: 0.75rem;
+  }
+
+  .trade-pnl {
+    font-size: 0.875rem;
   }
 }
 </style>

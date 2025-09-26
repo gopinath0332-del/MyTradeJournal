@@ -26,6 +26,16 @@
       @month-change="onEquityMonthChange"
     />
 
+    <SymbolPieChart
+      v-if="availableYears.length > 0"
+      :trades="currentYearTrades"
+      :selected-year="selectedYear"
+      :is-loading="isLoadingStats"
+      :error="statsError"
+      :on-retry="retryStats"
+      @month-change="onPieChartMonthChange"
+    />
+
     <WeeklyBreakdown
       v-if="availableYears.length > 0"
       :weekly-data="weeklyData"
@@ -58,7 +68,8 @@ import EquityCurve from './EquityCurve.vue'
 import WeeklyBreakdown from './WeeklyBreakdown.vue'
 import MonthlyBreakdown from './MonthlyBreakdown.vue'
 import YearSelector from './YearSelector.vue'
-import { useDashboardStats } from '../../composables/useDashboardStats.js'
+import SymbolPieChart from './SymbolPieChart.vue'
+import { useDashboardStats } from '../../composables/useDashboardStats.ts'
 
 const {
   // State
@@ -69,6 +80,7 @@ const {
   selectedMonth,
   availableYears,
   availableMonths,
+  currentYearTrades,
 
   // Equity curve
   currentMonthEquityData,
@@ -95,6 +107,13 @@ const {
   retryMonthly,
   retryWeekly
 } = useDashboardStats()
+
+// Handle pie chart month change
+const onPieChartMonthChange = (_month) => {
+  // This could be used to sync with other components if needed
+  // For now, the pie chart manages its own month selection independently
+  // Future: Could sync this with other dashboard components if needed
+}
 
 onMounted(() => {
   initializeDashboard()

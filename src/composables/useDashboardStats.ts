@@ -635,6 +635,7 @@ export function useDashboardStats() {
     availableYears,
     availableMonths,
     monthNames,
+    currentYearTrades,
 
     // Equity curve
     currentMonthEquityData,

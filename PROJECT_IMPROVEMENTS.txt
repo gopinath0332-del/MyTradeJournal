@@ -253,3 +253,12 @@ Next Steps:
 =======================================================
 End of Recommendations
 Generated for MyTradeJournal project by GitHub Copilot
+
+
+reference: https://www.youtube.com/watch?v=N-aUwkyO5_w
+
+Trade hisotry:
+1. Open positions and Completed Trades (tab)
+
+Calendar :
+1. Weekly pnl summary on tha right side of the calender

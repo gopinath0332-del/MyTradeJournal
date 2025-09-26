@@ -1,5 +1,7 @@
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsparser from '@typescript-eslint/parser'
 
 export default [
   // Ignore files (replaces .eslintignore)
@@ -27,6 +29,37 @@ export default [
 
   // Apply recommended Vue 3 rules
   ...pluginVue.configs['flat/recommended'],
+
+  // TypeScript configuration
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: ['./tsconfig.json', './tsconfig.node.json']
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint
+    },
+    rules: {
+      // TypeScript-specific rules
+      '@typescript-eslint/no-unused-vars': ['error', {
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_'
+      }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/prefer-const': 'error',
+      '@typescript-eslint/no-inferrable-types': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+
+      // Disable conflicting JS rules for TS files
+      'no-unused-vars': 'off',
+      'no-undef': 'off' // TypeScript handles this
+    }
+  },
 
   // Global configuration
   {

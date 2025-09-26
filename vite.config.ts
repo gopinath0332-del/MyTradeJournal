@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command: _command, mode }) => {
@@ -10,12 +11,22 @@ export default defineConfig(({ command: _command, mode }) => {
   return {
     plugins: [vue()],
     base: '/MyTradeJournal/', // Replace with your repository name
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src'),
+        '@/components': resolve(__dirname, 'src/components'),
+        '@/composables': resolve(__dirname, 'src/composables'),
+        '@/firebase': resolve(__dirname, 'src/firebase'),
+        '@/styles': resolve(__dirname, 'src/styles'),
+        '@/types': resolve(__dirname, 'src/types')
+      }
+    },
     build: {
-      target: 'es2015',
+      target: 'es2020',
       outDir: 'dist'
     },
     esbuild: {
-      target: 'es2015'
+      target: 'es2020'
     },
     // Define global constants that will be replaced during build
     define: {

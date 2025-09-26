@@ -10,19 +10,22 @@ import {
   where
 } from 'firebase/firestore'
 import { db } from './config'
+import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
 
 export const tradeService = {
   // Create a new trade
-  async addTrade(trade) {
+  async addTrade(trade: Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>): Promise<Trade> {
     try {
-      const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      const now = new Date().toISOString()
+      const tradeData = {
         ...trade,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })
-      return { ...trade, id: docRef.id }
+        createdAt: now,
+        updatedAt: now
+      }
+      const docRef = await addDoc(collection(db, COLLECTION_NAME), tradeData)
+      return { ...tradeData, id: docRef.id }
     } catch (error) {
       console.error('Error adding trade:', error)
       throw error
@@ -30,7 +33,7 @@ export const tradeService = {
   },
 
   // Update an existing trade
-  async updateTrade(id, trade) {
+  async updateTrade(id: string, trade: Partial<Trade>) {
     try {
       const tradeRef = doc(db, COLLECTION_NAME, id)
       await updateDoc(tradeRef, {
@@ -45,7 +48,7 @@ export const tradeService = {
   },
 
   // Delete a trade
-  async deleteTrade(id) {
+  async deleteTrade(id: string) {
     try {
       const tradeRef = doc(db, COLLECTION_NAME, id)
       await deleteDoc(tradeRef)
@@ -64,7 +67,7 @@ export const tradeService = {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
+      })) as Trade[]
     } catch (error) {
       console.error('Error getting trades:', error)
       throw error
@@ -72,7 +75,7 @@ export const tradeService = {
   },
 
   // Get trades for a specific year
-  async getTradesByYear(year) {
+  async getTradesByYear(year: number) {
     try {
       // Create date range for the year
       const startDate = `${year}-01-01`
@@ -88,7 +91,7 @@ export const tradeService = {
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
+      })) as Trade[]
     } catch (error) {
       console.error('Error getting trades by year:', error)
       throw error
@@ -111,7 +114,7 @@ export const tradeService = {
   },
 
   // Get trades with filters applied on server-side
-  async getFilteredTrades(filters = {}) {
+  async getFilteredTrades(filters: TradeFilters = {}) {
     try {
       let q = query(collection(db, COLLECTION_NAME))
       const conditions = []
@@ -158,7 +161,7 @@ export const tradeService = {
       let trades = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
+      })) as Trade[]
 
       // Apply profitability filter on client-side (since we can't easily do complex calculations in Firestore)
       if (filters.profitability && filters.profitability !== 'all') {

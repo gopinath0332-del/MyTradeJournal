@@ -13,6 +13,30 @@
       </div>
     </div>
 
+    <!-- Monthly Total P&L Summary -->
+    <div v-if="!isLoading && !error && calendarData.length > 0" class="monthly-summary">
+      <div class="total-pnl-card">
+        <div class="total-pnl-label">Monthly Total P&L</div>
+        <div
+          class="total-pnl-amount"
+          :class="{
+            'profit': monthlyTotalPnL > 0,
+            'loss': monthlyTotalPnL < 0,
+            'neutral': monthlyTotalPnL === 0
+          }"
+        >
+          {{ monthlyTotalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(monthlyTotalPnL)) }}
+        </div>
+        <div class="monthly-stats">
+          <span class="stat-item">{{ totalTradingDays }} trading days</span>
+          <span class="stat-item">{{ totalTrades }} trades</span>
+          <span class="stat-item win">{{ winCount }} wins</span>
+          <span class="stat-item loss">{{ lossCount }} losses</span>
+          <span class="stat-item">{{ winRate }}% win rate</span>
+        </div>
+      </div>
+    </div>
+
     <div v-if="isLoading" class="loading-state">
       <p>Loading calendar data...</p>
     </div>
@@ -59,8 +83,6 @@
               {{ day.totalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(day.totalPnL)) }}
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
@@ -161,6 +183,37 @@ const currentMonthName = computed(() => {
   return monthNames[currentMonth.value]
 })
 
+// Monthly totals
+const monthlyTotalPnL = computed(() => {
+  return calendarData.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+})
+
+const totalTrades = computed(() => {
+  return calendarData.value.length
+})
+
+const totalTradingDays = computed(() => {
+  const tradingDays = new Set()
+  calendarData.value.forEach(trade => {
+    const tradeDate = new Date(trade.entryDate).toISOString().split('T')[0]
+    tradingDays.add(tradeDate)
+  })
+  return tradingDays.size
+})
+
+const winCount = computed(() => {
+  return calendarData.value.filter(trade => (trade.pnlAmount || 0) > 0).length
+})
+
+const lossCount = computed(() => {
+  return calendarData.value.filter(trade => (trade.pnlAmount || 0) < 0).length
+})
+
+const winRate = computed(() => {
+  if (totalTrades.value === 0) return 0
+  return Math.round((winCount.value / totalTrades.value) * 100)
+})
+
 // Calendar days with trade data
 const calendarDays = computed(() => {
   if (!calendarData.value.length) return []
@@ -248,6 +301,81 @@ onMounted(() => {
     flex-direction: row;
     justify-content: space-between;
   }
+}
+
+.monthly-summary {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.total-pnl-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  text-align: center;
+  min-width: 280px;
+}
+
+.total-pnl-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.total-pnl-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.total-pnl-amount.profit {
+  color: #10b981;
+}
+
+.total-pnl-amount.loss {
+  color: #ef4444;
+}
+
+.total-pnl-amount.neutral {
+  color: #6b7280;
+}
+
+.monthly-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .monthly-stats {
+    gap: 1rem;
+  }
+}
+
+.stat-item {
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.stat-item.win {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.stat-item.loss {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .calendar-header h2 {

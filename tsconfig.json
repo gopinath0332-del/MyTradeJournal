@@ -1,0 +1,61 @@
+{
+  "compilerOptions": {
+    // Language and Module
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    // Vue Support
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+
+    // Type Checking
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Interop Constraints
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // Language Features
+    "useDefineForClassFields": true,
+    "experimentalDecorators": true,
+
+    // Path Mapping
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/composables/*": ["src/composables/*"],
+      "@/firebase/*": ["src/firebase/*"],
+      "@/styles/*": ["src/styles/*"],
+      "@/types/*": ["src/types/*"]
+    },
+
+    // Skip type checking for libraries
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "public",
+    "vite.config.ts",
+    "eslint.config.js"
+  ]
+}

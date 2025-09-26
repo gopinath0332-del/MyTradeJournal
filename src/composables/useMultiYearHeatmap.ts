@@ -1,14 +1,15 @@
 import { ref, computed } from 'vue'
-import { tradeService } from '../firebase/tradeService.js'
+import { tradeService } from '@/firebase/tradeService'
+import type { Trade } from '@/types'
 
 export function useMultiYearHeatmap() {
   // Loading states
   const isLoadingHeatmap = ref(false)
-  const heatmapError = ref(null)
+  const heatmapError = ref<string | null>(null)
 
   // Data storage
-  const availableYears = ref([])
-  const tradesCache = ref(new Map())
+  const availableYears = ref<number[]>([])
+  const tradesCache = ref<Map<string, Trade[]>>(new Map())
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -21,14 +22,34 @@ export function useMultiYearHeatmap() {
     for (const yearTrades of tradesCache.value.values()) {
       trades.push(...yearTrades)
     }
-    return trades.sort((a, b) => new Date(b.entryDate) - new Date(a.entryDate))
+    return trades.sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime())
   })
 
   // Multi-year heatmap data
   const heatmapData = computed(() => {
     if (!allTrades.value.length || !availableYears.value.length) return []
 
-    const allYearData = []
+    type DayData = {
+      day: number;
+      date: string;
+      pnl: number;
+      tradeCount: number;
+      intensity: number;
+    };
+
+    type MonthData = {
+      month: number;
+      year: number;
+      monthName: string;
+      weeks: Array<Array<DayData | null>>;
+    };
+
+    type YearData = {
+      year: number;
+      months: MonthData[];
+    };
+
+    const allYearData: YearData[] = []
 
     // Process each year's data
     availableYears.value.forEach(year => {
@@ -38,17 +59,17 @@ export function useMultiYearHeatmap() {
 
       if (yearTrades.length === 0) return
 
-      const yearData = {
+      const yearData: YearData = {
         year,
         months: []
       }
 
       // Generate all 12 months for this year
       for (let month = 0; month < 12; month++) {
-        const monthData = {
+        const monthData: MonthData = {
           month,
           year,
-          monthName: monthNames[month],
+          monthName: monthNames[month] || '',
           weeks: []
         }
 
@@ -58,7 +79,7 @@ export function useMultiYearHeatmap() {
         const daysInMonth = lastDay.getDate()
 
         // Calculate weeks in month
-        let currentWeek = []
+        let currentWeek: Array<DayData | null> = []
 
         // Add empty cells for days before month starts
         const startDay = firstDay.getDay() // 0 = Sunday
@@ -110,14 +131,14 @@ export function useMultiYearHeatmap() {
   })
 
   // Get trades for a specific year (with caching)
-  const getTradesForYear = async(year) => {
+  const getTradesForYear = async(year: number) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
     }
 
     try {
-      const trades = await tradeService.getTradesByYear(year)
+      const trades = await tradeService.getTradesByYear(year) as Trade[]
       tradesCache.value.set(cacheKey, trades)
       return trades
     } catch (error) {
@@ -146,8 +167,8 @@ export function useMultiYearHeatmap() {
       for (const year of availableYears.value) {
         await getTradesForYear(year)
       }
-    } catch (error) {
-      heatmapError.value = error.message
+    } catch (error: unknown) {
+      heatmapError.value = error instanceof Error ? error.message : 'An error occurred'
       console.error('Error loading multi-year heatmap data:', error)
     } finally {
       isLoadingHeatmap.value = false

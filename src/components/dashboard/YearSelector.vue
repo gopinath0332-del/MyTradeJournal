@@ -4,7 +4,7 @@
     <select
       id="yearSelect"
       :value="selectedYear"
-      @change="$emit('year-change', parseInt($event.target.value))"
+      @change="emit('year-change', parseInt(($event.target as HTMLSelectElement)?.value || '0'))"
     >
       <option v-for="year in availableYears" :key="year" :value="year">
         {{ year }}
@@ -13,19 +13,14 @@
   </div>
 </template>
 
-<script setup>
-const _props = defineProps({
-  selectedYear: {
-    type: Number,
-    required: true
-  },
-  availableYears: {
-    type: Array,
-    default: () => []
-  }
-})
+<script setup lang="ts">
+import type { YearSelectorProps } from '../../types/vue'
 
-const _emit = defineEmits(['year-change'])
+defineProps<YearSelectorProps>()
+
+const emit = defineEmits<{
+  'year-change': [year: number]
+}>()
 </script>
 
 <style scoped>

@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue'
-import { tradeService } from '../firebase/tradeService.js'
+import { tradeService } from '@/firebase/tradeService'
+import type { Trade } from '@/types'
 
 export function useDashboardStats() {
   // Loading states
@@ -8,32 +9,32 @@ export function useDashboardStats() {
   const isLoadingWeekly = ref(false)
 
   // Error states
-  const statsError = ref(null)
-  const monthlyError = ref(null)
-  const weeklyError = ref(null)
+  const statsError = ref<string | null>(null)
+  const monthlyError = ref<string | null>(null)
+  const weeklyError = ref<string | null>(null)
 
   // Equity curve loading state
   const isLoadingEquityCurve = ref(false)
-  const equityCurveError = ref(null)
+  const equityCurveError = ref<string | null>(null)
 
   // Heatmap loading state
   const isLoadingHeatmap = ref(false)
-  const heatmapError = ref(null)
+  const heatmapError = ref<string | null>(null)
 
   // Selected month for equity curve (separate from main dashboard month selection)
   const selectedEquityMonth = ref(new Date().getMonth())
 
   // Starting equity for the current month (configurable)
-  const _startingEquity = ref(100000) // Default starting equity
+  // const _startingEquity = ref(100000) // Default starting equity
 
   // Year and month selection
-  const selectedYear = ref(new Date().getFullYear())
-  const selectedMonth = ref(new Date().getMonth())
-  const availableYears = ref([])
-  const availableMonths = ref([])
+  const selectedYear = ref<number>(new Date().getFullYear())
+  const selectedMonth = ref<number>(new Date().getMonth())
+  const availableYears = ref<number[]>([])
+  const availableMonths = ref<number[]>([])
 
   // Raw trades data (cached)
-  const tradesCache = ref(new Map())
+  const tradesCache = ref<Map<string, Trade[]>>(new Map())
 
   // Computed trading days from cached trades
   const currentYearTrades = computed(() => {
@@ -45,17 +46,17 @@ export function useDashboardStats() {
   const dailyPnLData = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const tradesByDate = currentYearTrades.value.reduce((acc, trade) => {
+    const tradesByDate = currentYearTrades.value.reduce((acc: Record<string, Trade[]>, trade: Trade) => {
       const date = new Date(trade.entryDate).toDateString()
       if (!acc[date]) {
         acc[date] = []
       }
       acc[date].push(trade)
       return acc
-    }, {})
+    }, {} as Record<string, Trade[]>)
 
     return Object.entries(tradesByDate).map(([date, dayTrades]) => {
-      const dailyPnL = dayTrades.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+      const dailyPnL = dayTrades.reduce((sum: number, trade: Trade) => sum + (trade.pnlAmount || 0), 0)
       return {
         date,
         trades: dayTrades,
@@ -63,7 +64,7 @@ export function useDashboardStats() {
         isProfit: dailyPnL > 0,
         isLoss: dailyPnL < 0
       }
-    }).sort((a, b) => new Date(a.date) - new Date(b.date))
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   })
 
   // Computed main statistics
@@ -147,11 +148,11 @@ export function useDashboardStats() {
   const currentMonthEquityData = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const _currentDate = new Date()
+    // const _currentDate = new Date()
     const currentYear = selectedYear.value
 
     // Filter trades for selected equity month
-    const selectedMonthTrades = currentYearTrades.value.filter(trade => {
+    const selectedMonthTrades = currentYearTrades.value.filter((trade: Trade) => {
       const tradeDate = new Date(trade.entryDate)
       return tradeDate.getMonth() === selectedEquityMonth.value && tradeDate.getFullYear() === currentYear
     })
@@ -159,9 +160,9 @@ export function useDashboardStats() {
     if (!selectedMonthTrades.length) return []
 
     // Group trades by date and calculate daily P&L
-    const dailyPnLMap = {}
+    const dailyPnLMap: Record<string, number> = {}
 
-    selectedMonthTrades.forEach(trade => {
+    selectedMonthTrades.forEach((trade: Trade) => {
       const dateStr = new Date(trade.entryDate).toISOString().split('T')[0]
       if (!dailyPnLMap[dateStr]) {
         dailyPnLMap[dateStr] = 0
@@ -172,7 +173,7 @@ export function useDashboardStats() {
     // Convert to array and sort by date
     const dailyPnLArray = Object.entries(dailyPnLMap)
       .map(([date, pnl]) => ({ date, dailyPnL: pnl }))
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     // Calculate cumulative P&L (starting from 0)
     let cumulativePnL = 0
@@ -191,9 +192,9 @@ export function useDashboardStats() {
   const availableEquityMonths = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
+    const monthsWithData = [...new Set(currentYearTrades.value.map((trade: Trade) =>
       new Date(trade.entryDate).getMonth()
-    ))].sort((a, b) => a - b)
+    ))].sort((a: number, b: number) => a - b)
 
     return monthsWithData.map(month => ({
       value: month,
@@ -206,14 +207,32 @@ export function useDashboardStats() {
     if (!currentYearTrades.value.length) return []
 
     const year = selectedYear.value
-    const months = []
+    const months: Array<{
+      month: number;
+      year: number;
+      monthName: string;
+      weeks: Array<Array<{
+        day: number;
+        date: string;
+        pnl: number;
+        tradeCount: number;
+        intensity: number;
+      } | null>>;
+    }> = []
 
     // Generate all 12 months
     for (let month = 0; month < 12; month++) {
       const monthData = {
         month,
-        monthName: monthNames[month],
-        weeks: []
+        year,
+        monthName: monthNames[month] || '',
+        weeks: [] as Array<Array<{
+          day: number;
+          date: string;
+          pnl: number;
+          tradeCount: number;
+          intensity: number;
+        } | null>>
       }
 
       // Get first day of month and number of days
@@ -285,9 +304,13 @@ export function useDashboardStats() {
   const monthlyData = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const monthlyStats = {}
+    const monthlyStats: Record<number, {
+      month: string;
+      monthNumber: number;
+      trades: Trade[];
+    }> = {}
 
-    currentYearTrades.value.forEach(trade => {
+    currentYearTrades.value.forEach((trade: Trade) => {
       const month = new Date(trade.entryDate).getMonth()
 
       if (!monthlyStats[month]) {
@@ -420,7 +443,7 @@ export function useDashboardStats() {
     return weekStart
   }
 
-  const formatWeekRange = (weekStart) => {
+  const formatWeekRange = (weekStart: Date) => {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekEnd.getDate() + 6)
 
@@ -431,7 +454,7 @@ export function useDashboardStats() {
   }
 
   // Get trades for a year (with caching and error handling)
-  const getTradesForYear = async(year) => {
+  const getTradesForYear = async(year: number) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
@@ -454,7 +477,7 @@ export function useDashboardStats() {
 
       // If selectedYear is not in available years, set to latest year
       if (availableYears.value.length > 0 && !availableYears.value.includes(selectedYear.value)) {
-        selectedYear.value = availableYears.value[0]
+        selectedYear.value = availableYears.value[0] || new Date().getFullYear()
       }
     } catch (error) {
       console.error('Error getting available years:', error)
@@ -463,7 +486,7 @@ export function useDashboardStats() {
   }
 
   // Load trades and update cache
-  const loadTradesForYear = async(year) => {
+  const loadTradesForYear = async(year: number) => {
     const trades = await getTradesForYear(year)
     // Trades are now cached and computed properties will automatically update
     return trades
@@ -477,8 +500,8 @@ export function useDashboardStats() {
     try {
       await loadTradesForYear(selectedYear.value)
       // Stats are automatically computed via the computed property
-    } catch (error) {
-      statsError.value = error.message
+    } catch (error: unknown) {
+      statsError.value = error instanceof Error ? error.message : 'An error occurred'
       console.error('Error calculating trading stats:', error)
     } finally {
       isLoadingStats.value = false
@@ -493,8 +516,8 @@ export function useDashboardStats() {
     try {
       await loadTradesForYear(selectedYear.value)
       // Monthly data is automatically computed via the computed property
-    } catch (error) {
-      monthlyError.value = error.message
+    } catch (error: unknown) {
+      monthlyError.value = error instanceof Error ? error.message : 'An error occurred'
       console.error('Error calculating monthly breakdown:', error)
     } finally {
       isLoadingMonthly.value = false
@@ -510,20 +533,20 @@ export function useDashboardStats() {
       await loadTradesForYear(selectedYear.value)
 
       // Update available months based on current year trades
-      const monthsWithData = [...new Set(currentYearTrades.value.map(trade =>
+      const monthsWithData = [...new Set(currentYearTrades.value.map((trade: Trade) =>
         new Date(trade.entryDate).getMonth()
-      ))].sort((a, b) => a - b)
+      ))].sort((a: number, b: number) => a - b)
 
       availableMonths.value = monthsWithData
 
       // If current selected month is not available and we have data, fallback to first available month
       if (monthsWithData.length > 0 && !monthsWithData.includes(selectedMonth.value)) {
-        selectedMonth.value = monthsWithData[0]
+        selectedMonth.value = monthsWithData[0] || 0
       }
 
       // Weekly data is automatically computed via the computed property
-    } catch (error) {
-      weeklyError.value = error.message
+    } catch (error: unknown) {
+      weeklyError.value = error instanceof Error ? error.message : 'An error occurred'
       console.error('Error calculating weekly breakdown:', error)
     } finally {
       isLoadingWeekly.value = false
@@ -531,7 +554,7 @@ export function useDashboardStats() {
   }
 
   // Year change handler
-  const onYearChange = (newYear) => {
+  const onYearChange = (newYear: number) => {
     selectedYear.value = newYear
     selectedMonth.value = new Date().getMonth() // Reset to current month when year changes
 
@@ -553,14 +576,14 @@ export function useDashboardStats() {
   }
 
   // Month change handler
-  const onMonthChange = (newMonth) => {
-    selectedMonth.value = parseInt(newMonth)
+  const onMonthChange = (newMonth: number) => {
+    selectedMonth.value = newMonth
     // Weekly data will automatically update via computed property
   }
 
   // Equity curve month change handler
-  const onEquityMonthChange = (newMonth) => {
-    selectedEquityMonth.value = parseInt(newMonth)
+  const onEquityMonthChange = (newMonth: number) => {
+    selectedEquityMonth.value = newMonth
     // Equity curve data will automatically update via computed property
   }
 

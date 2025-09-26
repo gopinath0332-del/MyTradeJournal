@@ -105,7 +105,7 @@ provide('refreshDashboard', refreshDashboard)
               <span class="nav-text">Trade History</span>
             </a>
           </li>
-          <li class="nav-item">
+          <li class="nav-item desktop-only">
             <a
               href="#"
               class="nav-link"
@@ -465,6 +465,13 @@ main {
 @media (min-width: 768px) {
   main {
     margin-top: 0;
+  }
+}
+
+/* Hide calendar menu on mobile devices */
+@media (max-width: 767px) {
+  .nav-item.desktop-only {
+    display: none;
   }
 }
 </style>

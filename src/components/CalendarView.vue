@@ -37,8 +37,12 @@
           :class="{
             'other-month': !day.isCurrentMonth,
             'has-trades': day.trades && day.trades.length > 0,
-            'today': day.isToday
+            'today': day.isToday,
+            'profit-day': day.trades && day.trades.length > 0 && day.totalPnL > 0,
+            'loss-day': day.trades && day.trades.length > 0 && day.totalPnL < 0,
+            'neutral-day': day.trades && day.trades.length > 0 && day.totalPnL === 0
           }"
+          @click="day.trades && day.trades.length > 0 ? showTradeDetails(day) : null"
         >
           <div class="day-number">{{ day.dayNumber }}</div>
 
@@ -56,25 +60,7 @@
             </div>
           </div>
 
-          <!-- Trade details popup on click -->
-          <div v-if="day.trades && day.trades.length > 0" class="trades-list" @click="showTradeDetails(day)">
-            <div
-              v-for="trade in day.trades.slice(0, 3)"
-              :key="trade.id"
-              class="trade-item"
-              :class="{
-                'profit': trade.pnlAmount > 0,
-                'loss': trade.pnlAmount < 0,
-                'neutral': trade.pnlAmount === 0
-              }"
-            >
-              <span class="trade-symbol">{{ trade.symbol }}</span>
-              <span class="trade-pnl">{{ trade.pnlAmount >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(trade.pnlAmount)) }}</span>
-            </div>
-            <div v-if="day.trades.length > 3" class="more-trades">
-              +{{ day.trades.length - 3 }} more
-            </div>
-          </div>
+
         </div>
       </div>
     </div>
@@ -371,7 +357,40 @@ onMounted(() => {
 }
 
 .calendar-day.has-trades {
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+}
+
+.calendar-day.has-trades:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.profit-day {
   background: #f0fdf4;
+  border: 1px solid #22c55e;
+}
+
+.calendar-day.profit-day:hover {
+  background: #dcfce7;
+}
+
+.calendar-day.loss-day {
+  background: #fef2f2;
+  border: 1px solid #ef4444;
+}
+
+.calendar-day.loss-day:hover {
+  background: #fee2e2;
+}
+
+.calendar-day.neutral-day {
+  background: #f9fafb;
+  border: 1px solid #9ca3af;
+}
+
+.calendar-day.neutral-day:hover {
+  background: #f3f4f6;
 }
 
 .day-number {
@@ -381,74 +400,45 @@ onMounted(() => {
 }
 
 .trades-summary {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   margin-bottom: 0.375rem;
 }
 
 .trade-count {
   color: #6b7280;
-  margin-bottom: 0.0625rem;
+  margin-bottom: 0.125rem;
   line-height: 1.2;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .daily-pnl {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 0.875rem;
 }
 
 .daily-pnl.profit {
-  color: #16a34a;
+  color: #15803d;
+  /* background: rgba(34, 197, 94, 0.1); */
+  padding: 0.125rem 0.25rem;
+  border-radius: 4px;
 }
 
 .daily-pnl.loss {
-  color: #dc2626;
+  color: #b91c1c;
+  /* background: rgba(239, 68, 68, 0.1); */
+  padding: 0.125rem 0.25rem;
+  border-radius: 4px;
 }
 
 .daily-pnl.neutral {
   color: #6b7280;
-}
-
-.trades-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.0625rem;
-}
-
-.trade-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.0625rem 0.125rem;
-  border-radius: 2px;
-  font-size: 0.5rem;
-  border-left: 1.5px solid transparent;
-  line-height: 1.2;
-}
-
-.trade-item.profit {
-  background: rgba(34, 197, 94, 0.1);
-  border-left-color: #22c55e;
-}
-
-.trade-item.loss {
-  background: rgba(239, 68, 68, 0.1);
-  border-left-color: #ef4444;
-}
-
-.trade-item.neutral {
   background: rgba(107, 114, 128, 0.1);
-  border-left-color: #6b7280;
+  padding: 0.125rem 0.25rem;
+  border-radius: 4px;
 }
 
-.trade-symbol {
-  font-weight: 600;
-}
 
-.more-trades {
-  font-size: 0.5rem;
-  color: #6b7280;
-  text-align: center;
-  padding: 0.0625rem;
-}
 
 /* Modal Styles */
 .modal-overlay {

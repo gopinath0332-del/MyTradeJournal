@@ -262,3 +262,9 @@ Trade hisotry:
 
 Calendar :
 1. Weekly pnl summary on tha right side of the calender
+
+Gemeral Ideas:
+1. Top 10 Symbol performance (All Dates) - Bar chart
+2. Top 10 Symbol distribution (all dated) - Bar chart
+3. Performance By Day of the week  (all dates) - Bar chart
+4. Mistakes analysi view

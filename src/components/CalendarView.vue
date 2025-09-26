@@ -345,8 +345,8 @@ onMounted(() => {
 .calendar-day {
   border-right: 1px solid #e5e7eb;
   border-bottom: 1px solid #e5e7eb;
-  min-height: 120px;
-  padding: 0.5rem;
+  min-height: 90px;
+  padding: 0.375rem;
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -376,17 +376,19 @@ onMounted(() => {
 
 .day-number {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.125rem;
+  font-size: 0.875rem;
 }
 
 .trades-summary {
-  font-size: 0.75rem;
-  margin-bottom: 0.5rem;
+  font-size: 0.625rem;
+  margin-bottom: 0.375rem;
 }
 
 .trade-count {
   color: #6b7280;
-  margin-bottom: 0.125rem;
+  margin-bottom: 0.0625rem;
+  line-height: 1.2;
 }
 
 .daily-pnl {
@@ -408,17 +410,18 @@ onMounted(() => {
 .trades-list {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 0.0625rem;
 }
 
 .trade-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.125rem 0.25rem;
-  border-radius: 3px;
-  font-size: 0.625rem;
-  border-left: 2px solid transparent;
+  padding: 0.0625rem 0.125rem;
+  border-radius: 2px;
+  font-size: 0.5rem;
+  border-left: 1.5px solid transparent;
+  line-height: 1.2;
 }
 
 .trade-item.profit {
@@ -441,10 +444,10 @@ onMounted(() => {
 }
 
 .more-trades {
-  font-size: 0.625rem;
+  font-size: 0.5rem;
   color: #6b7280;
   text-align: center;
-  padding: 0.125rem;
+  padding: 0.0625rem;
 }
 
 /* Modal Styles */
@@ -579,7 +582,7 @@ onMounted(() => {
 
 .trade-symbol {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 15px;
   color: #374151;
 }
 
@@ -611,7 +614,7 @@ onMounted(() => {
 
 .trade-pnl {
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: 15px;
   text-align: right;
 }
 
@@ -622,8 +625,13 @@ onMounted(() => {
   }
 
   .calendar-day {
-    min-height: 80px;
+    min-height: 70px;
     padding: 0.25rem;
+  }
+
+  .trade-item {
+    font-size: 0.45rem;
+    padding: 0.0625rem 0.125rem;
   }
 
   .day-header {

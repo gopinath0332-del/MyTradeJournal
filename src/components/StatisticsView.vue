@@ -9,15 +9,6 @@
           :available-years="availableYears"
           @year-change="onYearChange"
         />
-        <div class="time-range-selector">
-          <label for="timeRange">Time Range:</label>
-          <select id="timeRange" v-model="selectedTimeRange" @change="updateTimeRange">
-            <option value="current-year">Current Year</option>
-            <option value="last-12-months">Last 12 Months</option>
-            <option value="all-time">All Time</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
       </div>
     </div>
 
@@ -190,7 +181,6 @@ const isLoading = ref(false)
 const error = ref(null)
 const trades = ref([])
 const selectedYear = ref(new Date().getFullYear())
-const selectedTimeRange = ref('current-year')
 const availableYears = ref([])
 
 // Weekly breakdown data from useDashboardStats
@@ -212,25 +202,13 @@ const loadTrades = async() => {
   error.value = null
 
   try {
-    let allTrades = []
-
-    if (selectedTimeRange.value === 'all-time') {
-      allTrades = await tradeService.getAllTrades()
-    } else if (selectedTimeRange.value === 'last-12-months') {
-      const twelveMonthsAgo = new Date()
-      twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1)
-      allTrades = await tradeService.getAllTrades()
-      allTrades = allTrades.filter(trade =>
-        new Date(trade.entryDate) >= twelveMonthsAgo
-      )
-    } else {
-      allTrades = await tradeService.getTradesByYear(selectedYear.value)
-    }
-
+    // Always load trades by selected year
+    const allTrades = await tradeService.getTradesByYear(selectedYear.value)
     trades.value = allTrades
 
-    // Update available years
-    const years = [...new Set(allTrades.map(trade =>
+    // Update available years from all trades (for year selector)
+    const allTradesForYears = await tradeService.getAllTrades()
+    const years = [...new Set(allTradesForYears.map(trade =>
       new Date(trade.entryDate).getFullYear()
     ))].sort((a, b) => b - a)
     availableYears.value = years
@@ -377,12 +355,7 @@ const onYearChange = (year) => {
   selectedYear.value = year
   // Sync with dashboard stats composable
   onDashboardYearChange(year)
-  if (selectedTimeRange.value === 'current-year') {
-    loadTrades()
-  }
-}
-
-const updateTimeRange = () => {
+  // Always load trades for the selected year
   loadTrades()
 }
 
@@ -439,24 +412,6 @@ onMounted(() => {
     flex-direction: row;
     align-items: center;
   }
-}
-
-.time-range-selector {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.time-range-selector label {
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
-}
-
-.time-range-selector select {
-  padding: 0.5rem;
-  border: 1px solid var(--border-color, #d1d5db);
-  border-radius: 0.375rem;
-  background: white;
 }
 
 .stats-content {

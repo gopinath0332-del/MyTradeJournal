@@ -202,20 +202,30 @@ const loadTrades = async() => {
   error.value = null
 
   try {
-    // Always load trades by selected year
-    const allTrades = await tradeService.getTradesByYear(selectedYear.value)
-    trades.value = allTrades
-
-    // Update available years from all trades (for year selector)
-    const allTradesForYears = await tradeService.getAllTrades()
-    const years = [...new Set(allTradesForYears.map(trade =>
-      new Date(trade.entryDate).getFullYear()
-    ))].sort((a, b) => b - a)
-    availableYears.value = years
+    // Load trades only for the selected year
+    const yearTrades = await tradeService.getTradesByYear(selectedYear.value)
+    trades.value = yearTrades
   } catch (err) {
     error.value = err.message || 'Failed to load trades'
   } finally {
     isLoading.value = false
+  }
+}
+
+// Separate function to load available years efficiently
+const loadAvailableYears = async() => {
+  try {
+    const years = await tradeService.getAvailableYears()
+    availableYears.value = years
+
+    // If current selected year is not available, set to the most recent year
+    if (years.length > 0 && !years.includes(selectedYear.value)) {
+      selectedYear.value = years[0]
+    }
+  } catch (err) {
+    error.value = err.message || 'Failed to load available years'
+    // Fallback to current year if there's an error
+    availableYears.value = [new Date().getFullYear()]
   }
 }
 
@@ -359,13 +369,16 @@ const onYearChange = (year) => {
   loadTrades()
 }
 
-const retryLoad = () => {
-  loadTrades()
+const retryLoad = async() => {
+  await loadAvailableYears()
+  await loadTrades()
 }
 
 // Initialize
-onMounted(() => {
-  loadTrades()
+onMounted(async() => {
+  // First load available years, then load trades for selected year
+  await loadAvailableYears()
+  await loadTrades()
   initializeDashboard()
 })
 </script>

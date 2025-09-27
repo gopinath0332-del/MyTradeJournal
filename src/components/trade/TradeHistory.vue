@@ -491,8 +491,8 @@ const displayToast = (type, title, message) => {
 const selectedTrade = ref(null)
 const trades = ref([])
 const uniqueSymbols = ref([])
-const sortKey = ref('exitPrice')
-const sortDir = ref('asc')
+const sortKey = ref('entryDate')
+const sortDir = ref('desc')
 const showEditModal = ref(false)
 const editedTrade = ref({})
 

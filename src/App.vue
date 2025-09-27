@@ -3,6 +3,7 @@ import { ref, provide } from 'vue'
 import TradeForm from './components/trade/TradeForm.vue'
 import TradeHistory from './components/trade/TradeHistory.vue'
 import DashboardStats from './components/dashboard/DashboardStats.vue'
+import StatisticsView from './components/StatisticsView.vue'
 import HeatmapView from './components/HeatmapView.vue'
 import CalendarView from './components/CalendarView.vue'
 
@@ -109,6 +110,17 @@ provide('refreshDashboard', refreshDashboard)
             <a
               href="#"
               class="nav-link"
+              :class="{ active: activeTab === 'statistics' }"
+              @click.prevent="navigateTo('statistics')"
+            >
+              <span class="nav-icon">📈</span>
+              <span class="nav-text">Statistics</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              href="#"
+              class="nav-link"
               :class="{ active: activeTab === 'calendar' }"
               @click.prevent="navigateTo('calendar')"
             >
@@ -145,6 +157,7 @@ provide('refreshDashboard', refreshDashboard)
     <main>
       <DashboardStats v-if="activeTab === 'dashboard'" :key="dashboardKey" />
       <TradeHistory v-if="activeTab === 'history'" />
+      <StatisticsView v-if="activeTab === 'statistics'" />
       <CalendarView v-if="activeTab === 'calendar'" />
       <HeatmapView v-if="activeTab === 'heatmap'" />
       <TradeForm v-if="activeTab === 'trade'" />

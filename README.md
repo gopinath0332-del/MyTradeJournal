@@ -160,6 +160,15 @@ npm run dev
 - **EquityCurve**: Visual representation of account equity over time
 - **TradingHeatmap**: Calendar-based heatmap showing trading activity
 
+### Advanced Analytics
+- **StatisticsView**: Comprehensive advanced statistics and performance analysis including:
+  - Key Performance Indicators (KPIs): Total Return, Sharpe Ratio, Profit Factor, Expectancy
+  - Risk Analysis: Drawdown analysis, Risk-Reward metrics, Consistency metrics
+  - Performance Distribution: P&L distribution charts and percentiles
+  - Strategy Performance: Detailed breakdown by trading strategies
+  - Symbol Analysis: Performance metrics per trading symbol
+  - Time-based Analysis: Day of week and monthly performance trends
+
 ### Trade Components
 - **TradeForm**: Main container for trade form using modular components
 - **TradeHistory**: Table view of all trades with filtering options

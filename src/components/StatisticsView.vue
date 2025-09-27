@@ -36,6 +36,49 @@
       <!-- Symbol Analysis -->
       <section class="stats-section">
         <h3>Symbol Performance</h3>
+
+        <!-- Top 10 Symbol Performance Chart -->
+        <div class="top-symbols-chart">
+          <h4>Top 10 Symbol Performance by Total P&L</h4>
+          <div class="horizontal-bar-chart">
+            <div v-if="top10Symbols.length === 0" class="no-data-message">
+              No symbol data available for the selected year
+            </div>
+            <div v-else class="chart-bars">
+              <div
+                v-for="(symbol, index) in top10Symbols"
+                :key="symbol.name"
+                class="symbol-bar-item"
+              >
+                <div class="symbol-info">
+                  <span class="symbol-rank">{{ index + 1 }}</span>
+                  <span class="symbol-name">{{ symbol.name }}</span>
+                  <span class="symbol-trades">({{ symbol.tradeCount }} trades)</span>
+                </div>
+                <div class="bar-container">
+                  <div
+                    class="horizontal-bar"
+                    :class="{
+                      'positive': symbol.totalPnL > 0,
+                      'negative': symbol.totalPnL < 0,
+                      'neutral': symbol.totalPnL === 0
+                    }"
+                    :style="{
+                      width: `${Math.abs(symbol.totalPnL / maxSymbolPnL) * 100}%`
+                    }"
+                    :title="`${symbol.name}: Total P&L ${formatCurrency(symbol.totalPnL)}`"
+                  >
+                    <span class="bar-label">
+                      {{ formatCurrency(symbol.totalPnL) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Symbol Performance Table -->
         <div class="symbol-analysis">
           <div class="symbol-table">
             <table>
@@ -293,6 +336,17 @@ const maxDayPnL = computed(() => {
   return Math.max(...dayOfWeekPerformance.value.map(day => Math.abs(day.avgPnL)))
 })
 
+// Top 10 symbols by total P&L
+const top10Symbols = computed(() => {
+  return symbolPerformance.value.slice(0, 10)
+})
+
+// Helper computed property for horizontal bar chart scaling
+const maxSymbolPnL = computed(() => {
+  if (top10Symbols.value.length === 0) return 1
+  return Math.max(...top10Symbols.value.map(symbol => Math.abs(symbol.totalPnL)))
+})
+
 const monthlyTrend = computed(() => {
   const months = {}
   const monthNames = [
@@ -507,6 +561,9 @@ onMounted(async() => {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
 .strategy-table,
@@ -759,6 +816,28 @@ onMounted(async() => {
   outline-offset: 2px;
 }
 
+/* Horizontal bar hover effects */
+@media (hover: hover) {
+  .horizontal-bar:hover {
+    transform: scaleX(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .symbol-bar-item:hover .symbol-rank {
+    background: #2563eb;
+    transform: scale(1.1);
+  }
+}
+
+.horizontal-bar:active {
+  transform: scaleX(0.98);
+}
+
+.horizontal-bar:focus {
+  outline: 2px solid var(--primary-color, #3b82f6);
+  outline-offset: 2px;
+}
+
 .performance-bar.positive {
   background: linear-gradient(135deg, #10b981, #059669);
 }
@@ -903,6 +982,221 @@ onMounted(async() => {
 
 .legend-dot.neutral {
   background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+/* Top 10 Symbols Horizontal Bar Chart */
+.top-symbols-chart {
+  margin-bottom: 2rem;
+}
+
+.top-symbols-chart h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1.5rem 0;
+  color: var(--text-color, #1f2937);
+}
+
+@media (min-width: 480px) {
+  .top-symbols-chart h4 {
+    font-size: 1.05rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .top-symbols-chart h4 {
+    font-size: 1.1rem;
+  }
+}
+
+.horizontal-bar-chart {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+@media (min-width: 480px) {
+  .horizontal-bar-chart {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .horizontal-bar-chart {
+    padding: 1.5rem;
+  }
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .chart-bars {
+    gap: 1.25rem;
+  }
+}
+
+.symbol-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 480px) {
+  .symbol-bar-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.symbol-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 480px) {
+  .symbol-info {
+    min-width: 180px;
+    flex: 0 0 180px;
+  }
+}
+
+@media (min-width: 768px) {
+  .symbol-info {
+    min-width: 200px;
+    flex: 0 0 200px;
+  }
+}
+
+.symbol-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .symbol-rank {
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
+}
+
+.symbol-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .symbol-name {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .symbol-name {
+    font-size: 1rem;
+  }
+}
+
+.symbol-trades {
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .symbol-trades {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .symbol-trades {
+    font-size: 0.9rem;
+  }
+}
+
+.bar-container {
+  flex: 1;
+  position: relative;
+  height: 36px;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .bar-container {
+    height: 40px;
+  }
+}
+
+.horizontal-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 60px; /* Ensure minimum width for small values */
+}
+
+.horizontal-bar.positive {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.horizontal-bar.negative {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.horizontal-bar.neutral {
+  background: linear-gradient(90deg, #6b7280, #4b5563);
+}
+
+.bar-label {
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .bar-label {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .bar-label {
+    font-size: 0.9rem;
+  }
+}
+
+.no-data-message {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  padding: 2rem;
 }
 
 .monthly-trend {
@@ -1129,6 +1423,55 @@ onMounted(async() => {
 
   .month-bar {
     min-width: 28px !important;
+  }
+
+  /* Horizontal bar chart mobile optimizations */
+  .top-symbols-chart {
+    margin-bottom: 1.5rem;
+  }
+
+  .symbol-analysis {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .horizontal-bar-chart {
+    padding: 0.75rem;
+  }
+
+  .chart-bars {
+    gap: 0.75rem;
+  }
+
+  .symbol-bar-item {
+    gap: 0.4rem;
+  }
+
+  .symbol-info {
+    gap: 0.4rem;
+  }
+
+  .symbol-rank {
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+  }
+
+  .symbol-name {
+    font-size: 0.85rem;
+  }
+
+  .symbol-trades {
+    font-size: 0.75rem;
+  }
+
+  .bar-container {
+    height: 32px;
+  }
+
+  .bar-label {
+    font-size: 0.75rem;
+    padding-right: 0.5rem;
   }
 }
 

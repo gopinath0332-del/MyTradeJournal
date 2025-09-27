@@ -291,14 +291,17 @@ const monthlyTrend = computed(() => {
     months[month].pnl += (trade.pnlAmount || 0)
   })
 
-  return Object.keys(months).map(key => ({
-    month: parseInt(key),
-    monthName: months[key].monthName,
-    pnl: months[key].pnl
-  }))
+  return Object.keys(months)
+    .map(key => ({
+      month: parseInt(key),
+      monthName: months[key].monthName,
+      pnl: months[key].pnl
+    }))
+    .filter(monthData => monthData.pnl !== 0) // Only include months with non-zero P&L
 })
 
 const maxMonthlyPnL = computed(() => {
+  if (monthlyTrend.value.length === 0) return 1 // Handle empty array
   const pnls = monthlyTrend.value.map(m => Math.abs(m.pnl))
   return Math.max(...pnls, 1) // Avoid division by zero
 })
@@ -616,6 +619,9 @@ onMounted(() => {
   align-items: flex-end;
   height: 200px;
   gap: 0.25rem;
+  padding-top: 50px; /* Space for values positioned above bars */
+  padding-bottom: 35px; /* Space for month labels below bars */
+  margin: 1rem 0;
 }
 
 .month-bar {
@@ -627,29 +633,56 @@ onMounted(() => {
   min-height: 20px;
   border-radius: 0.25rem 0.25rem 0 0;
   position: relative;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
+  margin: 0 0.125rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.month-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .month-bar.positive {
-  background: var(--success-color, #10b981);
+  background: linear-gradient(135deg, #10b981, #059669);
 }
 
 .month-bar.negative {
-  background: var(--danger-color, #ef4444);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .month-label {
   position: absolute;
-  bottom: -15px;
-  font-weight: 500;
+  bottom: -25px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  white-space: nowrap;
 }
 
 .month-value {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.month-bar.positive .month-value {
+  background: #059669;
   color: white;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+}
+
+.month-bar.negative .month-value {
+  background: #dc2626;
+  color: white;
 }
 
 /* Value color classes */
@@ -718,6 +751,23 @@ onMounted(() => {
   .chart-legend {
     gap: 1rem;
     flex-wrap: wrap;
+  }
+
+  .monthly-trend {
+    height: 150px;
+    padding-top: 40px;
+    padding-bottom: 30px;
+  }
+
+  .month-value {
+    font-size: 0.7rem;
+    top: -30px;
+    padding: 0.2rem 0.4rem;
+  }
+
+  .month-label {
+    font-size: 0.75rem;
+    bottom: -20px;
   }
 }
 </style>

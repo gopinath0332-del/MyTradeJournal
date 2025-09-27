@@ -118,33 +118,38 @@
         <div class="time-analysis">
           <div class="time-performance">
             <h4>Day of Week Performance</h4>
-            <div class="dow-bar-chart">
-              <div class="chart-container">
+            <div class="dow-horizontal-chart">
+              <div v-if="dayOfWeekPerformance.length === 0" class="no-data-message">
+                No day of week data available for the selected year
+              </div>
+              <div v-else class="horizontal-chart-bars">
                 <div
                   v-for="day in dayOfWeekPerformance"
                   :key="day.day"
-                  class="bar-item"
+                  class="day-bar-item"
                 >
-                  <div class="bar-wrapper">
+                  <div class="day-info">
+                    <span class="day-name">{{ day.day }}</span>
+                    <span class="day-trades">({{ day.trades }} trades)</span>
+                  </div>
+                  <div class="day-bar-container">
                     <div
-                      class="performance-bar"
+                      class="day-horizontal-bar"
                       :class="{
                         'positive': day.avgPnL > 0,
                         'negative': day.avgPnL < 0,
                         'neutral': day.avgPnL === 0
                       }"
                       :style="{
-                        height: `${Math.abs(day.avgPnL / maxDayPnL) * 100}%`
+                        width: `${Math.abs(day.avgPnL / maxDayPnL) * 100}%`
                       }"
                       :title="`${day.day}: Avg P&L ${formatCurrency(day.avgPnL)} (${day.trades} trades)`"
                     >
-                      <div class="bar-value">
-                        {{ day.avgPnL >= 0 ? '+' : '' }}{{ formatCurrency(Math.abs(day.avgPnL)) }}
-                      </div>
+                      <span class="day-bar-label">
+                        {{ day.avgPnL >= 0 ? '+' : '' }}{{ formatCurrency(day.avgPnL) }}
+                      </span>
                     </div>
                   </div>
-                  <div class="day-label">{{ day.day.substring(0, 3) }}</div>
-                  <div class="trade-count">{{ day.trades }} trades</div>
                 </div>
               </div>
 
@@ -168,16 +173,39 @@
 
           <div class="time-performance">
             <h4>Monthly Trend</h4>
-            <div class="monthly-trend">
-              <div
-                v-for="month in monthlyTrend"
-                :key="month.month"
-                class="month-bar"
-                :style="{ height: `${Math.abs(month.pnl / maxMonthlyPnL) * 100}px` }"
-                :class="month.pnl >= 0 ? 'positive' : 'negative'"
-              >
-                <div class="month-label">{{ month.monthName.substr(0, 3) }}</div>
-                <div class="month-value">{{ formatCurrency(month.pnl) }}</div>
+            <div class="monthly-horizontal-chart">
+              <div v-if="monthlyTrend.length === 0" class="no-data-message">
+                No monthly data available for the selected year
+              </div>
+              <div v-else class="horizontal-chart-bars">
+                <div
+                  v-for="month in monthlyTrend"
+                  :key="month.month"
+                  class="month-bar-item"
+                >
+                  <div class="month-info">
+                    <span class="month-name">{{ month.monthName }}</span>
+                    <span class="month-trades">({{ month.tradeCount || 0 }} trades)</span>
+                  </div>
+                  <div class="month-bar-container">
+                    <div
+                      class="month-horizontal-bar"
+                      :class="{
+                        'positive': month.pnl > 0,
+                        'negative': month.pnl < 0,
+                        'neutral': month.pnl === 0
+                      }"
+                      :style="{
+                        width: `${Math.abs(month.pnl / maxMonthlyPnL) * 100}%`
+                      }"
+                      :title="`${month.monthName}: P&L ${formatCurrency(month.pnl)}`"
+                    >
+                      <span class="month-bar-label">
+                        {{ formatCurrency(month.pnl) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -355,19 +383,21 @@ const monthlyTrend = computed(() => {
   ]
 
   monthNames.forEach((name, index) => {
-    months[index] = { monthName: name, pnl: 0 }
+    months[index] = { monthName: name, pnl: 0, tradeCount: 0 }
   })
 
   trades.value.forEach(trade => {
     const month = new Date(trade.entryDate).getMonth()
     months[month].pnl += (trade.pnlAmount || 0)
+    months[month].tradeCount += 1
   })
 
   return Object.keys(months)
     .map(key => ({
       month: parseInt(key),
       monthName: months[key].monthName,
-      pnl: months[key].pnl
+      pnl: months[key].pnl,
+      tradeCount: months[key].tradeCount
     }))
     .filter(monthData => monthData.pnl !== 0) // Only include months with non-zero P&L
 })
@@ -818,7 +848,9 @@ onMounted(async() => {
 
 /* Horizontal bar hover effects */
 @media (hover: hover) {
-  .horizontal-bar:hover {
+  .horizontal-bar:hover,
+  .day-horizontal-bar:hover,
+  .month-horizontal-bar:hover {
     transform: scaleX(1.02);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
@@ -829,11 +861,15 @@ onMounted(async() => {
   }
 }
 
-.horizontal-bar:active {
+.horizontal-bar:active,
+.day-horizontal-bar:active,
+.month-horizontal-bar:active {
   transform: scaleX(0.98);
 }
 
-.horizontal-bar:focus {
+.horizontal-bar:focus,
+.day-horizontal-bar:focus,
+.month-horizontal-bar:focus {
   outline: 2px solid var(--primary-color, #3b82f6);
   outline-offset: 2px;
 }
@@ -1199,37 +1235,212 @@ onMounted(async() => {
   padding: 2rem;
 }
 
-.monthly-trend {
-  display: flex;
-  align-items: flex-end;
-  height: 180px;
-  gap: 0.2rem;
-  padding-top: 45px; /* Space for values positioned above bars */
-  padding-bottom: 35px; /* Space for month labels below bars */
-  margin: 1rem 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+/* Day of Week Horizontal Chart */
+.dow-horizontal-chart {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
 }
 
 @media (min-width: 480px) {
-  .monthly-trend {
-    height: 200px;
-    gap: 0.25rem;
-    padding-top: 50px;
-    padding-bottom: 38px;
+  .dow-horizontal-chart {
+    padding: 1.25rem;
   }
 }
 
 @media (min-width: 768px) {
-  .monthly-trend {
-    height: 220px;
-    gap: 0.3rem;
-    padding-top: 55px;
-    padding-bottom: 40px;
-    overflow-x: visible;
+  .dow-horizontal-chart {
+    padding: 1.5rem;
   }
 }
+
+.horizontal-chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .horizontal-chart-bars {
+    gap: 1.25rem;
+  }
+}
+
+.day-bar-item,
+.month-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (min-width: 480px) {
+  .day-bar-item,
+  .month-bar-item {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
+.day-info,
+.month-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 480px) {
+  .day-info,
+  .month-info {
+    min-width: 160px;
+    flex: 0 0 160px;
+  }
+}
+
+@media (min-width: 768px) {
+  .day-info,
+  .month-info {
+    min-width: 180px;
+    flex: 0 0 180px;
+  }
+}
+
+.day-name,
+.month-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .day-name,
+  .month-name {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .day-name,
+  .month-name {
+    font-size: 1rem;
+  }
+}
+
+.day-trades,
+.month-trades {
+  font-size: 0.8rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .day-trades,
+  .month-trades {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .day-trades,
+  .month-trades {
+    font-size: 0.9rem;
+  }
+}
+
+.day-bar-container,
+.month-bar-container {
+  flex: 1;
+  position: relative;
+  height: 36px;
+  background: #e5e7eb;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .day-bar-container,
+  .month-bar-container {
+    height: 40px;
+  }
+}
+
+.day-horizontal-bar,
+.month-horizontal-bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.3s ease;
+  position: relative;
+  min-width: 60px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.day-horizontal-bar.positive,
+.month-horizontal-bar.positive {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.day-horizontal-bar.negative,
+.month-horizontal-bar.negative {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.day-horizontal-bar.neutral,
+.month-horizontal-bar.neutral {
+  background: linear-gradient(90deg, #6b7280, #4b5563);
+}
+
+.day-bar-label,
+.month-bar-label {
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+@media (min-width: 480px) {
+  .day-bar-label,
+  .month-bar-label {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .day-bar-label,
+  .month-bar-label {
+    font-size: 0.9rem;
+  }
+}
+
+/* Monthly Horizontal Chart */
+.monthly-horizontal-chart {
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 480px) {
+  .monthly-horizontal-chart {
+    padding: 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .monthly-horizontal-chart {
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+}
+
+/* Removed old vertical monthly-trend styles - now using horizontal layout */
 
 .month-bar {
   flex: 0 0 auto;
@@ -1397,29 +1608,7 @@ onMounted(async() => {
     margin-bottom: 1rem;
   }
 
-  .chart-container {
-    height: 170px !important;
-    padding: 0 0.1rem !important;
-  }
-
-  .performance-bar {
-    width: 35px !important;
-    min-height: 10px !important;
-  }
-
-  .bar-value {
-    font-size: 0.75rem !important;
-    font-weight: 800 !important;
-  }
-
-  .day-label {
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-  }
-
-  .trade-count {
-    font-size: 0.75rem !important;
-  }
+  /* Removed old vertical chart mobile styles - now using horizontal layout */
 
   .month-bar {
     min-width: 28px !important;
@@ -1470,6 +1659,47 @@ onMounted(async() => {
   }
 
   .bar-label {
+    font-size: 0.75rem;
+    padding-right: 0.5rem;
+  }
+
+  /* New horizontal charts mobile optimization */
+  .dow-horizontal-chart,
+  .monthly-horizontal-chart {
+    padding: 0.75rem;
+  }
+
+  .horizontal-chart-bars {
+    gap: 0.75rem;
+  }
+
+  .day-bar-item,
+  .month-bar-item {
+    gap: 0.4rem;
+  }
+
+  .day-info,
+  .month-info {
+    gap: 0.4rem;
+  }
+
+  .day-name,
+  .month-name {
+    font-size: 0.85rem;
+  }
+
+  .day-trades,
+  .month-trades {
+    font-size: 0.75rem;
+  }
+
+  .day-bar-container,
+  .month-bar-container {
+    height: 32px;
+  }
+
+  .day-bar-label,
+  .month-bar-label {
     font-size: 0.75rem;
     padding-right: 0.5rem;
   }

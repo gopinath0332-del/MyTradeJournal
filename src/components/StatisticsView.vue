@@ -83,16 +83,49 @@
         <div class="time-analysis">
           <div class="time-performance">
             <h4>Day of Week Performance</h4>
-            <div class="day-performance">
-              <div
-                v-for="day in dayOfWeekPerformance"
-                :key="day.day"
-                class="day-card"
-              >
-                <div class="day-name">{{ day.day }}</div>
-                <div class="day-trades">{{ day.trades }} trades</div>
-                <div class="day-pnl" :class="getPerformanceClass(day.avgPnL)">
-                  {{ formatCurrency(day.avgPnL) }}
+            <div class="dow-bar-chart">
+              <div class="chart-container">
+                <div
+                  v-for="day in dayOfWeekPerformance"
+                  :key="day.day"
+                  class="bar-item"
+                >
+                  <div class="bar-wrapper">
+                    <div
+                      class="performance-bar"
+                      :class="{
+                        'positive': day.avgPnL > 0,
+                        'negative': day.avgPnL < 0,
+                        'neutral': day.avgPnL === 0
+                      }"
+                      :style="{
+                        height: `${Math.abs(day.avgPnL / maxDayPnL) * 100}%`
+                      }"
+                      :title="`${day.day}: Avg P&L ${formatCurrency(day.avgPnL)} (${day.trades} trades)`"
+                    >
+                      <div class="bar-value">
+                        {{ day.avgPnL >= 0 ? '+' : '' }}{{ formatCurrency(Math.abs(day.avgPnL)) }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="day-label">{{ day.day.substring(0, 3) }}</div>
+                  <div class="trade-count">{{ day.trades }} trades</div>
+                </div>
+              </div>
+
+              <!-- Chart Legend -->
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-dot positive" />
+                  <span>Profitable Days</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-dot negative" />
+                  <span>Loss Days</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-dot neutral" />
+                  <span>Breakeven</span>
                 </div>
               </div>
             </div>
@@ -229,6 +262,12 @@ const dayOfWeekPerformance = computed(() => {
     trades: dayStats[day].trades,
     avgPnL: dayStats[day].trades > 0 ? dayStats[day].totalPnL / dayStats[day].trades : 0
   }))
+})
+
+// Helper computed property for day of week bar chart scaling
+const maxDayPnL = computed(() => {
+  if (dayOfWeekPerformance.value.length === 0) return 1
+  return Math.max(...dayOfWeekPerformance.value.map(day => Math.abs(day.avgPnL)))
 })
 
 const monthlyTrend = computed(() => {
@@ -454,32 +493,123 @@ onMounted(() => {
   margin: 0 0 1rem 0;
 }
 
-.day-performance {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.5rem;
-}
-
-.day-card {
+/* Day of Week Bar Chart Styles */
+.dow-bar-chart {
   background: #f8fafc;
-  border-radius: 0.375rem;
-  padding: 0.75rem 0.5rem;
-  text-align: center;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.chart-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 200px;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+  background: linear-gradient(to top, #e2e8f0 0%, #e2e8f0 1px, transparent 1px);
+  background-size: 100% 40px;
+}
+
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0.25rem;
+}
+
+.bar-wrapper {
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  justify-content: center;
+}
+
+.performance-bar {
+  width: 40px;
+  min-height: 4px;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.performance-bar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.performance-bar.positive {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.performance-bar.negative {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.performance-bar.neutral {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.bar-value {
   font-size: 0.75rem;
-}
-
-.day-name {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  line-height: 1.2;
 }
 
-.day-trades {
-  color: var(--text-muted, #6b7280);
-  margin-bottom: 0.25rem;
-}
-
-.day-pnl {
+.day-label {
   font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.trade-count {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.positive {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.legend-dot.negative {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.legend-dot.neutral {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
 }
 
 .monthly-trend {
@@ -565,6 +695,30 @@ onMounted(() => {
     padding: 1rem;
   }
 
+  .dow-bar-chart {
+    padding: 1rem;
+  }
 
+  .chart-container {
+    height: 150px;
+    padding: 0 0.5rem;
+  }
+
+  .bar-wrapper {
+    height: 120px;
+  }
+
+  .performance-bar {
+    width: 30px;
+  }
+
+  .bar-value {
+    font-size: 0.7rem;
+  }
+
+  .chart-legend {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 }
 </style>

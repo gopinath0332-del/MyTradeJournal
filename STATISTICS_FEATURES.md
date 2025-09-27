@@ -35,7 +35,14 @@ The new **Statistics View** provides comprehensive advanced analytics for your t
 - Win rate, average P&L, total P&L, and risk-reward per symbol
 - Identify your most and least profitable instruments
 
-### 6. **Time-based Performance**
+### 6. **Weekly Performance Analysis**
+- **WeeklyBreakdown**: Detailed weekly trading performance breakdown
+- Week-by-week P&L analysis with win/loss ratios
+- Risk-reward ratios per week
+- Interactive month selection for focused analysis
+- Visual cards showing weekly trends and patterns
+
+### 7. **Time-based Performance**
 - **Day of Week Analysis**: Which days you perform best/worst
 - **Monthly Trend Analysis**: Performance across different months
 - Visual charts showing seasonal patterns in trading

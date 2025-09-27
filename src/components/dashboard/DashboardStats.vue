@@ -36,19 +36,6 @@
       @month-change="onPieChartMonthChange"
     />
 
-    <WeeklyBreakdown
-      v-if="availableYears.length > 0"
-      :weekly-data="weeklyData"
-      :selected-month="selectedMonth"
-      :selected-year="selectedYear"
-      :available-months="availableMonths"
-      :available-years="availableYears"
-      :is-loading="isLoadingWeekly"
-      :error="weeklyError"
-      :on-retry="retryWeekly"
-      @month-change="onMonthChange"
-    />
-
     <MonthlyBreakdown
       v-if="availableYears.length > 0"
       :monthly-data="monthlyData"
@@ -65,7 +52,6 @@
 import { onMounted, onUnmounted } from 'vue'
 import StatsGrid from './StatsGrid.vue'
 import EquityCurve from './EquityCurve.vue'
-import WeeklyBreakdown from './WeeklyBreakdown.vue'
 import MonthlyBreakdown from './MonthlyBreakdown.vue'
 import YearSelector from './YearSelector.vue'
 import SymbolPieChart from './SymbolPieChart.vue'
@@ -75,11 +61,8 @@ const {
   // State
   stats,
   monthlyData,
-  weeklyData,
   selectedYear,
-  selectedMonth,
   availableYears,
-  availableMonths,
   currentYearTrades,
 
   // Equity curve
@@ -90,22 +73,18 @@ const {
   // Loading states
   isLoadingStats,
   isLoadingMonthly,
-  isLoadingWeekly,
   isLoadingEquityCurve,
 
   // Error states
   statsError,
   monthlyError,
-  weeklyError,
 
   // Methods
   initializeDashboard,
   onYearChange,
-  onMonthChange,
   onEquityMonthChange,
   retryStats,
-  retryMonthly,
-  retryWeekly
+  retryMonthly
 } = useDashboardStats()
 
 // Handle pie chart month change

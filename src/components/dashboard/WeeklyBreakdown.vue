@@ -9,7 +9,7 @@
             id="monthSelect"
             :value="selectedMonth"
             :disabled="availableMonths.length === 0"
-            @change="$emit('month-change', $event.target.value)"
+            @change="$emit('month-change', parseInt($event.target.value))"
           >
             <option v-if="availableMonths.length === 0" value="">No data available</option>
             <option v-for="monthIndex in availableMonths" :key="monthIndex" :value="monthIndex">

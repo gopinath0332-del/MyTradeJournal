@@ -155,7 +155,6 @@ npm run dev
 - **DashboardStats**: Main dashboard with key performance indicators
 - **StatsGrid**: Grid layout for displaying trading statistics
 - **MonthlyBreakdown**: Monthly performance analysis
-- **WeeklyBreakdown**: Weekly performance trends
 - **YearSelector**: Year selection for filtering data
 - **EquityCurve**: Visual representation of account equity over time
 - **TradingHeatmap**: Calendar-based heatmap showing trading activity
@@ -167,6 +166,7 @@ npm run dev
   - Performance Distribution: P&L distribution charts and percentiles
   - Strategy Performance: Detailed breakdown by trading strategies
   - Symbol Analysis: Performance metrics per trading symbol
+  - **WeeklyBreakdown**: Weekly performance trends with detailed trade breakdowns
   - Time-based Analysis: Day of week and monthly performance trends
 
 ### Trade Components

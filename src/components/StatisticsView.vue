@@ -80,6 +80,7 @@
       <!-- Time-based Analysis -->
       <section class="stats-section">
         <h3>Time-based Performance</h3>
+
         <div class="time-analysis">
           <div class="time-performance">
             <h4>Day of Week Performance</h4>
@@ -147,6 +148,20 @@
             </div>
           </div>
         </div>
+
+        <!-- Weekly Performance Analysis -->
+        <WeeklyBreakdown
+          v-if="availableYears.length > 0"
+          :weekly-data="weeklyData"
+          :selected-month="selectedMonth"
+          :selected-year="selectedYear"
+          :available-months="availableMonths"
+          :available-years="availableYears"
+          :is-loading="isLoadingWeekly"
+          :error="weeklyError"
+          :on-retry="retryWeekly"
+          @month-change="onMonthChange"
+        />
       </section>
     </div>
 
@@ -167,6 +182,8 @@ import { tradeService } from '@/firebase/tradeService'
 import LoadingSpinner from './ui/LoadingSpinner.vue'
 import EmptyState from './ui/EmptyState.vue'
 import YearSelector from './dashboard/YearSelector.vue'
+import WeeklyBreakdown from './dashboard/WeeklyBreakdown.vue'
+import { useDashboardStats } from '@/composables/useDashboardStats'
 
 // Reactive data
 const isLoading = ref(false)
@@ -175,6 +192,19 @@ const trades = ref([])
 const selectedYear = ref(new Date().getFullYear())
 const selectedTimeRange = ref('current-year')
 const availableYears = ref([])
+
+// Weekly breakdown data from useDashboardStats
+const {
+  weeklyData,
+  selectedMonth,
+  availableMonths,
+  isLoadingWeekly,
+  weeklyError,
+  onMonthChange,
+  onYearChange: onDashboardYearChange,
+  retryWeekly,
+  initializeDashboard
+} = useDashboardStats()
 
 // Load trades data
 const loadTrades = async() => {
@@ -345,6 +375,8 @@ const getPerformanceClass = (value) => {
 // Event handlers
 const onYearChange = (year) => {
   selectedYear.value = year
+  // Sync with dashboard stats composable
+  onDashboardYearChange(year)
   if (selectedTimeRange.value === 'current-year') {
     loadTrades()
   }
@@ -361,6 +393,7 @@ const retryLoad = () => {
 // Initialize
 onMounted(() => {
   loadTrades()
+  initializeDashboard()
 })
 </script>
 

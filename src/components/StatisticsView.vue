@@ -80,7 +80,49 @@
 
         <!-- Symbol Performance Table -->
         <div class="symbol-analysis">
-          <div class="symbol-table">
+          <!-- Mobile Card View -->
+          <div class="symbol-cards mobile-only">
+            <div v-if="symbolPerformance.length === 0" class="no-data-message">
+              No symbol data available for the selected year
+            </div>
+            <div v-else class="cards-grid">
+              <div
+                v-for="symbol in symbolPerformance"
+                :key="symbol.name"
+                class="symbol-card"
+              >
+                <div class="card-header">
+                  <h5 class="symbol-name">{{ symbol.name }}</h5>
+                  <div class="trade-count">{{ symbol.tradeCount }} trades</div>
+                </div>
+                <div class="card-body">
+                  <div class="metric-row">
+                    <span class="metric-label">Win Rate</span>
+                    <span class="metric-value">{{ formatPercentage(symbol.winRate) }}%</span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Avg P&L</span>
+                    <span class="metric-value" :class="getPerformanceClass(symbol.avgPnL)">
+                      {{ formatCurrency(symbol.avgPnL) }}
+                    </span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Total P&L</span>
+                    <span class="metric-value" :class="getPerformanceClass(symbol.totalPnL)">
+                      {{ formatCurrency(symbol.totalPnL) }}
+                    </span>
+                  </div>
+                  <div class="metric-row">
+                    <span class="metric-label">Risk-Reward</span>
+                    <span class="metric-value">{{ formatNumber(symbol.riskReward, 2) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Table View -->
+          <div class="symbol-table desktop-only">
             <table>
               <thead>
                 <tr>
@@ -594,6 +636,25 @@ onMounted(async() => {
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-color, #e5e7eb);
+}
+
+/* Responsive visibility classes */
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+
+  .desktop-only {
+    display: block;
+  }
 }
 
 .strategy-table,
@@ -1440,6 +1501,101 @@ onMounted(async() => {
   }
 }
 
+/* Mobile Symbol Cards */
+.symbol-cards {
+  width: 100%;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 480px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.symbol-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.symbol-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.symbol-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.card-header .trade-count {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.metric-label {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Performance classes for mobile cards */
+.symbol-card .metric-value.positive {
+  color: #059669;
+}
+
+.symbol-card .metric-value.negative {
+  color: #dc2626;
+}
+
+.symbol-card .metric-value.neutral {
+  color: #6b7280;
+}
+
 /* Removed old vertical monthly-trend styles - now using horizontal layout */
 
 .month-bar {
@@ -1592,7 +1748,7 @@ onMounted(async() => {
   padding: 2rem 0;
 }
 
-/* Mobile-first responsive design - Updated for better visibility */
+/* Enhanced mobile-first responsive design */
 @media (max-width: 320px) {
   .statistics-view {
     padding: 0.5rem;
@@ -1608,12 +1764,54 @@ onMounted(async() => {
     margin-bottom: 1rem;
   }
 
-  /* Removed old vertical chart mobile styles - now using horizontal layout */
-
-  .month-bar {
-    min-width: 28px !important;
+  /* Mobile card optimizations */
+  .symbol-card {
+    padding: 0.75rem;
   }
 
+  .symbol-name {
+    font-size: 1rem;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+
+  .metric-value {
+    font-size: 0.85rem;
+  }
+
+  /* Horizontal charts mobile optimization */
+  .day-info,
+  .month-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .day-name,
+  .month-name {
+    font-size: 0.85rem;
+  }
+
+  .day-trades,
+  .month-trades {
+    font-size: 0.7rem;
+  }
+
+  .day-bar-container,
+  .month-bar-container {
+    height: 28px;
+  }
+
+  .day-bar-label,
+  .month-bar-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* Mobile optimizations for 320px screens continued */
+@media (max-width: 320px) {
   /* Horizontal bar chart mobile optimizations */
   .top-symbols-chart {
     margin-bottom: 1.5rem;
@@ -1707,16 +1905,28 @@ onMounted(async() => {
 
 @media (max-width: 480px) {
   .statistics-view {
-    padding: 0.6rem;
+    padding: 0.75rem;
   }
 
   .stats-section {
     padding: 1rem;
+    margin-bottom: 1.5rem;
   }
 
-  /* Improve touch targets for mobile */
-  .performance-bar,
-  .month-bar {
+  .stats-section h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .time-performance h4 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Improve touch targets for mobile charts */
+  .day-horizontal-bar,
+  .month-horizontal-bar,
+  .horizontal-bar {
     min-height: 44px; /* iOS recommended touch target */
   }
 
@@ -1725,13 +1935,23 @@ onMounted(async() => {
     gap: 1.5rem;
   }
 
-  /* Enhanced mobile chart visibility */
-  .chart-container {
-    justify-content: space-around !important;
+  /* Mobile card improvements */
+  .cards-grid {
+    gap: 1rem;
   }
 
-  .bar-item {
-    min-width: 42px !important;
+  .symbol-card {
+    padding: 0.875rem;
+  }
+
+  /* Chart spacing improvements */
+  .horizontal-chart-bars {
+    gap: 0.875rem;
+  }
+
+  .day-bar-item,
+  .month-bar-item {
+    gap: 0.5rem;
   }
 }
 

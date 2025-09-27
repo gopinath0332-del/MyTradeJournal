@@ -244,7 +244,9 @@ const symbolPerformance = computed(() => {
 })
 
 const dayOfWeekPerformance = computed(() => {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  // Only include weekdays (Monday through Friday)
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+  const allDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const dayStats = {}
 
   days.forEach(day => {
@@ -252,9 +254,12 @@ const dayOfWeekPerformance = computed(() => {
   })
 
   trades.value.forEach(trade => {
-    const dayOfWeek = days[new Date(trade.entryDate).getDay()]
-    dayStats[dayOfWeek].trades++
-    dayStats[dayOfWeek].totalPnL += (trade.pnlAmount || 0)
+    const dayOfWeek = allDays[new Date(trade.entryDate).getDay()]
+    // Only process weekday trades (skip Sunday and Saturday)
+    if (days.includes(dayOfWeek)) {
+      dayStats[dayOfWeek].trades++
+      dayStats[dayOfWeek].totalPnL += (trade.pnlAmount || 0)
+    }
   })
 
   return days.map(day => ({
@@ -477,14 +482,8 @@ onMounted(() => {
 
 .time-analysis {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  .time-analysis {
-    grid-template-columns: 1fr;
-  }
 }
 
 .time-performance h4 {

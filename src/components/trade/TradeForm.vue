@@ -161,16 +161,32 @@ const handleScreenshotUpload = (files) => {
   console.log('Screenshots uploaded:', files)
 }
 
+// Helper function to trim string fields
+const trimTradeData = (data) => {
+  const trimmedData = { ...data }
+  
+  // List of string fields that should be trimmed
+  const stringFields = ['symbol', 'contract', 'notes', 'remarks', 'lessonsLearned']
+  
+  stringFields.forEach(field => {
+    if (typeof trimmedData[field] === 'string') {
+      trimmedData[field] = trimmedData[field].trim()
+    }
+  })
+  
+  return trimmedData
+}
+
 // Form submission
 const handleSubmit = async() => {
   isSubmitting.value = true
   try {
-    const tradeData = {
+    const tradeData = trimTradeData({
       ...trade.value,
       pnlAmount: pnl.value.amount,
       pnlPercentage: pnl.value.percentage,
       status: trade.value.exitDate ? 'CLOSED' : 'OPEN'
-    }
+    })
 
     if (trade.value.id) {
       await tradeService.updateTrade(trade.value.id, tradeData)

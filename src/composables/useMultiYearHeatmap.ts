@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
+import { logger } from '@/utils/logger'
 import type { Trade } from '@/types'
 
 export function useMultiYearHeatmap() {
@@ -142,7 +143,7 @@ export function useMultiYearHeatmap() {
       tradesCache.value.set(cacheKey, trades)
       return trades
     } catch (error) {
-      console.error('Error fetching trades for year:', year, error)
+      logger.error(`Error fetching trades for year ${year}`, 'useMultiYearHeatmap', error)
       throw new Error(`Failed to load trades for ${year}. Please check your connection and try again.`)
     }
   }
@@ -152,7 +153,7 @@ export function useMultiYearHeatmap() {
     try {
       availableYears.value = await tradeService.getAvailableYears()
     } catch (error) {
-      console.error('Error getting available years:', error)
+      logger.error('Error getting available years', 'useMultiYearHeatmap', error)
       throw new Error('Failed to load available years. Please check your connection and try again.')
     }
   }
@@ -169,7 +170,7 @@ export function useMultiYearHeatmap() {
       }
     } catch (error: unknown) {
       heatmapError.value = error instanceof Error ? error.message : 'An error occurred'
-      console.error('Error loading multi-year heatmap data:', error)
+      logger.error('Error loading multi-year heatmap data', 'useMultiYearHeatmap', error)
     } finally {
       isLoadingHeatmap.value = false
     }
@@ -183,7 +184,7 @@ export function useMultiYearHeatmap() {
         await loadAllYearsData()
       }
     } catch (error) {
-      console.error('Error initializing heatmap:', error)
+      logger.error('Error initializing heatmap', 'useMultiYearHeatmap', error)
       heatmapError.value = 'Failed to initialize heatmap data'
     }
   }

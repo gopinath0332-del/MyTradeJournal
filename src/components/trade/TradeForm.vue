@@ -67,6 +67,7 @@
 import { ref, inject, watch, onMounted } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { tradeService } from '../../firebase/tradeService'
+import { logger } from '../../utils/logger'
 
 // Import sub-components
 import TradeBasicInfo from './forms/TradeBasicInfo.vue'
@@ -158,22 +159,22 @@ const updatePnLFromAmount = (newPnL) => {
 // File upload handler
 const handleScreenshotUpload = (files) => {
   // Handle screenshot upload logic here
-  console.log('Screenshots uploaded:', files)
+  logger.info('Screenshots uploaded:', files)
 }
 
 // Helper function to trim string fields
 const trimTradeData = (data) => {
   const trimmedData = { ...data }
-  
+
   // List of string fields that should be trimmed
   const stringFields = ['symbol', 'contract', 'notes', 'remarks', 'lessonsLearned']
-  
+
   stringFields.forEach(field => {
     if (typeof trimmedData[field] === 'string') {
       trimmedData[field] = trimmedData[field].trim()
     }
   })
-  
+
   return trimmedData
 }
 
@@ -208,7 +209,7 @@ const handleSubmit = async() => {
     }, 1000)
 
   } catch (error) {
-    console.error('Error saving trade:', error)
+    logger.error('Error saving trade:', error instanceof Error ? error.message : String(error))
     showToast('danger', 'Error', 'Failed to save trade. Please try again.')
   } finally {
     isSubmitting.value = false

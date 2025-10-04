@@ -10,6 +10,7 @@ import {
   where
 } from 'firebase/firestore'
 import { db } from './config'
+import { logger } from '@/utils/logger'
 import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
@@ -27,7 +28,7 @@ export const tradeService = {
       const docRef = await addDoc(collection(db, COLLECTION_NAME), tradeData)
       return { ...tradeData, id: docRef.id }
     } catch (error) {
-      console.error('Error adding trade:', error)
+      logger.error('Error adding trade', 'tradeService', error)
       throw error
     }
   },
@@ -42,7 +43,7 @@ export const tradeService = {
       })
       return { ...trade, id }
     } catch (error) {
-      console.error('Error updating trade:', error)
+      logger.error('Error updating trade', 'tradeService', error)
       throw error
     }
   },
@@ -54,7 +55,7 @@ export const tradeService = {
       await deleteDoc(tradeRef)
       return id
     } catch (error) {
-      console.error('Error deleting trade:', error)
+      logger.error('Error deleting trade', 'tradeService', error)
       throw error
     }
   },
@@ -69,7 +70,7 @@ export const tradeService = {
         ...doc.data()
       })) as Trade[]
     } catch (error) {
-      console.error('Error getting trades:', error)
+      logger.error('Error getting trades', 'tradeService', error)
       throw error
     }
   },
@@ -93,7 +94,7 @@ export const tradeService = {
         ...doc.data()
       })) as Trade[]
     } catch (error) {
-      console.error('Error getting trades by year:', error)
+      logger.error('Error getting trades by year', 'tradeService', error)
       throw error
     }
   },
@@ -108,7 +109,7 @@ export const tradeService = {
       ))]
       return years.sort((a, b) => b - a)
     } catch (error) {
-      console.error('Error getting available years:', error)
+      logger.error('Error getting available years', 'tradeService', error)
       throw error
     }
   },
@@ -178,7 +179,7 @@ export const tradeService = {
 
       return trades
     } catch (error) {
-      console.error('Error getting filtered trades:', error)
+      logger.error('Error getting filtered trades', 'tradeService', error)
       throw error
     }
   },
@@ -191,7 +192,7 @@ export const tradeService = {
       const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))]
       return symbols.sort()
     } catch (error) {
-      console.error('Error getting unique symbols:', error)
+      logger.error('Error getting unique symbols', 'tradeService', error)
       throw error
     }
   }

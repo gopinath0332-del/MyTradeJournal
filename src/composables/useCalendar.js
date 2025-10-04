@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { tradeService } from '../firebase/tradeService.js'
+import { logger } from '../utils/logger.ts'
 
 export function useCalendar() {
   // State
@@ -46,7 +47,7 @@ export function useCalendar() {
       tradesCache.value.set(cacheKey, trades)
       return trades
     } catch (err) {
-      console.error('Error fetching trades for month:', year, month, err)
+      logger.error('Error fetching trades for month:', `Year: ${year}, Month: ${month}, Error: ${err instanceof Error ? err.message : String(err)}`)
       throw new Error(`Failed to load trades for ${getMonthName(month)} ${year}. Please check your connection and try again.`)
     }
   }

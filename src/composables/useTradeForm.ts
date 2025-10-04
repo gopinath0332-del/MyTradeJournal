@@ -1,5 +1,6 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
+import { logger } from '@/utils/logger'
 import type { Trade } from '@/types'
 
 type TradeFormData = {
@@ -176,7 +177,7 @@ export function useTradeForm(initialTrade: Trade | null = null) {
 
       return urls
     } catch (err) {
-      console.error('Error uploading screenshots:', err)
+      logger.error('Error uploading screenshots', 'useTradeForm', err)
       throw new Error('Failed to upload screenshots')
     } finally {
       loading.value = false
@@ -225,7 +226,7 @@ export function useTradeForm(initialTrade: Trade | null = null) {
 
       return result
     } catch (err: unknown) {
-      console.error('Error submitting trade:', err)
+      logger.error('Error submitting trade', 'useTradeForm', err)
       error.value = err instanceof Error ? err.message : 'Failed to save trade'
       return false
     } finally {

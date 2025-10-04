@@ -469,6 +469,7 @@ import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { logger } from '@/utils/logger'
 
 // Loading states
 const isLoadingTrades = ref(false)
@@ -484,7 +485,7 @@ const displayToast = (type, title, message) => {
     if (showToast) {
         showToast(type, title, message)
     } else {
-        console.log(`${type}: ${title} - ${message}`)
+        logger.info(`${type}: ${title} - ${message}`, 'TradeHistory')
     }
 }
 
@@ -521,7 +522,7 @@ const loadTrades = async() => {
 
         trades.value = await tradeService.getFilteredTrades(filterParams)
     } catch (error) {
-        console.error('Error loading trades:', error)
+        logger.error('Error loading trades', 'TradeHistory', error)
         trades.value = []
         displayToast('error', 'Error', 'Failed to load trades. Please try again.')
     } finally {
@@ -534,7 +535,7 @@ const loadUniqueSymbols = async() => {
     try {
         uniqueSymbols.value = await tradeService.getUniqueSymbols()
     } catch (error) {
-        console.error('Error loading unique symbols:', error)
+        logger.error('Error loading unique symbols', 'TradeHistory', error)
         uniqueSymbols.value = []
     }
 }
@@ -618,7 +619,7 @@ const handleEditSubmit = () => {
             closeEditModal()
         }
     } catch (error) {
-        console.error('Error updating trade:', error)
+        logger.error('Error updating trade', 'TradeHistory', error)
     }
 }
 
@@ -705,7 +706,7 @@ const deleteTrade = async(trade) => {
 
             displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
         } catch (error) {
-            console.error('Error deleting trade:', error)
+            logger.error('Error deleting trade', 'TradeHistory', error)
             displayToast('error', 'Error', 'Failed to delete trade. Please try again.')
         } finally {
             isDeletingTrade.value = false

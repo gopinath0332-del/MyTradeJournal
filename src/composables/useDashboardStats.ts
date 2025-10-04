@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
+import { logger } from '@/utils/logger'
 import type { Trade } from '@/types'
 
 export function useDashboardStats() {
@@ -469,7 +470,7 @@ export function useDashboardStats() {
       tradesCache.value.set(cacheKey, trades)
       return trades
     } catch (error) {
-      console.error('Error fetching trades for year:', year, error)
+      logger.error(`Error fetching trades for year ${year}`, 'useDashboardStats', error)
       throw new Error(`Failed to load trades for ${year}. Please check your connection and try again.`)
     }
   }
@@ -484,7 +485,7 @@ export function useDashboardStats() {
         selectedYear.value = availableYears.value[0] || new Date().getFullYear()
       }
     } catch (error) {
-      console.error('Error getting available years:', error)
+      logger.error('Error getting available years', 'useDashboardStats', error)
       throw new Error('Failed to load available years. Please check your connection and try again.')
     }
   }
@@ -506,7 +507,7 @@ export function useDashboardStats() {
       // Stats are automatically computed via the computed property
     } catch (error: unknown) {
       statsError.value = error instanceof Error ? error.message : 'An error occurred'
-      console.error('Error calculating trading stats:', error)
+      logger.error('Error calculating trading stats', 'useDashboardStats', error)
     } finally {
       isLoadingStats.value = false
     }
@@ -522,7 +523,7 @@ export function useDashboardStats() {
       // Monthly data is automatically computed via the computed property
     } catch (error: unknown) {
       monthlyError.value = error instanceof Error ? error.message : 'An error occurred'
-      console.error('Error calculating monthly breakdown:', error)
+      logger.error('Error calculating monthly breakdown', 'useDashboardStats', error)
     } finally {
       isLoadingMonthly.value = false
     }
@@ -551,7 +552,7 @@ export function useDashboardStats() {
       // Weekly data is automatically computed via the computed property
     } catch (error: unknown) {
       weeklyError.value = error instanceof Error ? error.message : 'An error occurred'
-      console.error('Error calculating weekly breakdown:', error)
+      logger.error('Error calculating weekly breakdown', 'useDashboardStats', error)
     } finally {
       isLoadingWeekly.value = false
     }
@@ -575,7 +576,7 @@ export function useDashboardStats() {
       calculateMonthlyBreakdown(),
       calculateWeeklyBreakdown()
     ]).catch(error => {
-      console.error('Error changing year:', error)
+      logger.error('Error changing year:', error)
     })
   }
 
@@ -601,7 +602,7 @@ export function useDashboardStats() {
         calculateWeeklyBreakdown()
       ])
     } catch (error) {
-      console.error('Error initializing dashboard:', error)
+      logger.error('Error initializing dashboard:', error instanceof Error ? error.message : String(error))
       // Set all errors if initialization fails
       statsError.value = 'Failed to initialize dashboard'
       monthlyError.value = 'Failed to initialize dashboard'

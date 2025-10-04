@@ -66,6 +66,7 @@
 <script setup>
 import { ref, inject, watch, onMounted } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import { useRouter, useRoute } from 'vue-router'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '../../utils/logger'
 
@@ -78,12 +79,15 @@ import TradeMetadata from './forms/TradeMetadata.vue'
 import TradeActions from './forms/TradeActions.vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 
+// Router setup
+const router = useRouter()
+const route = useRoute()
+
 // Loading state
 const isSubmitting = ref(false)
 
 // Injected dependencies
 const editingTrade = inject('editingTrade')
-const activeTab = inject('activeTab')
 const refreshDashboard = inject('refreshDashboard')
 
 // Toast state
@@ -204,7 +208,7 @@ const handleSubmit = async() => {
     }
 
     setTimeout(() => {
-      activeTab.value = 'history'
+      router.push({ name: 'TradeHistory' })
       resetForm()
     }, 1000)
 
@@ -222,7 +226,7 @@ const handleCancel = () => {
     editingTrade.value = null
   }
   resetForm()
-  activeTab.value = 'history'
+  router.push({ name: 'TradeHistory' })
 }
 
 // Form reset
@@ -261,15 +265,32 @@ watch(editingTrade, (newTrade) => {
   }
 })
 
-watch(activeTab, (newTab) => {
-  if (newTab === 'trade' && !editingTrade.value) {
+watch(() => route.name, (newRouteName) => {
+  if (newRouteName === 'LogTrade' && !editingTrade.value) {
     resetForm()
   }
 })
 
 // Component lifecycle
-onMounted(() => {
-  if (editingTrade.value) {
+onMounted(async() => {
+  // Check if we're editing a trade via route parameter
+  if (route.name === 'EditTrade' && route.params.id) {
+    try {
+      // Load trade by ID from route parameter
+      const tradeId = route.params.id
+      const tradeData = await tradeService.getTradeById(tradeId)
+      if (tradeData) {
+        trade.value = { ...tradeData }
+        pnl.value.amount = tradeData.pnlAmount || 0
+        pnl.value.percentage = tradeData.pnlPercentage || 0
+        calculatePnL()
+      }
+    } catch (error) {
+      logger.error('Error loading trade for editing:', error instanceof Error ? error.message : String(error))
+      showToast('danger', 'Error', 'Failed to load trade for editing.')
+    }
+  } else if (editingTrade.value) {
+    // Handle editing via injection (legacy)
     trade.value = { ...editingTrade.value }
     pnl.value.amount = editingTrade.value.pnlAmount || 0
     pnl.value.percentage = editingTrade.value.pnlPercentage || 0

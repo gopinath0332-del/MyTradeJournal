@@ -4,6 +4,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   orderBy,
@@ -44,6 +45,23 @@ export const tradeService = {
       return { ...trade, id }
     } catch (error) {
       logger.error('Error updating trade', 'tradeService', error)
+      throw error
+    }
+  },
+
+  // Get a trade by ID
+  async getTradeById(id: string): Promise<Trade | null> {
+    try {
+      const tradeRef = doc(db, COLLECTION_NAME, id)
+      const docSnap = await getDoc(tradeRef)
+
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Trade
+      } else {
+        return null
+      }
+    } catch (error) {
+      logger.error('Error getting trade by ID', 'tradeService', error)
       throw error
     }
   },

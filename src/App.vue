@@ -1,32 +1,25 @@
 <script setup>
 import { ref, provide } from 'vue'
-import TradeForm from './components/trade/TradeForm.vue'
-import TradeHistory from './components/trade/TradeHistory.vue'
-import DashboardStats from './components/dashboard/DashboardStats.vue'
-import StatisticsView from './components/StatisticsView.vue'
-import HeatmapView from './components/HeatmapView.vue'
-import CalendarView from './components/CalendarView.vue'
+import { useRouter } from 'vue-router'
 
-const activeTab = ref('dashboard') // 'dashboard', 'trade', or 'history'
+const router = useRouter()
 const editingTrade = ref(null)
 const toasts = ref([])
 const isMobileMenuOpen = ref(false)
-const dashboardKey = ref(0) // Key to force dashboard re-render
 let toastId = 0
 
 // Provide the shared state to child components
-provide('activeTab', activeTab)
 provide('editingTrade', editingTrade)
 
 // Function to start editing a trade
 const startEditingTrade = (trade) => {
   editingTrade.value = trade
-  activeTab.value = 'trade'
+  router.push({ name: 'EditTrade', params: { id: trade.id } })
 }
 
 // Function to handle navigation and close mobile menu
-const navigateTo = (tab) => {
-  activeTab.value = tab
+const navigateTo = (routeName) => {
+  router.push({ name: routeName })
   isMobileMenuOpen.value = false
 }
 
@@ -53,15 +46,19 @@ const removeToast = (id) => {
   }
 }
 
-// Function to refresh dashboard data
+// Function to refresh dashboard data (may not be needed with router)
 const refreshDashboard = () => {
-  dashboardKey.value++
+  // With router, we could navigate to dashboard to refresh
+  if (router.currentRoute.value.name === 'Dashboard') {
+    window.location.reload()
+  }
 }
 
 // Provide functions to child components
 provide('startEditingTrade', startEditingTrade)
 provide('showToast', showToast)
 provide('refreshDashboard', refreshDashboard)
+provide('navigateTo', navigateTo)
 </script>
 
 <template>
@@ -85,82 +82,77 @@ provide('refreshDashboard', refreshDashboard)
       <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
         <ul class="nav-list">
           <li class="nav-item">
-            <a
-              href="#"
+            <RouterLink
+              to="/dashboard"
               class="nav-link"
-              :class="{ active: activeTab === 'dashboard' }"
-              @click.prevent="navigateTo('dashboard')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">📊</span>
               <span class="nav-text">Dashboard</span>
-            </a>
+            </RouterLink>
           </li>
           <li class="nav-item">
-            <a
-              href="#"
+            <RouterLink
+              to="/history"
               class="nav-link"
-              :class="{ active: activeTab === 'history' }"
-              @click.prevent="navigateTo('history')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">📋</span>
               <span class="nav-text">Trade History</span>
-            </a>
+            </RouterLink>
           </li>
           <li class="nav-item">
-            <a
-              href="#"
+            <RouterLink
+              to="/statistics"
               class="nav-link"
-              :class="{ active: activeTab === 'statistics' }"
-              @click.prevent="navigateTo('statistics')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">📈</span>
               <span class="nav-text">Statistics</span>
-            </a>
+            </RouterLink>
           </li>
           <li class="nav-item">
-            <a
-              href="#"
+            <RouterLink
+              to="/calendar"
               class="nav-link"
-              :class="{ active: activeTab === 'calendar' }"
-              @click.prevent="navigateTo('calendar')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">📅</span>
               <span class="nav-text">Calendar</span>
-            </a>
+            </RouterLink>
           </li>
           <li class="nav-item desktop-only">
-            <a
-              href="#"
+            <RouterLink
+              to="/heatmap"
               class="nav-link"
-              :class="{ active: activeTab === 'heatmap' }"
-              @click.prevent="navigateTo('heatmap')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">🔥</span>
               <span class="nav-text">Heatmap</span>
-            </a>
+            </RouterLink>
           </li>
           <li class="nav-item">
-            <a
-              href="#"
+            <RouterLink
+              to="/trade"
               class="nav-link"
-              :class="{ active: activeTab === 'trade' }"
-              @click.prevent="navigateTo('trade')"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
             >
               <span class="nav-icon">➕</span>
               <span class="nav-text">Log Trade</span>
-            </a>
+            </RouterLink>
           </li>
         </ul>
       </nav>
     </header>
 
     <main>
-      <DashboardStats v-if="activeTab === 'dashboard'" :key="dashboardKey" />
-      <TradeHistory v-if="activeTab === 'history'" />
-      <StatisticsView v-if="activeTab === 'statistics'" />
-      <CalendarView v-if="activeTab === 'calendar'" />
-      <HeatmapView v-if="activeTab === 'heatmap'" />
-      <TradeForm v-if="activeTab === 'trade'" />
+      <RouterView />
     </main>
 
     <!-- Toast Container -->

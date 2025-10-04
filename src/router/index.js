@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import DashboardStats from '../components/dashboard/DashboardStats.vue'
-import TradeHistory from '../components/trade/TradeHistory.vue'
-import StatisticsView from '../components/StatisticsView.vue'
-import CalendarView from '../components/CalendarView.vue'
-import HeatmapView from '../components/HeatmapView.vue'
-import TradeForm from '../components/trade/TradeForm.vue'
+
+// Lazy loading components for better performance
+const DashboardStats = () => import('../components/dashboard/DashboardStats.vue')
+const TradeHistory = () => import('../components/trade/TradeHistory.vue')
+const StatisticsView = () => import('../components/StatisticsView.vue')
+const CalendarView = () => import('../components/CalendarView.vue')
+const HeatmapView = () => import('../components/HeatmapView.vue')
+const TradeForm = () => import('../components/trade/TradeForm.vue')
 
 const routes = [
   {

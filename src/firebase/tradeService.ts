@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './config'
 import { logger } from '@/utils/logger'
+import { cacheService } from '@/utils/cache'
 import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
@@ -27,6 +28,10 @@ export const tradeService = {
         updatedAt: now
       }
       const docRef = await addDoc(collection(db, COLLECTION_NAME), tradeData)
+
+      // Invalidate relevant caches
+      this._invalidateTradesCaches()
+
       return { ...tradeData, id: docRef.id }
     } catch (error) {
       logger.error('Error adding trade', 'tradeService', error)
@@ -42,6 +47,10 @@ export const tradeService = {
         ...trade,
         updatedAt: new Date().toISOString()
       })
+
+      // Invalidate relevant caches
+      this._invalidateTradesCaches()
+
       return { ...trade, id }
     } catch (error) {
       logger.error('Error updating trade', 'tradeService', error)
@@ -71,6 +80,10 @@ export const tradeService = {
     try {
       const tradeRef = doc(db, COLLECTION_NAME, id)
       await deleteDoc(tradeRef)
+
+      // Invalidate relevant caches
+      this._invalidateTradesCaches()
+
       return id
     } catch (error) {
       logger.error('Error deleting trade', 'tradeService', error)
@@ -134,6 +147,15 @@ export const tradeService = {
 
   // Get trades with filters applied on server-side
   async getFilteredTrades(filters: TradeFilters = {}) {
+    // Generate cache key from filters
+    const cacheKey = `filtered-trades:${JSON.stringify(filters)}`
+
+    // Try to get from cache first (short TTL for real-time data)
+    const cached = cacheService.get(cacheKey)
+    if (cached) {
+      return cached
+    }
+
     try {
       let q = query(collection(db, COLLECTION_NAME))
       const conditions = []
@@ -195,6 +217,9 @@ export const tradeService = {
         })
       }
 
+      // Cache the results (1 minute TTL for filtered data)
+      cacheService.set(cacheKey, trades, 60 * 1000)
+
       return trades
     } catch (error) {
       logger.error('Error getting filtered trades', 'tradeService', error)
@@ -204,14 +229,49 @@ export const tradeService = {
 
   // Get unique symbols without loading all trade data
   async getUniqueSymbols() {
+    const cacheKey = 'unique-symbols'
+
+    // Try to get from cache first
+    const cached = cacheService.get(cacheKey)
+    if (cached) {
+      return cached
+    }
+
     try {
       const q = query(collection(db, COLLECTION_NAME))
       const querySnapshot = await getDocs(q)
       const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))]
-      return symbols.sort()
+      const sortedSymbols = symbols.sort()
+
+      // Cache for 30 minutes (symbols don't change frequently)
+      cacheService.set(cacheKey, sortedSymbols, 30 * 60 * 1000)
+
+      return sortedSymbols
     } catch (error) {
       logger.error('Error getting unique symbols', 'tradeService', error)
       throw error
     }
+  },
+
+  // Cache management methods
+  _invalidateTradesCaches() {
+    // Clear all trade-related caches when data changes
+    const keys = ['all-trades', 'unique-symbols', 'available-years']
+    keys.forEach(key => {
+      cacheService.delete(key)
+    })
+
+    // Also clear any filter-based caches
+    cacheService.clear() // For now, clear all - could be more selective
+  },
+
+  // Get cache statistics for debugging
+  getCacheStats() {
+    return cacheService.getStats()
+  },
+
+  // Clear all caches
+  clearAllCaches() {
+    cacheService.clear()
   }
 }

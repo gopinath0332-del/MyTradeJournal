@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Icon Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .icon-preview {
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 5px;
+        }
+        .download-btn {
+            display: block;
+            margin: 5px auto;
+            padding: 5px 10px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>PWA Icon Generator for MyTradeJournal</h1>
+    <p>Click "Generate All Icons" to create all required icon sizes, then right-click each canvas to save as PNG.</p>
+
+    <button onclick="generateAllIcons()" style="padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
+        Generate All Icons
+    </button>
+
+    <div id="icons-container"></div>
+
+    <script>
+        const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = size;
+            canvas.height = size;
+
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#10b981');
+            gradient.addColorStop(1, '#059669');
+
+            // Draw rounded rectangle background
+            const radius = size * 0.15;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+
+            // Draw chart bars
+            const barWidth = size * 0.06;
+            const barSpacing = size * 0.1;
+            const startX = size * 0.2;
+            const baseY = size * 0.8;
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+            const barHeights = [0.15, 0.25, 0.35, 0.45, 0.5, 0.4];
+
+            for (let i = 0; i < 6; i++) {
+                const x = startX + i * barSpacing;
+                const height = size * barHeights[i];
+                const y = baseY - height;
+
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth, height, 2);
+                ctx.fill();
+            }
+
+            // Draw dollar sign
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = `bold ${size * 0.12}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', size * 0.5, size * 0.2);
+
+            // Draw trend line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = size * 0.006;
+            ctx.beginPath();
+            ctx.moveTo(startX, baseY - size * 0.1);
+
+            for (let i = 0; i < 6; i++) {
+                const x = startX + i * barSpacing + barWidth/2;
+                const y = baseY - size * barHeights[i] - size * 0.02;
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            return canvas;
+        }
+
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function generateAllIcons() {
+            const container = document.getElementById('icons-container');
+            container.innerHTML = '';
+
+            sizes.forEach(size => {
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'icon-preview';
+
+                const canvas = createIcon(size);
+                canvas.style.width = '100px';
+                canvas.style.height = '100px';
+
+                const label = document.createElement('div');
+                label.textContent = `${size}x${size}`;
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.onclick = () => downloadCanvas(canvas, `icon-${size}x${size}.png`);
+
+                iconDiv.appendChild(canvas);
+                iconDiv.appendChild(label);
+                iconDiv.appendChild(downloadBtn);
+
+                container.appendChild(iconDiv);
+            });
+        }
+
+        // Polyfill for roundRect if not available
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>

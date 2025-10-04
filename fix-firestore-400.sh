@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# MyTradeJournal - Firestore 400 Error Fix Guide
+
+echo "🔧 Fixing Firestore 400 Error for MyTradeJournal"
+echo "================================================"
+
+echo ""
+echo "📋 STEP 1: Check Firebase Console"
+echo "1. Go to: https://console.firebase.google.com/"
+echo "2. Select your project: tradingjournal-5d147"
+echo "3. Navigate to 'Firestore Database' in the left sidebar"
+
+echo ""
+echo "📋 STEP 2: Create Database (if not exists)"
+echo "If you see 'Create database' button:"
+echo "1. Click 'Create database'"
+echo "2. Choose 'Start in test mode' (allows read/write)"
+echo "3. Select a location (choose closest to you)"
+echo "4. Click 'Done'"
+
+echo ""
+echo "📋 STEP 3: Update Security Rules"
+echo "1. Click on the 'Rules' tab in Firestore"
+echo "2. Replace existing rules with:"
+echo ""
+echo "rules_version = '2';"
+echo "service cloud.firestore {"
+echo "  match /databases/{database}/documents {"
+echo "    match /{document=**} {"
+echo "      allow read, write: if true;"
+echo "    }"
+echo "  }"
+echo "}"
+echo ""
+echo "3. Click 'Publish'"
+
+echo ""
+echo "📋 STEP 4: Test the Fix"
+echo "1. Go to: http://localhost:5173/MyTradeJournal/debug"
+echo "2. Click 'Test Trade Service'"
+echo "3. Should show success message"
+
+echo ""
+echo "⚠️  SECURITY NOTE:"
+echo "The rules above allow open access for testing."
+echo "For production, implement proper authentication."
+
+echo ""
+echo "🎯 ALTERNATIVE: Quick Database Test"
+echo "If you still get errors, try creating a test document:"
+echo "1. In Firestore Console, click 'Start collection'"
+echo "2. Collection ID: 'trades'"
+echo "3. Document ID: 'test-trade'"
+echo "4. Add field: symbol (string) = 'AAPL'"
+echo "5. Add field: entryDate (string) = '2024-01-01'"
+echo "6. Click 'Save'"
+
+echo ""
+echo "✅ Your app should now work!"

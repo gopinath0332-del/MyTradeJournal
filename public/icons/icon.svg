@@ -1,0 +1,35 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#gradient)"/>
+
+  <!-- Chart bars -->
+  <rect x="80" y="320" width="40" height="112" fill="white" opacity="0.9" rx="4"/>
+  <rect x="140" y="280" width="40" height="152" fill="white" opacity="0.7" rx="4"/>
+  <rect x="200" y="240" width="40" height="192" fill="white" opacity="0.9" rx="4"/>
+  <rect x="260" y="200" width="40" height="232" fill="white" opacity="0.8" rx="4"/>
+  <rect x="320" y="160" width="40" height="272" fill="white" opacity="0.9" rx="4"/>
+  <rect x="380" y="180" width="40" height="252" fill="white" opacity="0.6" rx="4"/>
+
+  <!-- Currency symbol -->
+  <circle cx="256" cy="120" r="50" fill="white" opacity="0.15"/>
+  <text x="256" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white">$</text>
+
+  <!-- Trend line -->
+  <path d="M 80 350 Q 150 320, 220 300 Q 290 280, 360 260 Q 400 250, 420 240"
+        stroke="white" stroke-width="3" fill="none" opacity="0.8"/>
+
+  <!-- Data points -->
+  <circle cx="100" cy="340" r="4" fill="white"/>
+  <circle cx="160" cy="310" r="4" fill="white"/>
+  <circle cx="220" cy="290" r="4" fill="white"/>
+  <circle cx="280" cy="270" r="4" fill="white"/>
+  <circle cx="340" cy="250" r="4" fill="white"/>
+  <circle cx="400" cy="235" r="4" fill="white"/>
+</svg>

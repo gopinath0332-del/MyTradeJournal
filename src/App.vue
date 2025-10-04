@@ -1,6 +1,8 @@
 <script setup>
 import { ref, provide } from 'vue'
 import { useRouter } from 'vue-router'
+import PWAInstallPrompt from '@/components/ui/PWAInstallPrompt.vue'
+import ServiceWorkerUpdate from '@/components/ui/ServiceWorkerUpdate.vue'
 
 const router = useRouter()
 const editingTrade = ref(null)
@@ -172,6 +174,10 @@ provide('navigateTo', navigateTo)
         </div>
       </div>
     </div>
+
+    <!-- PWA Components -->
+    <PWAInstallPrompt />
+    <ServiceWorkerUpdate />
   </div>
 </template>
 

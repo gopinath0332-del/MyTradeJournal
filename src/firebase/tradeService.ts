@@ -91,25 +91,60 @@ export const tradeService = {
     }
   },
 
-  // Get all trades
-  async getAllTrades() {
+  // Get all trades (fallback without ordering)
+  async getAllTradesSimple() {
     try {
-      const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
-      const querySnapshot = await getDocs(q)
+      logger.info('Attempting to get all trades (simple)', 'tradeService')
+      const querySnapshot = await getDocs(collection(db, COLLECTION_NAME))
+      logger.info(`Successfully retrieved ${querySnapshot.size} trades (simple)`, 'tradeService')
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Trade[]
-    } catch (error) {
-      logger.error('Error getting trades', 'tradeService', error)
-      throw error
+    } catch (error: any) {
+      logger.error('Error getting trades (simple)', 'tradeService', error)
+      throw new Error(`Failed to retrieve trades: ${error.message || error}`)
     }
   },
 
-  // Get trades for a specific year
+  // Get all trades with fallback
+  async getAllTrades() {
+    try {
+      logger.info('Attempting to get all trades with ordering', 'tradeService')
+      const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
+      const querySnapshot = await getDocs(q)
+      logger.info(`Successfully retrieved ${querySnapshot.size} trades with ordering`, 'tradeService')
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Trade[]
+    } catch (error: any) {
+      logger.warn('Ordered query failed, falling back to simple query', 'tradeService', error)
+
+      // Fallback to simple query
+      try {
+        return await this.getAllTradesSimple()
+      } catch (fallbackError: any) {
+        // Enhanced error handling for debugging
+        logger.error('Both ordered and simple queries failed', 'tradeService', fallbackError)
+
+        if (fallbackError.code === 'permission-denied') {
+          throw new Error(`Permission denied accessing Firestore. Please check your Firestore security rules. See FIRESTORE_SETUP.md for instructions.`)
+        } else if (fallbackError.code === 'not-found') {
+          throw new Error(`Firestore database or collection '${COLLECTION_NAME}' not found. Please ensure Firestore is enabled in your Firebase project.`)
+        } else if (fallbackError.code === 'unauthenticated') {
+          throw new Error(`Authentication required. Please check your Firebase configuration and security rules.`)
+        }
+
+        throw new Error(`Failed to retrieve trades: ${fallbackError.message || fallbackError}`)
+      }
+    }
+  },
+
+  // Get trades for a specific year with fallback
   async getTradesByYear(year: number) {
     try {
-      // Create date range for the year
+      // Try complex query first
       const startDate = `${year}-01-01`
       const endDate = `${year + 1}-01-01`
 
@@ -124,24 +159,47 @@ export const tradeService = {
         id: doc.id,
         ...doc.data()
       })) as Trade[]
-    } catch (error) {
-      logger.error('Error getting trades by year', 'tradeService', error)
-      throw error
+    } catch (error: any) {
+      logger.warn(`Complex query for year ${year} failed, falling back to client-side filtering`, 'tradeService', error)
+
+      // Fallback: get all trades and filter on client side
+      try {
+        const allTrades = await this.getAllTradesSimple()
+        return allTrades.filter(trade => {
+          const tradeYear = new Date(trade.entryDate).getFullYear()
+          return tradeYear === year
+        }).sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime())
+      } catch (fallbackError: any) {
+        logger.error(`Error getting trades for year ${year}`, 'tradeService', fallbackError)
+        throw new Error(`Failed to retrieve trades for ${year}: ${fallbackError.message || fallbackError}`)
+      }
     }
   },
 
-  // Get available years (for year selector dropdown)
+  // Get available years with fallback
   async getAvailableYears() {
     try {
+      // Try complex query first
       const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
       const querySnapshot = await getDocs(q)
       const years = [...new Set(querySnapshot.docs.map(doc =>
         new Date(doc.data().entryDate).getFullYear()
       ))]
       return years.sort((a, b) => b - a)
-    } catch (error) {
-      logger.error('Error getting available years', 'tradeService', error)
-      throw error
+    } catch (error: any) {
+      logger.warn('Complex query for available years failed, falling back to simple query', 'tradeService', error)
+
+      // Fallback: get all trades and extract years on client side
+      try {
+        const allTrades = await this.getAllTradesSimple()
+        const years = [...new Set(allTrades.map(trade =>
+          new Date(trade.entryDate).getFullYear()
+        ))]
+        return years.sort((a, b) => b - a)
+      } catch (fallbackError: any) {
+        logger.error('Error getting available years', 'tradeService', fallbackError)
+        throw new Error(`Failed to retrieve available years: ${fallbackError.message || fallbackError}`)
+      }
     }
   },
 

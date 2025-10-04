@@ -7,11 +7,20 @@ const StatisticsView = () => import('../components/StatisticsView.vue')
 const CalendarView = () => import('../components/CalendarView.vue')
 const HeatmapView = () => import('../components/HeatmapView.vue')
 const TradeForm = () => import('../components/trade/TradeForm.vue')
+const FirebaseDebug = () => import('../components/debug/FirebaseDebug.vue')
 
 const routes = [
   {
     path: '/',
     redirect: '/dashboard'
+  },
+  {
+    path: '/debug',
+    name: 'FirebaseDebug',
+    component: FirebaseDebug,
+    meta: {
+      title: 'Firebase Debug'
+    }
   },
   {
     path: '/dashboard',

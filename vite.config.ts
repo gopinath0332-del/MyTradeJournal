@@ -55,7 +55,7 @@ export default defineConfig(({ command: _command, mode }) => {
             }
           ]
         },
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'icons/icon.svg', 'vite.svg'],
         manifest: {
           name: 'MyTradeJournal - Trading Performance Tracker',
           short_name: 'TradeJournal',
@@ -64,9 +64,21 @@ export default defineConfig(({ command: _command, mode }) => {
           background_color: '#1a1a1a',
           display: 'standalone',
           orientation: 'portrait-primary',
-          scope: '/',
-          start_url: '/',
+          scope: mode === 'development' ? '/' : '/MyTradeJournal/',
+          start_url: mode === 'development' ? '/' : '/MyTradeJournal/',
           icons: [
+            {
+              src: 'icons/icon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+              purpose: 'any'
+            },
+            {
+              src: 'icons/icon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+              purpose: 'maskable'
+            },
             {
               src: 'icons/icon-192x192.png',
               sizes: '192x192',
@@ -86,7 +98,7 @@ export default defineConfig(({ command: _command, mode }) => {
         }
       })
     ],
-    base: '/MyTradeJournal/', // Replace with your repository name
+    base: mode === 'development' ? '/' : '/MyTradeJournal/', // Use root path for development
     resolve: {
       alias: {
         '@': resolve(__dirname, 'src'),

@@ -361,7 +361,7 @@ export function useDashboardStats() {
         riskRewardRatio,
         remarksCount
       }
-    }).sort((a, b) => a.monthNumber - b.monthNumber)
+    }).sort((a, b) => b.monthNumber - a.monthNumber)
   })
 
   // Computed weekly breakdown

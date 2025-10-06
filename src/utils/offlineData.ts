@@ -16,15 +16,6 @@ class OfflineDataManager {
     window.addEventListener('offline', () => {
       this.isOnline = false
     })
-
-    // Service worker message handling
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data?.type === 'BACKGROUND_SYNC') {
-          this.syncOfflineData()
-        }
-      })
-    }
   }
 
   // Store data for offline access using localStorage as fallback

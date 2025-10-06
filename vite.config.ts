@@ -1,6 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { VitePWA } from 'vite-plugin-pwa'
 import { resolve } from 'path'
 
 // https://vitejs.dev/config/
@@ -11,92 +10,7 @@ export default defineConfig(({ command: _command, mode }) => {
 
   return {
     plugins: [
-      vue(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}'],
-          cleanupOutdatedCaches: true,
-          clientsClaim: true,
-          skipWaiting: true,
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*$/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'firebase-api',
-                networkTimeoutSeconds: 10,
-                cacheableResponse: {
-                  statuses: [0, 200]
-                },
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                }
-              }
-            },
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images',
-                expiration: {
-                  maxEntries: 60,
-                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-                }
-              }
-            },
-            {
-              urlPattern: /\.(?:js|css)$/,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'static-resources'
-              }
-            }
-          ]
-        },
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'icons/icon.svg', 'vite.svg'],
-        manifest: {
-          name: 'MyTradeJournal - Trading Performance Tracker',
-          short_name: 'TradeJournal',
-          description: 'A comprehensive trading journal application for tracking trades, analyzing performance, and improving trading strategies',
-          theme_color: '#10b981',
-          background_color: '#1a1a1a',
-          display: 'standalone',
-          orientation: 'portrait-primary',
-          scope: mode === 'development' ? '/' : '/MyTradeJournal/',
-          start_url: mode === 'development' ? '/' : '/MyTradeJournal/',
-          icons: [
-            {
-              src: 'icons/icon.svg',
-              sizes: 'any',
-              type: 'image/svg+xml',
-              purpose: 'any'
-            },
-            {
-              src: 'icons/icon.svg',
-              sizes: 'any',
-              type: 'image/svg+xml',
-              purpose: 'maskable'
-            },
-            {
-              src: 'icons/icon-192x192.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'icons/icon-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
-        },
-        devOptions: {
-          enabled: true,
-          type: 'module'
-        }
-      })
+      vue()
     ],
     base: mode === 'development' ? '/' : '/MyTradeJournal/', // Use root path for development
     resolve: {

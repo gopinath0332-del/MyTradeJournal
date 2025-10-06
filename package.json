@@ -34,9 +34,7 @@
     "eslint-plugin-vue": "^10.5.0",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
-    "vite-plugin-pwa": "^1.0.3",
     "vue-eslint-parser": "^10.2.0",
-    "vue-tsc": "^3.0.8",
-    "workbox-window": "^7.3.0"
+    "vue-tsc": "^3.0.8"
   }
 }

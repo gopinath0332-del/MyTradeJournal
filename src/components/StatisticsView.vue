@@ -40,85 +40,22 @@
         <!-- Top 10 Symbol Performance Chart -->
         <div class="top-symbols-chart">
           <h4>Top 10 Symbol Performance by Total P&L</h4>
-          <div class="horizontal-bar-chart">
-            <div v-if="top10Symbols.length === 0" class="no-data-message">
-              No symbol data available for the selected year
-            </div>
-            <div v-else class="chart-bars">
-              <div
-                v-for="(symbol, index) in top10Symbols"
-                :key="symbol.name"
-                class="symbol-bar-item"
-              >
-                <div class="symbol-info">
-                  <span class="symbol-rank">{{ index + 1 }}</span>
-                  <span class="symbol-name">{{ symbol.name }}</span>
-                  <span class="symbol-trades">({{ symbol.tradeCount }} trades)</span>
-                </div>
-                <div class="bar-container">
-                  <div
-                    class="horizontal-bar"
-                    :class="{
-                      'positive': symbol.totalPnL > 0,
-                      'negative': symbol.totalPnL < 0,
-                      'neutral': symbol.totalPnL === 0
-                    }"
-                    :style="{
-                      width: `${Math.abs(symbol.totalPnL / maxSymbolPnL) * 100}%`
-                    }"
-                    :title="`${symbol.name}: Total P&L ${formatCurrency(symbol.totalPnL)}`"
-                  >
-                    <span class="bar-label">
-                      {{ formatCurrency(symbol.totalPnL) }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <HorizontalBarChart
+            :data="symbolChartData"
+            :show-rank="true"
+            :value-formatter="formatCurrency"
+            no-data-message="No symbol data available for the selected year"
+          />
         </div>
 
         <!-- Symbol Performance Table -->
         <div class="symbol-analysis">
           <!-- Mobile Card View -->
-          <div class="symbol-cards mobile-only">
-            <div v-if="symbolPerformance.length === 0" class="no-data-message">
-              No symbol data available for the selected year
-            </div>
-            <div v-else class="cards-grid">
-              <div
-                v-for="symbol in symbolPerformance"
-                :key="symbol.name"
-                class="symbol-card"
-              >
-                <div class="card-header">
-                  <h5 class="symbol-name">{{ symbol.name }}</h5>
-                  <div class="trade-count">{{ symbol.tradeCount }} trades</div>
-                </div>
-                <div class="card-body">
-                  <div class="metric-row">
-                    <span class="metric-label">Win Rate</span>
-                    <span class="metric-value">{{ formatPercentage(symbol.winRate) }}%</span>
-                  </div>
-                  <div class="metric-row">
-                    <span class="metric-label">Avg P&L</span>
-                    <span class="metric-value" :class="getPerformanceClass(symbol.avgPnL)">
-                      {{ formatCurrency(symbol.avgPnL) }}
-                    </span>
-                  </div>
-                  <div class="metric-row">
-                    <span class="metric-label">Total P&L</span>
-                    <span class="metric-value" :class="getPerformanceClass(symbol.totalPnL)">
-                      {{ formatCurrency(symbol.totalPnL) }}
-                    </span>
-                  </div>
-                  <div class="metric-row">
-                    <span class="metric-label">Risk-Reward</span>
-                    <span class="metric-value">{{ formatNumber(symbol.riskReward, 2) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div class="mobile-only">
+            <SymbolCards
+              :symbols="symbolPerformance"
+              no-data-message="No symbol data available for the selected year"
+            />
           </div>
 
           <!-- Desktop Table View -->
@@ -160,96 +97,20 @@
         <div class="time-analysis">
           <div class="time-performance">
             <h4>Day of Week Performance</h4>
-            <div class="dow-horizontal-chart">
-              <div v-if="dayOfWeekPerformance.length === 0" class="no-data-message">
-                No day of week data available for the selected year
-              </div>
-              <div v-else class="horizontal-chart-bars">
-                <div
-                  v-for="day in dayOfWeekPerformance"
-                  :key="day.day"
-                  class="day-bar-item"
-                >
-                  <div class="day-info">
-                    <span class="day-name">{{ day.day }}</span>
-                    <span class="day-trades">({{ day.trades }} trades)</span>
-                  </div>
-                  <div class="day-bar-container">
-                    <div
-                      class="day-horizontal-bar"
-                      :class="{
-                        'positive': day.avgPnL > 0,
-                        'negative': day.avgPnL < 0,
-                        'neutral': day.avgPnL === 0
-                      }"
-                      :style="{
-                        width: `${Math.abs(day.avgPnL / maxDayPnL) * 100}%`
-                      }"
-                      :title="`${day.day}: Avg P&L ${formatCurrency(day.avgPnL)} (${day.trades} trades)`"
-                    >
-                      <span class="day-bar-label">
-                        {{ day.avgPnL >= 0 ? '+' : '' }}{{ formatCurrency(day.avgPnL) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Chart Legend -->
-              <div class="chart-legend">
-                <div class="legend-item">
-                  <div class="legend-dot positive" />
-                  <span>Profitable Days</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-dot negative" />
-                  <span>Loss Days</span>
-                </div>
-                <div class="legend-item">
-                  <div class="legend-dot neutral" />
-                  <span>Breakeven</span>
-                </div>
-              </div>
-            </div>
+            <HorizontalBarChart
+              :data="dayChartData"
+              :value-formatter="formatCurrency"
+              no-data-message="No day of week data available for the selected year"
+            />
           </div>
 
           <div class="time-performance">
             <h4>Monthly Trend</h4>
-            <div class="monthly-horizontal-chart">
-              <div v-if="monthlyTrend.length === 0" class="no-data-message">
-                No monthly data available for the selected year
-              </div>
-              <div v-else class="horizontal-chart-bars">
-                <div
-                  v-for="month in monthlyTrend"
-                  :key="month.month"
-                  class="month-bar-item"
-                >
-                  <div class="month-info">
-                    <span class="month-name">{{ month.monthName }}</span>
-                    <span class="month-trades">({{ month.tradeCount || 0 }} trades)</span>
-                  </div>
-                  <div class="month-bar-container">
-                    <div
-                      class="month-horizontal-bar"
-                      :class="{
-                        'positive': month.pnl > 0,
-                        'negative': month.pnl < 0,
-                        'neutral': month.pnl === 0
-                      }"
-                      :style="{
-                        width: `${Math.abs(month.pnl / maxMonthlyPnL) * 100}%`
-                      }"
-                      :title="`${month.monthName}: P&L ${formatCurrency(month.pnl)}`"
-                    >
-                      <span class="month-bar-label">
-                        {{ formatCurrency(month.pnl) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <HorizontalBarChart
+              :data="monthChartData"
+              :value-formatter="formatCurrency"
+              no-data-message="No monthly data available for the selected year"
+            />
           </div>
         </div>
 
@@ -281,13 +142,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, provide } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
 import LoadingSpinner from './ui/LoadingSpinner.vue'
 import EmptyState from './ui/EmptyState.vue'
 import YearSelector from './dashboard/YearSelector.vue'
 import WeeklyBreakdown from './dashboard/WeeklyBreakdown.vue'
+import HorizontalBarChart from './charts/HorizontalBarChart.vue'
+import SymbolCards from './charts/SymbolCards.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
+import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
+import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
 
 // Reactive data
 const isLoading = ref(false)
@@ -295,6 +160,33 @@ const error = ref(null)
 const trades = ref([])
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
+
+// Formatting functions (moved up to be available for computed properties)
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount)
+}
+
+const formatNumber = (number, decimals = 0) => {
+  return Number(number).toFixed(decimals)
+}
+
+const formatPercentage = (percentage) => {
+  return Number(percentage).toFixed(1)
+}
+
+// Initialize composables for data analysis
+const { symbolPerformance, top10Symbols } = useSymbolPerformance(trades)
+const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
+
+// Provide formatting functions to child components
+provide('formatCurrency', formatCurrency)
+provide('formatNumber', formatNumber)
+provide('formatPercentage', formatPercentage)
 
 // Weekly breakdown data from useDashboardStats
 const {
@@ -342,140 +234,36 @@ const loadAvailableYears = async() => {
   }
 }
 
-// Advanced calculations (keeping only what's needed for remaining sections)
-const symbolPerformance = computed(() => {
-  const symbols = {}
-
-  trades.value.forEach(trade => {
-    const symbol = trade.symbol || 'Unknown'
-    if (!symbols[symbol]) {
-      symbols[symbol] = {
-        name: symbol,
-        trades: [],
-        tradeCount: 0,
-        winningTrades: 0,
-        totalPnL: 0
-      }
-    }
-
-    symbols[symbol].trades.push(trade)
-    symbols[symbol].tradeCount++
-    symbols[symbol].totalPnL += (trade.pnlAmount || 0)
-    if ((trade.pnlAmount || 0) > 0) {
-      symbols[symbol].winningTrades++
-    }
-  })
-
-  return Object.values(symbols).map(symbol => ({
-    ...symbol,
-    winRate: symbol.tradeCount > 0 ? (symbol.winningTrades / symbol.tradeCount) * 100 : 0,
-    avgPnL: symbol.tradeCount > 0 ? symbol.totalPnL / symbol.tradeCount : 0,
-    riskReward: calculateRiskReward(symbol.trades)
-  })).sort((a, b) => b.totalPnL - a.totalPnL)
-})
-
-const dayOfWeekPerformance = computed(() => {
-  // Only include weekdays (Monday through Friday)
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-  const allDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const dayStats = {}
-
-  days.forEach(day => {
-    dayStats[day] = { trades: 0, totalPnL: 0 }
-  })
-
-  trades.value.forEach(trade => {
-    const dayOfWeek = allDays[new Date(trade.entryDate).getDay()]
-    // Only process weekday trades (skip Sunday and Saturday)
-    if (days.includes(dayOfWeek)) {
-      dayStats[dayOfWeek].trades++
-      dayStats[dayOfWeek].totalPnL += (trade.pnlAmount || 0)
-    }
-  })
-
-  return days.map(day => ({
-    day,
-    trades: dayStats[day].trades,
-    avgPnL: dayStats[day].trades > 0 ? dayStats[day].totalPnL / dayStats[day].trades : 0
+// Transform data for chart components
+const symbolChartData = computed(() => {
+  return top10Symbols.value.map(symbol => ({
+    id: symbol.name,
+    name: symbol.name,
+    value: symbol.totalPnL,
+    subtitle: `(${symbol.tradeCount} trades)`,
+    tooltip: `${symbol.name}: Total P&L ${formatCurrency(symbol.totalPnL)}`
   }))
 })
 
-// Helper computed property for day of week bar chart scaling
-const maxDayPnL = computed(() => {
-  if (dayOfWeekPerformance.value.length === 0) return 1
-  return Math.max(...dayOfWeekPerformance.value.map(day => Math.abs(day.avgPnL)))
+const dayChartData = computed(() => {
+  return dayOfWeekPerformance.value.map(day => ({
+    id: day.day,
+    name: day.day,
+    value: day.avgPnL,
+    subtitle: `(${day.trades} trades)`,
+    tooltip: `${day.day}: Avg P&L ${formatCurrency(day.avgPnL)} (${day.trades} trades)`
+  }))
 })
 
-// Top 10 symbols by total P&L
-const top10Symbols = computed(() => {
-  return symbolPerformance.value.slice(0, 10)
+const monthChartData = computed(() => {
+  return monthlyTrend.value.map(month => ({
+    id: month.month,
+    name: month.monthName,
+    value: month.pnl,
+    subtitle: `(${month.tradeCount || 0} trades)`,
+    tooltip: `${month.monthName}: P&L ${formatCurrency(month.pnl)}`
+  }))
 })
-
-// Helper computed property for horizontal bar chart scaling
-const maxSymbolPnL = computed(() => {
-  if (top10Symbols.value.length === 0) return 1
-  return Math.max(...top10Symbols.value.map(symbol => Math.abs(symbol.totalPnL)))
-})
-
-const monthlyTrend = computed(() => {
-  const months = {}
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ]
-
-  monthNames.forEach((name, index) => {
-    months[index] = { monthName: name, pnl: 0, tradeCount: 0 }
-  })
-
-  trades.value.forEach(trade => {
-    const month = new Date(trade.entryDate).getMonth()
-    months[month].pnl += (trade.pnlAmount || 0)
-    months[month].tradeCount += 1
-  })
-
-  return Object.keys(months)
-    .map(key => ({
-      month: parseInt(key),
-      monthName: months[key].monthName,
-      pnl: months[key].pnl,
-      tradeCount: months[key].tradeCount
-    }))
-    .filter(monthData => monthData.pnl !== 0) // Only include months with non-zero P&L
-})
-
-const maxMonthlyPnL = computed(() => {
-  if (monthlyTrend.value.length === 0) return 1 // Handle empty array
-  const pnls = monthlyTrend.value.map(m => Math.abs(m.pnl))
-  return Math.max(...pnls, 1) // Avoid division by zero
-})
-
-// Helper functions
-const calculateRiskReward = (trades) => {
-  const avgWin = trades.filter(t => (t.pnlAmount || 0) > 0).reduce((sum, t) => sum + t.pnlAmount, 0) /
-                 Math.max(1, trades.filter(t => (t.pnlAmount || 0) > 0).length)
-  const avgLoss = Math.abs(trades.filter(t => (t.pnlAmount || 0) < 0).reduce((sum, t) => sum + t.pnlAmount, 0) /
-                          Math.max(1, trades.filter(t => (t.pnlAmount || 0) < 0).length))
-  return avgLoss > 0 ? avgWin / avgLoss : avgWin > 0 ? 999 : 0
-}
-
-// Formatting functions
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(amount)
-}
-
-const formatNumber = (number, decimals = 0) => {
-  return Number(number).toFixed(decimals)
-}
-
-const formatPercentage = (percentage) => {
-  return Number(percentage).toFixed(1)
-}
 
 // CSS class helpers
 const getPerformanceClass = (value) => {
@@ -757,331 +545,15 @@ onMounted(async() => {
   }
 }
 
-/* Day of Week Bar Chart Styles */
-.dow-bar-chart {
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
 
-@media (min-width: 480px) {
-  .dow-bar-chart {
-    padding: 1.25rem;
-  }
-}
 
-@media (min-width: 768px) {
-  .dow-bar-chart {
-    padding: 1.5rem;
-  }
-}
 
-.chart-container {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 180px;
-  margin-bottom: 1rem;
-  padding: 0 0.25rem;
-  background: linear-gradient(to top, #e2e8f0 0%, #e2e8f0 1px, transparent 1px);
-  background-size: 100% 30px;
-}
 
-@media (min-width: 480px) {
-  .chart-container {
-    height: 200px;
-    padding: 0 0.5rem;
-    background-size: 100% 35px;
-  }
-}
 
-@media (min-width: 768px) {
-  .chart-container {
-    height: 220px;
-    padding: 0 1rem;
-    background-size: 100% 40px;
-    justify-content: space-between;
-  }
-}
 
-.bar-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 0.1rem;
-  min-width: 45px; /* Ensure minimum width for mobile visibility */
-  max-width: 80px;
-}
 
-@media (min-width: 480px) {
-  .bar-item {
-    margin: 0 0.2rem;
-    min-width: 50px;
-  }
-}
 
-@media (min-width: 768px) {
-  .bar-item {
-    margin: 0 0.25rem;
-    min-width: 0;
-    max-width: none;
-  }
-}
-
-.bar-wrapper {
-  height: 140px;
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  justify-content: center;
-}
-
-@media (min-width: 480px) {
-  .bar-wrapper {
-    height: 160px;
-  }
-}
-
-@media (min-width: 768px) {
-  .bar-wrapper {
-    height: 180px;
-  }
-}
-
-.performance-bar {
-  width: 40px;
-  min-height: 8px;
-  border-radius: 4px 4px 0 0;
-  position: relative;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 0.3rem;
-  touch-action: manipulation;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-@media (min-width: 480px) {
-  .performance-bar {
-    width: 45px;
-    border-radius: 5px 5px 0 0;
-    padding-top: 0.35rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .performance-bar {
-    width: 50px;
-    border-radius: 6px 6px 0 0;
-    padding-top: 0.4rem;
-  }
-}
-
-/* Enhanced hover/touch interactions */
-@media (hover: hover) {
-  .performance-bar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .month-bar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* Touch-friendly active states */
-.performance-bar:active,
-.month-bar:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Focus states for accessibility */
-.performance-bar:focus,
-.month-bar:focus {
-  outline: 2px solid var(--primary-color, #3b82f6);
-  outline-offset: 2px;
-}
-
-/* Horizontal bar hover effects */
-@media (hover: hover) {
-  .horizontal-bar:hover,
-  .day-horizontal-bar:hover,
-  .month-horizontal-bar:hover {
-    transform: scaleX(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .symbol-bar-item:hover .symbol-rank {
-    background: #2563eb;
-    transform: scale(1.1);
-  }
-}
-
-.horizontal-bar:active,
-.day-horizontal-bar:active,
-.month-horizontal-bar:active {
-  transform: scaleX(0.98);
-}
-
-.horizontal-bar:focus,
-.day-horizontal-bar:focus,
-.month-horizontal-bar:focus {
-  outline: 2px solid var(--primary-color, #3b82f6);
-  outline-offset: 2px;
-}
-
-.performance-bar.positive {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.performance-bar.negative {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-.performance-bar.neutral {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-.bar-value {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  line-height: 1.1;
-  letter-spacing: 0.02em;
-}
-
-@media (min-width: 480px) {
-  .bar-value {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .bar-value {
-    font-size: 0.9rem;
-  }
-}
-
-.day-label {
-  font-weight: 700;
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
-  color: #1f2937;
-  text-align: center;
-}
-
-@media (min-width: 480px) {
-  .day-label {
-    font-size: 0.95rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .day-label {
-    font-size: 1rem;
-    margin-top: 0.5rem;
-  }
-}
-
-.trade-count {
-  font-size: 0.8rem;
-  color: #4b5563;
-  margin-top: 0.25rem;
-  font-weight: 500;
-  text-align: center;
-}
-
-@media (min-width: 480px) {
-  .trade-count {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .trade-count {
-    font-size: 0.9rem;
-  }
-}
-
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.25rem;
-  flex-wrap: wrap;
-}
-
-@media (min-width: 480px) {
-  .chart-legend {
-    gap: 1.25rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .chart-legend {
-    gap: 1.5rem;
-    margin-top: 1rem;
-  }
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.9rem;
-  color: #1f2937;
-  font-weight: 500;
-}
-
-@media (min-width: 480px) {
-  .legend-item {
-    font-size: 0.95rem;
-    gap: 0.65rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .legend-item {
-    font-size: 1rem;
-    gap: 0.5rem;
-    color: #4b5563;
-  }
-}
-
-.legend-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-@media (min-width: 768px) {
-  .legend-dot {
-    width: 12px;
-    height: 12px;
-  }
-}
-
-.legend-dot.positive {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.legend-dot.negative {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-.legend-dot.neutral {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-/* Top 10 Symbols Horizontal Bar Chart */
+/* Top 10 Symbols Chart */
 .top-symbols-chart {
   margin-bottom: 2rem;
 }
@@ -1105,615 +577,11 @@ onMounted(async() => {
   }
 }
 
-.horizontal-bar-chart {
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
 
-@media (min-width: 480px) {
-  .horizontal-bar-chart {
-    padding: 1.25rem;
-  }
-}
 
-@media (min-width: 768px) {
-  .horizontal-bar-chart {
-    padding: 1.5rem;
-  }
-}
 
-.chart-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
 
-@media (min-width: 768px) {
-  .chart-bars {
-    gap: 1.25rem;
-  }
-}
 
-.symbol-bar-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-@media (min-width: 480px) {
-  .symbol-bar-item {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-  }
-}
-
-.symbol-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  flex: 0 0 auto;
-}
-
-@media (min-width: 480px) {
-  .symbol-info {
-    min-width: 180px;
-    flex: 0 0 180px;
-  }
-}
-
-@media (min-width: 768px) {
-  .symbol-info {
-    min-width: 200px;
-    flex: 0 0 200px;
-  }
-}
-
-.symbol-rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: #3b82f6;
-  color: white;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-@media (min-width: 768px) {
-  .symbol-rank {
-    width: 26px;
-    height: 26px;
-    font-size: 0.8rem;
-  }
-}
-
-.symbol-name {
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-@media (min-width: 480px) {
-  .symbol-name {
-    font-size: 0.95rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .symbol-name {
-    font-size: 1rem;
-  }
-}
-
-.symbol-trades {
-  font-size: 0.8rem;
-  color: #6b7280;
-  white-space: nowrap;
-}
-
-@media (min-width: 480px) {
-  .symbol-trades {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .symbol-trades {
-    font-size: 0.9rem;
-  }
-}
-
-.bar-container {
-  flex: 1;
-  position: relative;
-  height: 36px;
-  background: #e5e7eb;
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .bar-container {
-    height: 40px;
-  }
-}
-
-.horizontal-bar {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 0.75rem;
-  border-radius: 0.375rem;
-  transition: all 0.3s ease;
-  position: relative;
-  min-width: 60px; /* Ensure minimum width for small values */
-}
-
-.horizontal-bar.positive {
-  background: linear-gradient(90deg, #10b981, #059669);
-}
-
-.horizontal-bar.negative {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-}
-
-.horizontal-bar.neutral {
-  background: linear-gradient(90deg, #6b7280, #4b5563);
-}
-
-.bar-label {
-  color: white;
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
-}
-
-@media (min-width: 480px) {
-  .bar-label {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .bar-label {
-    font-size: 0.9rem;
-  }
-}
-
-.no-data-message {
-  text-align: center;
-  color: #6b7280;
-  font-style: italic;
-  padding: 2rem;
-}
-
-/* Day of Week Horizontal Chart */
-.dow-horizontal-chart {
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
-
-@media (min-width: 480px) {
-  .dow-horizontal-chart {
-    padding: 1.25rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .dow-horizontal-chart {
-    padding: 1.5rem;
-  }
-}
-
-.horizontal-chart-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-  .horizontal-chart-bars {
-    gap: 1.25rem;
-  }
-}
-
-.day-bar-item,
-.month-bar-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-@media (min-width: 480px) {
-  .day-bar-item,
-  .month-bar-item {
-    flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-  }
-}
-
-.day-info,
-.month-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  flex: 0 0 auto;
-}
-
-@media (min-width: 480px) {
-  .day-info,
-  .month-info {
-    min-width: 160px;
-    flex: 0 0 160px;
-  }
-}
-
-@media (min-width: 768px) {
-  .day-info,
-  .month-info {
-    min-width: 180px;
-    flex: 0 0 180px;
-  }
-}
-
-.day-name,
-.month-name {
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
-
-@media (min-width: 480px) {
-  .day-name,
-  .month-name {
-    font-size: 0.95rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .day-name,
-  .month-name {
-    font-size: 1rem;
-  }
-}
-
-.day-trades,
-.month-trades {
-  font-size: 0.8rem;
-  color: #6b7280;
-  white-space: nowrap;
-}
-
-@media (min-width: 480px) {
-  .day-trades,
-  .month-trades {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .day-trades,
-  .month-trades {
-    font-size: 0.9rem;
-  }
-}
-
-.day-bar-container,
-.month-bar-container {
-  flex: 1;
-  position: relative;
-  height: 36px;
-  background: #e5e7eb;
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .day-bar-container,
-  .month-bar-container {
-    height: 40px;
-  }
-}
-
-.day-horizontal-bar,
-.month-horizontal-bar {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 0.75rem;
-  border-radius: 0.375rem;
-  transition: all 0.3s ease;
-  position: relative;
-  min-width: 60px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.day-horizontal-bar.positive,
-.month-horizontal-bar.positive {
-  background: linear-gradient(90deg, #10b981, #059669);
-}
-
-.day-horizontal-bar.negative,
-.month-horizontal-bar.negative {
-  background: linear-gradient(90deg, #ef4444, #dc2626);
-}
-
-.day-horizontal-bar.neutral,
-.month-horizontal-bar.neutral {
-  background: linear-gradient(90deg, #6b7280, #4b5563);
-}
-
-.day-bar-label,
-.month-bar-label {
-  color: white;
-  font-weight: 700;
-  font-size: 0.8rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  white-space: nowrap;
-}
-
-@media (min-width: 480px) {
-  .day-bar-label,
-  .month-bar-label {
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .day-bar-label,
-  .month-bar-label {
-    font-size: 0.9rem;
-  }
-}
-
-/* Monthly Horizontal Chart */
-.monthly-horizontal-chart {
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-top: 1.5rem;
-}
-
-@media (min-width: 480px) {
-  .monthly-horizontal-chart {
-    padding: 1.25rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .monthly-horizontal-chart {
-    padding: 1.5rem;
-    margin-top: 2rem;
-  }
-}
-
-/* Mobile Symbol Cards */
-.symbol-cards {
-  width: 100%;
-}
-
-.cards-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 480px) {
-  .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-}
-
-.symbol-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.symbol-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.symbol-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0;
-}
-
-.card-header .trade-count {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
-  background: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-.card-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.metric-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-}
-
-.metric-label {
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.metric-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* Performance classes for mobile cards */
-.symbol-card .metric-value.positive {
-  color: #059669;
-}
-
-.symbol-card .metric-value.negative {
-  color: #dc2626;
-}
-
-.symbol-card .metric-value.neutral {
-  color: #6b7280;
-}
-
-/* Removed old vertical monthly-trend styles - now using horizontal layout */
-
-.month-bar {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  min-height: 25px;
-  min-width: 30px;
-  border-radius: 0.3rem 0.3rem 0 0;
-  position: relative;
-  font-size: 0.75rem;
-  margin: 0 0.1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  touch-action: manipulation;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-@media (min-width: 480px) {
-  .month-bar {
-    min-width: 35px;
-    border-radius: 0.35rem 0.35rem 0 0;
-    font-size: 0.8rem;
-    margin: 0 0.125rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .month-bar {
-    flex: 1;
-    min-width: auto;
-    margin: 0 0.15rem;
-    border-radius: 0.4rem 0.4rem 0 0;
-    font-size: 0.85rem;
-  }
-}
-
-/* Removed - now handled in consolidated hover section above */
-
-.month-bar.positive {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.month-bar.negative {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-.month-label {
-  position: absolute;
-  bottom: -25px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: #1f2937;
-  white-space: nowrap;
-  text-align: center;
-  width: 100%;
-  letter-spacing: 0.02em;
-}
-
-@media (min-width: 480px) {
-  .month-label {
-    bottom: -28px;
-    font-size: 0.85rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .month-label {
-    bottom: -30px;
-    font-size: 0.9rem;
-  }
-}
-
-.month-value {
-  position: absolute;
-  top: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: 800;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  padding: 0.25rem 0.4rem;
-  border-radius: 0.35rem;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-  min-width: fit-content;
-  letter-spacing: 0.01em;
-}
-
-@media (min-width: 480px) {
-  .month-value {
-    top: -38px;
-    font-size: 0.8rem;
-    padding: 0.27rem 0.45rem;
-    border-radius: 0.4rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .month-value {
-    top: -42px;
-    font-size: 0.85rem;
-    padding: 0.3rem 0.5rem;
-    border-radius: 0.45rem;
-  }
-}
-
-.month-bar.positive .month-value {
-  background: #059669;
-  color: white;
-}
-
-.month-bar.negative .month-value {
-  background: #dc2626;
-  color: white;
-}
 
 /* Value color classes */
 .positive {

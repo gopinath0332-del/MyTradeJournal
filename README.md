@@ -29,7 +29,7 @@ npm run lint:fix      # Fix auto-fixable issues
 - camelCase for props and variables
 - No unused variables (prefix with `_` if needed)
 
-See `ESLINT.md` for detailed configuration and troubleshooting guide.
+See [`docs/ESLINT.md`](./docs/ESLINT.md) for detailed configuration and troubleshooting guide.
 
 ## 🔥 Firebase Integration- **Modular Trade Management**: Add, edit, and delete trades with comprehensive details using a modular form architecture
 - **Advanced Dashboard Analytics**: Visual statistics, equity curves, and performance heatmaps
@@ -233,7 +233,20 @@ The application uses Firebase Firestore for:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## � Documentation
+
+For comprehensive feature documentation, development guides, and implementation roadmaps, see the [`/docs`](./docs/) folder:
+
+- **[Feature Documentation](./docs/README.md)** - Complete feature specifications and roadmap
+- **[Analytics Features](./docs/analytics-features.md)** - Advanced analytics and performance metrics
+- **[Strategy Management](./docs/strategy-management.md)** - Trading strategies and risk management
+- **[Technical Features](./docs/technical-features.md)** - API integrations and infrastructure
+- **[UX & Mobile](./docs/ux-mobile-features.md)** - User experience and mobile optimization
+- **[AI & Automation](./docs/ai-automation.md)** - Machine learning and automation features
+- **[Learning & Community](./docs/learning-community.md)** - Educational and social features
+- **[Implementation Roadmap](./docs/implementation-roadmap.md)** - Development priorities and timeline
+
+## �📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 

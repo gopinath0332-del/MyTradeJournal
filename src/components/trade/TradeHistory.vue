@@ -333,6 +333,10 @@
             <span class="label">Days Held:</span>
             <span class="value">{{ selectedTrade.daysHeld }}</span>
           </div>
+          <div v-if="selectedTrade.strategy" class="detail-row">
+            <span class="label">Strategy:</span>
+            <span class="value">{{ selectedTrade.strategy }}</span>
+          </div>
           <div v-if="selectedTrade.remarks" class="detail-row">
             <span class="label">Remarks:</span>
             <span class="value">{{ selectedTrade.remarks }}</span>

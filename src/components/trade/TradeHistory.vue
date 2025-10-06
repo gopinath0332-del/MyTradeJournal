@@ -9,8 +9,8 @@
         <label for="dateRange">Date Range</label>
         <select id="dateRange" v-model="filters.dateRange">
           <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
+          <option value="last-month">Last Month</option>
+          <option value="last-3-months">Last 3 Months</option>
           <option value="current-month">Current Month</option>
           <option value="custom">Custom Range</option>
           <option value="all">All time</option>

@@ -231,8 +231,20 @@ export const tradeService = {
           const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).toISOString()
           conditions.push(where('entryDate', '>=', startDate))
           conditions.push(where('entryDate', '<=', endDate))
-        } else if (filters.dateRange === '7' || filters.dateRange === '30' || filters.dateRange === '90') {
-          const daysBack = parseInt(filters.dateRange)
+        } else if (filters.dateRange === 'last-month') {
+          // Get the previous month
+          const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+          const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+          conditions.push(where('entryDate', '>=', lastMonth.toISOString()))
+          conditions.push(where('entryDate', '<=', lastMonthEnd.toISOString()))
+        } else if (filters.dateRange === 'last-3-months') {
+          // Get the start of 3 months ago
+          const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+          const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+          conditions.push(where('entryDate', '>=', threeMonthsAgo.toISOString()))
+          conditions.push(where('entryDate', '<=', lastMonthEnd.toISOString()))
+        } else if (filters.dateRange === '7') {
+          const daysBack = 7
           startDate = new Date()
           startDate.setDate(startDate.getDate() - daysBack)
           conditions.push(where('entryDate', '>=', startDate.toISOString()))

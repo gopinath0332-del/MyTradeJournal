@@ -137,6 +137,17 @@
           no-data-message="No strategy data available. Existing trades don't have strategy information. New trades will include strategy analysis."
         />
       </section>
+
+      <!-- Drawdown Analysis -->
+      <section class="stats-section">
+        <h3>Drawdown Analysis</h3>
+        <DrawdownAnalysis
+          :metrics="drawdownMetrics"
+          :periods="drawdownPeriods"
+          :chart-data="drawdownChartData"
+          no-data-message="No drawdown data available for the selected year"
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -160,10 +171,12 @@ import WeeklyBreakdown from './dashboard/WeeklyBreakdown.vue'
 import HorizontalBarChart from './charts/HorizontalBarChart.vue'
 import SymbolCards from './charts/SymbolCards.vue'
 import StrategyPerformance from './charts/StrategyPerformance.vue'
+import DrawdownAnalysis from './charts/DrawdownAnalysis.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
 import { useStrategyAnalysis } from '@/composables/useStrategyAnalysis'
+import { useDrawdownAnalysis } from '@/composables/useDrawdownAnalysis'
 
 // Reactive data
 const isLoading = ref(false)
@@ -194,6 +207,7 @@ const formatPercentage = (percentage) => {
 const { symbolPerformance, top10Symbols } = useSymbolPerformance(trades)
 const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
 const { strategyPerformance } = useStrategyAnalysis(trades)
+const { drawdownMetrics, drawdownPeriods, drawdownChartData } = useDrawdownAnalysis(trades)
 
 // Provide formatting functions to child components
 provide('formatCurrency', formatCurrency)

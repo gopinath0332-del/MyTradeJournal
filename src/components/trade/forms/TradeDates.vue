@@ -32,6 +32,18 @@
           class="calculated-field"
         >
       </div>
+      <div class="form-group">
+        <label for="strategy">Strategy *</label>
+        <select
+          id="strategy"
+          :value="modelValue.strategy"
+          required
+          @change="updateTrade({ strategy: $event.target.value })"
+        >
+          <option value="Supertrend">Supertrend</option>
+          <option value="Donchian">Donchian</option>
+        </select>
+      </div>
     </div>
   </div>
 </template>
@@ -123,15 +135,16 @@ label {
   color: var(--text-color);
 }
 
-input {
+input, select {
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  font-family: inherit;
 }
 
-input:focus {
+input:focus, select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);

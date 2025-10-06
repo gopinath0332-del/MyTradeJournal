@@ -109,6 +109,7 @@ const trade = ref({
   lots: 2,
   daysHeld: 0,
   capitalUsed: null,
+  strategy: '',
   notes: '',
   remarks: '',
   confidence: 3,
@@ -245,6 +246,7 @@ const resetForm = () => {
     lots: 2,
     daysHeld: 0,
     capitalUsed: null,
+    strategy: 'Supertrend', // Default to first option since it's required
     notes: '',
     remarks: '',
     confidence: 3,

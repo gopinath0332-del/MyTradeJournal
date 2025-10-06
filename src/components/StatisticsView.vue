@@ -128,6 +128,15 @@
           @month-change="onMonthChange"
         />
       </section>
+
+      <!-- Strategy Performance Analysis -->
+      <section class="stats-section">
+        <h3>Strategy Win Rates</h3>
+        <StrategyPerformance
+          :strategies="strategyPerformance"
+          no-data-message="No strategy data available. Existing trades don't have strategy information. New trades will include strategy analysis."
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -150,9 +159,11 @@ import YearSelector from './dashboard/YearSelector.vue'
 import WeeklyBreakdown from './dashboard/WeeklyBreakdown.vue'
 import HorizontalBarChart from './charts/HorizontalBarChart.vue'
 import SymbolCards from './charts/SymbolCards.vue'
+import StrategyPerformance from './charts/StrategyPerformance.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
+import { useStrategyAnalysis } from '@/composables/useStrategyAnalysis'
 
 // Reactive data
 const isLoading = ref(false)
@@ -182,6 +193,7 @@ const formatPercentage = (percentage) => {
 // Initialize composables for data analysis
 const { symbolPerformance, top10Symbols } = useSymbolPerformance(trades)
 const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
+const { strategyPerformance } = useStrategyAnalysis(trades)
 
 // Provide formatting functions to child components
 provide('formatCurrency', formatCurrency)

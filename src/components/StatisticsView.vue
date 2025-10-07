@@ -156,6 +156,14 @@
           :trades="trades"
         />
       </section>
+
+      <!-- Hold Time Distribution Analysis -->
+      <section class="stats-section">
+        <h3>Hold Time Distribution</h3>
+        <HoldTimeDistribution
+          :trades="trades"
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -181,6 +189,7 @@ import SymbolCards from './charts/SymbolCards.vue'
 import StrategyPerformance from './charts/StrategyPerformance.vue'
 import DrawdownAnalysis from './charts/DrawdownAnalysis.vue'
 import PnLHistogram from './charts/PnLHistogram.vue'
+import HoldTimeDistribution from './charts/HoldTimeDistribution.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'

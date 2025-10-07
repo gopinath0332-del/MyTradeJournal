@@ -148,6 +148,14 @@
           no-data-message="No drawdown data available for the selected year"
         />
       </section>
+
+      <!-- P&L Distribution Analysis -->
+      <section class="stats-section">
+        <h3>P&L Distribution</h3>
+        <PnLHistogram
+          :trades="trades"
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -172,6 +180,7 @@ import HorizontalBarChart from './charts/HorizontalBarChart.vue'
 import SymbolCards from './charts/SymbolCards.vue'
 import StrategyPerformance from './charts/StrategyPerformance.vue'
 import DrawdownAnalysis from './charts/DrawdownAnalysis.vue'
+import PnLHistogram from './charts/PnLHistogram.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'

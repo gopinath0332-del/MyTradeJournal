@@ -1,0 +1,65 @@
+{
+  "title": "1 - Getting Started with MyTradeJournal",
+  "description": "Essential walkthrough for new developers joining the trading journal project",
+  "isPrimary": true,
+  "nextTour": "2 - Component Architecture",
+  "steps": [
+    {
+      "description": "# Welcome to MyTradeJournal! 🚀\n\nThis is a Vue 3 + TypeScript trading journal application that helps traders track and analyze their trading performance. The app uses Firebase Firestore for data persistence and Vite for fast development.\n\n**Key Technologies:**\n- Vue 3 with Composition API\n- TypeScript for type safety\n- Firebase Firestore for data storage\n- Vite for build tooling\n- Vue Router for navigation\n\nLet's explore the codebase structure and understand how everything works together!",
+      "title": "Welcome & Project Overview"
+    },
+    {
+      "description": "## Project Structure Overview\n\nThis is the main entry point of our Vue application. Notice how we:\n\n1. Import the root `App.vue` component\n2. Set up Vue Router for navigation\n3. Mount the app to the DOM\n\nThe app follows Vue 3's composition API patterns throughout the codebase.",
+      "file": "src/main.js",
+      "title": "Application Entry Point"
+    },
+    {
+      "description": "## Core Dependencies\n\nOur `package.json` reveals the core architecture decisions:\n\n**Runtime Dependencies:**\n- `vue` & `vue-router`: Core Vue 3 framework\n- `firebase`: Backend data storage and real-time updates\n- `idb`: IndexedDB wrapper for offline data caching\n- `uuid`: Unique ID generation for trades\n\n**Development Tools:**\n- `vite`: Fast build tool and dev server\n- `typescript`: Type safety and better DX\n- `eslint`: Code quality and consistency\n\n**Key Scripts:**\n- `npm run dev`: Start development server\n- `npm run build`: Production build with type checking\n- `npm run lint`: Code quality checks",
+      "file": "package.json",
+      "line": 1,
+      "title": "Project Dependencies & Scripts"
+    },
+    {
+      "description": "## Application Root Component\n\nThe `App.vue` component serves as the application shell and provides:\n\n1. **Global State Management**: Uses Vue's `provide/inject` for sharing trade editing state and utility functions\n2. **Toast Notifications**: Centralized notification system\n3. **Mobile-First Navigation**: Responsive header with mobile menu\n4. **Router Integration**: Navigation between different views\n\nKey patterns to notice:\n- Composition API with `<script setup>`\n- TypeScript interfaces for type safety\n- Reactive state management with `ref()`\n- Dependency injection with `provide()`",
+      "file": "src/App.vue",
+      "line": 1,
+      "title": "Application Shell & Global State"
+    },
+    {
+      "description": "## Type System Foundation\n\nThis file defines the core data models that drive the entire application:\n\n**Key Types:**\n- `Trade`: The central entity representing a trading transaction\n- `DashboardStats`: Calculated metrics for performance analysis\n- `MonthlyData` / `WeeklyData`: Time-based aggregations\n- `EquityPoint`: Data points for equity curve visualization\n- `HeatmapDay`: Calendar heatmap visualization data\n\nThese types ensure type safety across components and help prevent runtime errors. They're used in Firebase operations, component props, and composables.",
+      "file": "src/types/index.ts",
+      "line": 1,
+      "title": "Core Data Models"
+    },
+    {
+      "description": "## Firebase Configuration\n\nOur data persistence layer is built on Firebase Firestore. This configuration:\n\n1. **Environment Validation**: Ensures all required Firebase env vars are present\n2. **Type Safety**: Uses TypeScript interfaces for config\n3. **Secure Setup**: Environment variables keep credentials safe\n4. **Single Export**: Provides configured Firestore instance\n\n**Required Environment Variables:**\n```\nVITE_FIREBASE_API_KEY\nVITE_FIREBASE_AUTH_DOMAIN\nVITE_FIREBASE_PROJECT_ID\nVITE_FIREBASE_STORAGE_BUCKET\nVITE_FIREBASE_MESSAGING_SENDER_ID\nVITE_FIREBASE_APP_ID\n```\n\nThe `db` export is used throughout the app for all Firestore operations.",
+      "file": "src/firebase/config.ts",
+      "line": 1,
+      "title": "Firebase Setup & Configuration"
+    },
+    {
+      "description": "## Application Routing\n\nThe router configuration defines our app's navigation structure:\n\n**Main Views:**\n- `/dashboard`: Performance overview and statistics\n- `/history`: Trade list and management\n- `/statistics`: Detailed analytics and charts\n- `/calendar`: Calendar-based trade view\n- `/heatmap`: Trading performance heatmap\n- `/add-trade` & `/edit-trade/:id`: Trade CRUD operations\n\n**Key Patterns:**\n- Lazy loading with dynamic imports for performance\n- Route metadata for page titles\n- Nested routes for trade operations\n- Debug route for Firebase troubleshooting",
+      "file": "src/router/index.js",
+      "line": 1,
+      "title": "Navigation & Routing"
+    },
+    {
+      "description": "## Component Architecture Overview\n\nOur components are organized by feature and responsibility:\n\n**📊 Dashboard Components** (`components/dashboard/`):\n- Core performance metrics and visualizations\n- Real-time trade statistics\n- Equity curves and breakdowns\n\n**📈 Charts & Analytics** (`components/charts/`):\n- Specialized trading analysis charts\n- Performance visualizations\n- Statistical breakdowns\n\n**💼 Trade Management** (`components/trade/`):\n- Trade CRUD operations\n- Form handling and validation\n- Trade history display\n\n**🔧 Shared UI** (`components/ui/`):\n- Reusable UI components\n- Loading states and empty states\n- Performance monitoring tools",
+      "directory": "src/components",
+      "title": "Component Organization"
+    },
+    {
+      "description": "## Business Logic Layer\n\nComposables contain our reusable business logic:\n\n**📊 Analytics Composables:**\n- `useDashboardStats`: Core trading metrics\n- `useDrawdownAnalysis`: Risk analysis\n- `useStrategyAnalysis`: Strategy performance\n- `useSymbolPerformance`: Symbol-specific metrics\n\n**📅 Time-based Analysis:**\n- `useCalendar`: Calendar view logic\n- `useTimeAnalysis`: Time-based patterns\n- `useMultiYearHeatmap`: Multi-year visualizations\n\n**💼 Trade Operations:**\n- `useTradeForm`: Form handling and validation\n\nThese composables encapsulate complex calculations and provide reactive data to components.",
+      "directory": "src/composables",
+      "title": "Composables & Business Logic"
+    },
+    {
+      "description": "## Development Workflow\n\nTo get started with development:\n\n**1. Environment Setup:**\n```bash\n# Install dependencies\nnpm install\n\n# Set up Firebase environment variables in .env.local\n# (see firebase/config.ts for required variables)\n```\n\n**2. Development Server:**\n```bash\n# Start development server with hot reload\nnpm run dev\n\n# Development server with production mode\nnpm run dev:prod\n```\n\n**3. Code Quality:**\n```bash\n# Type checking\nnpm run type-check\n\n# Linting and auto-fix\nnpm run lint\n```\n\n**4. Building:**\n```bash\n# Production build with type checking\nnpm run build\n\n# Quick build without type checking\nnpm run build:no-check\n```",
+      "title": "Development Commands"
+    },
+    {
+      "description": "## Next Steps\n\nCongratulations! You now have a solid understanding of the MyTradeJournal codebase structure.\n\n**What you've learned:**\n✅ Project architecture and technology stack\n✅ Core data models and type system\n✅ Firebase integration and configuration\n✅ Component organization patterns\n✅ Development workflow and commands\n\n**Continue your journey:**\n- Take the \"Component Architecture\" tour to dive deeper into our Vue patterns\n- Explore the `firebase/tradeService.ts` to understand data operations\n- Check out the dashboard components to see real-world Vue Composition API usage\n- Look at the composables to understand our business logic patterns\n\n**Ready to contribute?** Start by running `npm run dev` and exploring the dashboard!",
+      "title": "Tour Complete!"
+    }
+  ]
+}

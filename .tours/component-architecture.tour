@@ -1,0 +1,65 @@
+{
+  "title": "2 - Component Architecture",
+  "description": "Deep dive into Vue 3 patterns, data flow, and component design in MyTradeJournal",
+  "steps": [
+    {
+      "description": "# Component Architecture Deep Dive 🏗️\n\nThis tour explores the architectural patterns and design decisions that make MyTradeJournal maintainable and scalable.\n\n**What you'll learn:**\n- Vue 3 Composition API patterns\n- Data flow and state management\n- Component communication strategies\n- Firebase integration patterns\n- Business logic organization\n\nLet's dive into the patterns that power our trading journal!",
+      "title": "Architecture Overview"
+    },
+    {
+      "description": "## Firebase Data Layer\n\nOur data persistence is handled by a centralized service that:\n\n**🔥 Key Features:**\n- **CRUD Operations**: Complete trade lifecycle management\n- **Cache Invalidation**: Smart cache management for performance\n- **Error Handling**: Consistent error logging and propagation\n- **Type Safety**: Full TypeScript integration\n- **Batch Operations**: Efficient bulk operations for analytics\n\n**🏗️ Architecture Pattern:**\nService Layer → Firebase → Cache Layer → UI Components\n\nThis service is consumed by composables, which then provide reactive data to components. Notice how all async operations are properly wrapped with try/catch and logging.",
+      "file": "src/firebase/tradeService.ts",
+      "line": 1,
+      "title": "Data Service Layer"
+    },
+    {
+      "description": "## Composable Business Logic\n\nThis composable demonstrates our approach to business logic:\n\n**🎯 Key Patterns:**\n- **Reactive State**: Using `ref()` and `computed()` for reactive calculations\n- **Loading States**: Granular loading management for better UX\n- **Error Boundaries**: Isolated error handling per feature\n- **Data Transformation**: Raw trade data → meaningful statistics\n- **Caching Strategy**: Intelligent caching with Map-based storage\n\n**📊 Core Calculations:**\n- Daily P&L aggregation\n- Win/loss streaks\n- Trading performance metrics\n- Time-based data grouping\n\nNotice how the composable returns both data and functions, making it reusable across components.",
+      "file": "src/composables/useDashboardStats.ts",
+      "line": 1,
+      "title": "Business Logic Layer (Composables)"
+    },
+    {
+      "description": "## Dashboard Component Architecture\n\nThe dashboard showcases our component composition strategy:\n\n**🏗️ Composition Patterns:**\n- **Parent-Child Communication**: Props down, events up\n- **Composable Integration**: Business logic separated from UI\n- **Loading State Management**: Granular loading states\n- **Error Boundaries**: Component-level error handling\n\n**🔧 Component Breakdown:**\n- `YearSelector`: Time period selection\n- `StatsGrid`: Core metrics display\n- `EquityCurve`: Performance visualization\n- `SymbolPieChart`: Symbol distribution\n- `MonthlyBreakdown`: Time-based analysis\n\nEach child component is self-contained but receives data from the parent's composable.",
+      "file": "src/components/dashboard/DashboardStats.vue",
+      "line": 1,
+      "title": "Component Composition"
+    },
+    {
+      "description": "## Chart Components Directory\n\nOur chart components follow consistent patterns:\n\n**📈 Chart Types:**\n- `DrawdownAnalysis`: Risk analysis charts\n- `HoldTimeDistribution`: Time-based performance\n- `PnLHistogram`: P&L distribution analysis\n- `StrategyPerformance`: Strategy comparison\n- `TradingEfficiencyMetrics`: Performance metrics\n\n**🎨 Design Patterns:**\n- Props-based configuration\n- Computed data transformation\n- Responsive design considerations\n- Consistent color schemes\n- Loading and empty states\n\nEach chart is a pure component that takes data via props and focuses solely on visualization.",
+      "directory": "src/components/charts",
+      "title": "Visualization Components"
+    },
+    {
+      "description": "## UI Component Library\n\nShared UI components promote consistency:\n\n**🎨 Reusable Components:**\n- `EmptyState`: Consistent empty state messaging\n- `LoadingSpinner`: Standardized loading indicators\n- `VirtualScroll`: Performance optimization for large lists\n- `PerformanceMonitor`: Development debugging tool\n\n**🏗️ Design Principles:**\n- Single Responsibility: Each component has one clear purpose\n- Prop-driven: Configuration through props, not global state\n- Accessibility: ARIA labels and semantic HTML\n- Performance: Optimized for large datasets\n\nThese components are used throughout the app to maintain visual consistency.",
+      "directory": "src/components/ui",
+      "title": "Shared UI Components"
+    },
+    {
+      "description": "## Data Flow Architecture\n\n**🔄 Our Data Flow Pattern:**\n\n```\nFirebase Firestore\n    ↓\ntradeService.ts (Data Layer)\n    ↓\nComposables (Business Logic)\n    ↓\nVue Components (Presentation)\n    ↓\nUser Interface\n```\n\n**📱 State Management Strategy:**\n- **Local State**: Component-specific reactive state\n- **Shared State**: Provide/inject for app-level state\n- **Computed Properties**: Derived state calculations\n- **Watchers**: Side effects and data synchronization\n\n**🚀 Performance Optimizations:**\n- Lazy loading for route components\n- Computed caching for expensive calculations\n- Virtual scrolling for large lists\n- Strategic Firebase query optimization",
+      "title": "Data Flow & State Management"
+    },
+    {
+      "description": "## Trade Management Components\n\nTrade CRUD operations follow consistent patterns:\n\n**📝 Form Management:**\n- `TradeForm`: Handles both create and edit operations\n- Validation with immediate feedback\n- Type-safe form data binding\n- Error state management\n\n**📊 Data Display:**\n- `TradeHistory`: Paginated trade listing\n- `TradeRow`: Individual trade representation\n- Virtual scrolling for performance\n\n**🔄 State Synchronization:**\n- Form state managed by `useTradeForm` composable\n- Global trade editing state via provide/inject\n- Automatic cache invalidation after mutations\n\nNotice how each component has a single, clear responsibility while participating in the larger data flow.",
+      "directory": "src/components/trade",
+      "title": "Trade Management Patterns"
+    },
+    {
+      "description": "## Error Handling Strategy\n\nOur multi-layered error handling approach:\n\n**🚨 Error Boundaries:**\n1. **Service Layer**: Firebase operation errors\n2. **Composable Layer**: Business logic errors\n3. **Component Layer**: UI-specific error states\n4. **Global Layer**: App-wide error notifications\n\n**📝 Error Patterns:**\n- Consistent error logging with context\n- User-friendly error messages\n- Retry mechanisms for transient failures\n- Graceful degradation for partial failures\n\n**🔍 Debug Support:**\n- `FirebaseDebug` component for troubleshooting\n- Console logging with categorization\n- Performance monitoring integration\n\nThis layered approach ensures errors are caught early and handled appropriately at each level.",
+      "file": "src/utils/logger.ts",
+      "title": "Error Handling Patterns"
+    },
+    {
+      "description": "## Performance Optimization Patterns\n\n**⚡ Key Optimizations:**\n\n**Caching Strategy:**\n- `cache.ts`: Intelligent data caching\n- Map-based in-memory storage\n- Strategic cache invalidation\n- Offline data support with `offlineData.ts`\n\n**Component Performance:**\n- Virtual scrolling for large lists\n- Lazy loading of route components\n- Computed property caching\n- Strategic re-render prevention\n\n**Data Loading:**\n- Granular loading states\n- Batch operations where possible\n- Progressive data loading\n- Smart query optimization\n\n**Development Tools:**\n- `PerformanceMonitor` component\n- Development-only debugging features\n- Console timing and profiling",
+      "directory": "src/utils",
+      "title": "Performance Optimization"
+    },
+    {
+      "description": "## Testing & Development Workflow\n\n**🔧 Development Best Practices:**\n\n**Type Safety:**\n- Comprehensive TypeScript coverage\n- Interface-driven development\n- Runtime type validation where needed\n\n**Code Quality:**\n- ESLint configuration for consistency\n- Prettier for code formatting\n- Pre-commit hooks for quality gates\n\n**Development Experience:**\n- Hot reload for fast iteration\n- Source maps for debugging\n- Development-specific features\n- Firebase emulator support (when needed)\n\n**Build Process:**\n- Vite for fast builds and HMR\n- TypeScript compilation\n- Asset optimization\n- Environment-specific builds",
+      "title": "Development Workflow"
+    },
+    {
+      "description": "## Architecture Summary\n\n🎉 **Congratulations!** You now understand the core architectural patterns of MyTradeJournal.\n\n**🏗️ Key Takeaways:**\n✅ **Layered Architecture**: Clean separation between data, logic, and presentation\n✅ **Composition API**: Modern Vue 3 patterns throughout\n✅ **Type Safety**: TypeScript interfaces drive development\n✅ **Performance**: Optimized for large datasets and responsive UX\n✅ **Maintainability**: Consistent patterns and clear responsibilities\n\n**🚀 Ready to Contribute:**\n- Components follow predictable patterns\n- Composables handle business logic\n- Firebase service manages all data operations\n- Types ensure safety and clarity\n\n**Next Steps:**\n- Explore specific composables to understand calculations\n- Look at chart components for visualization patterns\n- Check out the trade management flow\n- Try adding a new feature using these patterns!\n\n**Happy coding! 🚀**",
+      "title": "Architecture Complete!"
+    }
+  ]
+}

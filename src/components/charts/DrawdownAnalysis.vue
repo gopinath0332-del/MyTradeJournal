@@ -157,6 +157,7 @@
         <table class="periods-table">
           <thead>
             <tr>
+              <th v-if="showSymbolColumn">Symbol</th>
               <th>Period</th>
               <th>Drawdown</th>
               <th>Duration</th>
@@ -166,6 +167,9 @@
           </thead>
           <tbody>
             <tr v-for="(period, index) in sortedPeriods" :key="index">
+              <td v-if="showSymbolColumn">
+                <span class="symbol-name">{{ period.symbol }}</span>
+              </td>
               <td>
                 <div class="period-dates">
                   <span class="start-date">{{ formatDate(period.startDate) }}</span>
@@ -227,6 +231,10 @@ const props = defineProps({
   noDataMessage: {
     type: String,
     default: 'No drawdown data available'
+  },
+  showSymbolColumn: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -624,6 +632,12 @@ const sortedPeriods = computed(() => {
   background: #f9fafb;
   border-radius: 0.5rem;
   border: 2px dashed #d1d5db;
+}
+
+.symbol-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {

@@ -148,6 +148,32 @@
           no-data-message="No drawdown data available for the selected year"
         />
       </section>
+
+      <!-- Symbol-Specific Drawdown Analysis -->
+      <section class="stats-section">
+        <h3>Historical Drawdown Periods by Symbol</h3>
+        <DrawdownAnalysis
+          :metrics="symbolDrawdownMetrics[0] || {
+            maxDrawdown: 0,
+            maxDrawdownPercentage: 0,
+            avgDrawdown: 0,
+            avgDrawdownPercentage: 0,
+            avgDrawdownDuration: 0,
+            avgRecoveryTime: 0,
+            totalDrawdownPeriods: 0,
+            currentDrawdown: 0,
+            currentDrawdownPercentage: 0,
+            currentDrawdownDuration: 0,
+            longestDrawdownDuration: 0,
+            longestRecoveryTime: 0,
+            drawdownFrequency: 0
+          }"
+          :periods="symbolDrawdownPeriods"
+          :chart-data="[]"
+          :show-symbol-column="true"
+          no-data-message="No symbol drawdown data available for the selected year"
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -177,6 +203,7 @@ import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
 import { useStrategyAnalysis } from '@/composables/useStrategyAnalysis'
 import { useDrawdownAnalysis } from '@/composables/useDrawdownAnalysis'
+import { useSymbolDrawdownAnalysis } from '@/composables/useSymbolDrawdownAnalysis'
 
 // Reactive data
 const isLoading = ref(false)
@@ -208,6 +235,7 @@ const { symbolPerformance, top10Symbols } = useSymbolPerformance(trades)
 const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
 const { strategyPerformance } = useStrategyAnalysis(trades)
 const { drawdownMetrics, drawdownPeriods, drawdownChartData } = useDrawdownAnalysis(trades)
+const { symbolDrawdownPeriods, symbolDrawdownMetrics } = useSymbolDrawdownAnalysis(trades)
 
 // Provide formatting functions to child components
 provide('formatCurrency', formatCurrency)

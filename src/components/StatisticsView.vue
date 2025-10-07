@@ -164,6 +164,14 @@
           :trades="trades"
         />
       </section>
+
+      <!-- Trading Efficiency Metrics -->
+      <section class="stats-section">
+        <h3>Trading Efficiency Metrics</h3>
+        <TradingEfficiencyMetrics
+          :trades="trades"
+        />
+      </section>
     </div>
 
     <!-- Empty State -->
@@ -190,6 +198,7 @@ import StrategyPerformance from './charts/StrategyPerformance.vue'
 import DrawdownAnalysis from './charts/DrawdownAnalysis.vue'
 import PnLHistogram from './charts/PnLHistogram.vue'
 import HoldTimeDistribution from './charts/HoldTimeDistribution.vue'
+import TradingEfficiencyMetrics from './charts/TradingEfficiencyMetrics.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'

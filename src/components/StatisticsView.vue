@@ -47,6 +47,11 @@
         </button>
       </div>
 
+      <!-- Mobile scroll hint -->
+      <div class="tab-scroll-hint mobile-only">
+        <span>← Swipe to see more tabs →</span>
+      </div>
+
       <!-- Tab Content -->
       <div class="tab-content">
         <!-- Symbol Performance Tab -->
@@ -482,13 +487,34 @@ onMounted(async() => {
   border: 1px solid var(--border-color, #e5e7eb);
   overflow-x: auto;
   gap: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Hide scrollbar for mobile while maintaining functionality */
+.tab-navigation::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tab-navigation::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tab-navigation::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.tab-navigation::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .tab-button {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.125rem;
   border: none;
   background: transparent;
   border-radius: 0.5rem;
@@ -499,6 +525,9 @@ onMounted(async() => {
   white-space: nowrap;
   flex-shrink: 0;
   font-size: 0.875rem;
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .tab-button:hover {
@@ -518,6 +547,22 @@ onMounted(async() => {
 
 .tab-label {
   font-size: 0.875rem;
+}
+
+/* Mobile scroll hint */
+.tab-scroll-hint {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted, #9ca3af);
+  margin-top: -1rem;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .tab-scroll-hint {
+    display: none;
+  }
 }
 
 /* Tab Content */
@@ -704,6 +749,39 @@ onMounted(async() => {
   .time-performance h4 {
     font-size: 0.9rem;
   }
+
+  /* Enhanced mobile touch targets */
+  .tab-button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Improve mobile table scrolling */
+  .strategy-analysis,
+  .symbol-analysis {
+    position: relative;
+  }
+
+  .strategy-analysis::after,
+  .symbol-analysis::after {
+    content: '→';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted, #9ca3af);
+    font-size: 1.2rem;
+    pointer-events: none;
+    z-index: 6;
+  }
+
+  @media (min-width: 768px) {
+    .strategy-analysis::after,
+    .symbol-analysis::after {
+      display: none;
+    }
+  }
 }
 
 
@@ -780,28 +858,41 @@ onMounted(async() => {
 /* Enhanced mobile-first responsive design */
 @media (max-width: 320px) {
   .statistics-view {
-    padding: 0.5rem;
+    padding: 0.375rem;
+  }
+
+  .stats-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .stats-header h2 {
+    font-size: 1.25rem;
   }
 
   .stats-section {
     padding: 0.75rem;
     border-radius: 0.375rem;
+    margin-bottom: 0.75rem;
   }
 
   .stats-section h3 {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   /* Ultra mobile tab navigation */
   .tab-navigation {
     padding: 0.125rem;
     gap: 0.125rem;
+    margin-bottom: 0.5rem;
   }
 
   .tab-button {
-    padding: 0.375rem 0.5rem;
+    padding: 0.5rem 0.625rem;
     font-size: 0.75rem;
+    min-width: 36px;
+    min-height: 36px;
   }
 
   .tab-icon {
@@ -812,49 +903,47 @@ onMounted(async() => {
     display: none; /* Hide labels on very small screens, show only icons */
   }
 
-  /* Mobile card optimizations */
-  .symbol-card {
-    padding: 0.75rem;
+  /* Show labels on active tab only */
+  .tab-button.active .tab-label {
+    display: inline;
+    font-size: 0.7rem;
   }
 
-  .symbol-name {
-    font-size: 1rem;
+  /* Optimize content spacing */
+  .top-symbols-chart {
+    margin-bottom: 1rem;
   }
 
-  .metric-label {
+  .top-symbols-chart h4 {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .time-performance h4 {
     font-size: 0.8rem;
+    margin-bottom: 0.5rem;
   }
 
-  .metric-value {
-    font-size: 0.85rem;
+  .time-analysis {
+    gap: 1rem;
   }
 
-  /* Horizontal charts mobile optimization */
-  .day-info,
-  .month-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+  .stats-content {
+    gap: 1rem;
   }
 
-  .day-name,
-  .month-name {
-    font-size: 0.85rem;
+  /* Mobile table improvements */
+  .symbol-table {
+    min-width: 500px; /* Reduce minimum width for very small screens */
   }
 
-  .day-trades,
-  .month-trades {
-    font-size: 0.7rem;
-  }
-
-  .day-bar-container,
-  .month-bar-container {
-    height: 28px;
-  }
-
-  .day-bar-label,
-  .month-bar-label {
-    font-size: 0.7rem;
+  .strategy-table th,
+  .symbol-table th,
+  .strategy-table td,
+  .symbol-table td {
+    padding: 0.375rem;
+    font-size: 0.75rem;
+    min-width: 60px;
   }
 }
 
@@ -953,34 +1042,48 @@ onMounted(async() => {
 
 @media (max-width: 480px) {
   .statistics-view {
-    padding: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .stats-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .stats-header h2 {
+    font-size: 1.375rem;
   }
 
   .stats-section {
     padding: 1rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
 
   .stats-section h3 {
-    font-size: 1.2rem;
-    margin-bottom: 1.25rem;
+    font-size: 1.125rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
   }
 
   .time-performance h4 {
-    font-size: 1rem;
-    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
   }
 
-  /* Tab navigation mobile optimizations */
+  /* Enhanced tab navigation for mobile */
   .tab-navigation {
     padding: 0.25rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     gap: 0.25rem;
+    border-radius: 0.5rem;
   }
 
   .tab-button {
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem 0.875rem;
     font-size: 0.8rem;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 0.375rem;
   }
 
   .tab-icon {
@@ -991,35 +1094,23 @@ onMounted(async() => {
     font-size: 0.8rem;
   }
 
-  /* Improve touch targets for mobile charts */
-  .day-horizontal-bar,
-  .month-horizontal-bar,
-  .horizontal-bar {
-    min-height: 44px; /* iOS recommended touch target */
+  /* Improve chart spacing */
+  .top-symbols-chart {
+    margin-bottom: 1.25rem;
+  }
+
+  .top-symbols-chart h4 {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+
+  .time-analysis {
+    gap: 1.25rem;
   }
 
   /* Better spacing for small screens */
   .stats-content {
-    gap: 1.5rem;
-  }
-
-  /* Mobile card improvements */
-  .cards-grid {
-    gap: 1rem;
-  }
-
-  .symbol-card {
-    padding: 0.875rem;
-  }
-
-  /* Chart spacing improvements */
-  .horizontal-chart-bars {
-    gap: 0.875rem;
-  }
-
-  .day-bar-item,
-  .month-bar-item {
-    gap: 0.5rem;
+    gap: 1.25rem;
   }
 }
 
@@ -1035,6 +1126,52 @@ onMounted(async() => {
   /* Ensure charts are well-spaced on tablets */
   .chart-container {
     padding: 0 0.3rem;
+  }
+
+  /* Improve tablet experience */
+  .tab-navigation {
+    padding: 0.375rem;
+    gap: 0.375rem;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Better spacing for tablet */
+  .stats-content {
+    gap: 1.75rem;
+  }
+
+  .time-analysis {
+    gap: 1.75rem;
+  }
+}
+
+/* Add smooth scrolling and better mobile interactions */
+@media (max-width: 1024px) {
+  .tab-navigation {
+    scroll-snap-type: x mandatory;
+  }
+
+  .tab-button {
+    scroll-snap-align: start;
+  }
+
+  /* Improve mobile card layouts */
+  .mobile-only {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  /* Enhanced touch feedback */
+  .tab-button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
   }
 }
 </style>

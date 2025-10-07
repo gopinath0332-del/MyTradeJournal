@@ -14,7 +14,7 @@
           <h4 class="strategy-name">{{ strategy.name }}</h4>
           <div class="trade-count">{{ strategy.tradeCount }} trades</div>
         </div>
-        
+
         <div class="strategy-metrics">
           <div class="metric-group">
             <div class="metric-item primary">
@@ -23,7 +23,7 @@
                 {{ formatPercentage(strategy.winRate) }}%
               </span>
             </div>
-            
+
             <div class="metric-item">
               <span class="metric-label">Profit Factor</span>
               <span class="metric-value" :class="getProfitFactorClass(strategy.profitFactor)">
@@ -31,7 +31,7 @@
               </span>
             </div>
           </div>
-          
+
           <div class="metric-group">
             <div class="metric-item">
               <span class="metric-label">Total P&L</span>
@@ -39,7 +39,7 @@
                 {{ formatCurrency(strategy.totalPnL) }}
               </span>
             </div>
-            
+
             <div class="metric-item">
               <span class="metric-label">Avg P&L</span>
               <span class="metric-value" :class="getPerformanceClass(strategy.avgPnL)">
@@ -47,7 +47,7 @@
               </span>
             </div>
           </div>
-          
+
           <div class="metric-group">
             <div class="metric-item">
               <span class="metric-label">Return on Capital</span>
@@ -55,7 +55,7 @@
                 {{ formatPercentage(strategy.returnOnCapital) }}%
               </span>
             </div>
-            
+
             <div class="metric-item">
               <span class="metric-label">Avg Capital</span>
               <span class="metric-value">
@@ -64,7 +64,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Win Rate Visual Bar -->
         <div class="win-rate-bar">
           <div class="bar-background">
@@ -346,18 +346,18 @@ const getStrategyClass = (strategyName) => {
   .strategy-card {
     padding: 1rem;
   }
-  
+
   .strategy-header {
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
   }
-  
+
   .metric-group {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .metric-item.primary {
     grid-column: 1;
   }

@@ -46,7 +46,7 @@ export function useDrawdownAnalysis(trades: any) {
     if (!trades.value.length) return []
 
     // Sort trades by entry date
-    const sortedTrades = [...trades.value].sort((a, b) => 
+    const sortedTrades = [...trades.value].sort((a, b) =>
       new Date(a.entryDate).getTime() - new Date(b.entryDate).getTime()
     )
 
@@ -57,7 +57,7 @@ export function useDrawdownAnalysis(trades: any) {
     sortedTrades.forEach((trade: Trade) => {
       const tradePnL = trade.pnlAmount || 0
       cumulativePnL += tradePnL
-      
+
       // Update running peak (highest equity reached)
       if (cumulativePnL > runningPeak) {
         runningPeak = cumulativePnL
@@ -117,7 +117,7 @@ export function useDrawdownAnalysis(trades: any) {
         const startDate = new Date(currentPeriod.startDate!)
         const endDate = new Date(currentPeriod.endDate!)
         const recoveryDate = new Date(point.date)
-        
+
         currentPeriod.duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
         currentPeriod.recoveryTime = Math.ceil((recoveryDate.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24))
 
@@ -132,7 +132,7 @@ export function useDrawdownAnalysis(trades: any) {
       if (lastPoint) {
         ;(currentPeriod as any).endDate = lastPoint.date
         ;(currentPeriod as any).isRecovered = false
-        
+
         const startDate = new Date((currentPeriod as any).startDate!)
         const endDate = new Date(lastPoint.date)
         ;(currentPeriod as any).duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
@@ -168,7 +168,7 @@ export function useDrawdownAnalysis(trades: any) {
     }
 
     // Find maximum drawdown
-    const maxDrawdownPeriod = periods.reduce((max, period) => 
+    const maxDrawdownPeriod = periods.reduce((max, period) =>
       period.drawdownAmount > max.drawdownAmount ? period : max
     )
 
@@ -179,7 +179,7 @@ export function useDrawdownAnalysis(trades: any) {
 
     // Calculate recovery metrics for recovered periods
     const recoveredPeriods = periods.filter(p => p.isRecovered)
-    const avgRecoveryTime = recoveredPeriods.length > 0 
+    const avgRecoveryTime = recoveredPeriods.length > 0
       ? recoveredPeriods.reduce((sum, p) => sum + (p.recoveryTime || 0), 0) / recoveredPeriods.length
       : 0
 
@@ -189,7 +189,7 @@ export function useDrawdownAnalysis(trades: any) {
 
     // Duration calculations
     const longestDrawdownDuration = periods.length > 0 ? Math.max(...periods.map(p => p.duration)) : 0
-    const longestRecoveryTime = recoveredPeriods.length > 0 
+    const longestRecoveryTime = recoveredPeriods.length > 0
       ? Math.max(...recoveredPeriods.map(p => p.recoveryTime || 0))
       : 0
 

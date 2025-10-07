@@ -147,7 +147,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useCalendar } from '../composables/useCalendar.js'
+import { useCalendar } from '@/composables/useCalendar'
 
 const {
   // State

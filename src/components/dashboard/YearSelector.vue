@@ -14,9 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import type { YearSelectorProps } from '../../types/vue'
+import type { YearSelectorProps as YearSelectorPropsType } from '../../types/vue'
 
-defineProps<YearSelectorProps>()
+defineProps<YearSelectorPropsType>()
 
 const emit = defineEmits<{
   'year-change': [year: number]

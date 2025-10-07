@@ -1,7 +1,7 @@
 // Offline data management service
 class OfflineDataManager {
   private isOnline: boolean = navigator.onLine
-  private syncInProgress: boolean = false
+  private syncInProgress = false
 
   constructor() {
     this.setupEventListeners()

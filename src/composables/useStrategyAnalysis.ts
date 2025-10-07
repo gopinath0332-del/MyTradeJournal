@@ -7,19 +7,19 @@ export function useStrategyAnalysis(trades: any) {
     if (trades.value.length === 0) {
       return []
     }
-    
+
     // Check if any trades have strategy data
     const tradesWithStrategy = trades.value.filter((trade: Trade) => trade.strategy && trade.strategy.trim() !== '')
-    
+
     if (tradesWithStrategy.length === 0) {
       return []
     }
-    
+
     const strategies: Record<string, any> = {}
 
     tradesWithStrategy.forEach((trade: Trade) => {
       const strategy = trade.strategy || 'Unknown'
-      
+
       if (!strategies[strategy]) {
         strategies[strategy] = {
           name: strategy,

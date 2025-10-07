@@ -1,35 +1,48 @@
-<script setup>
+<script setup lang="ts">
 import { ref, provide } from 'vue'
 import { useRouter } from 'vue-router'
+import type { Trade as TradeType } from '@/types'
+
+interface Toast {
+  id: number
+  type: 'success' | 'error' | 'info' | 'warning'
+  title: string
+  message: string
+}
 
 const router = useRouter()
-const editingTrade = ref(null)
-const toasts = ref([])
-const isMobileMenuOpen = ref(false)
+const editingTrade = ref<TradeType | null>(null)
+const toasts = ref<Toast[]>([])
+const isMobileMenuOpen = ref<boolean>(false)
 let toastId = 0
 
 // Provide the shared state to child components
 provide('editingTrade', editingTrade)
 
 // Function to start editing a trade
-const startEditingTrade = (trade) => {
+const startEditingTrade = (trade: TradeType): void => {
   editingTrade.value = trade
-  router.push({ name: 'EditTrade', params: { id: trade.id } })
+  router.push({ name: 'EditTrade', params: { id: trade.id || '' } })
 }
 
 // Function to handle navigation and close mobile menu
-const navigateTo = (routeName) => {
+const navigateTo = (routeName: string): void => {
   router.push({ name: routeName })
   isMobileMenuOpen.value = false
 }
 
 // Toggle mobile menu
-const toggleMobileMenu = () => {
+const toggleMobileMenu = (): void => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
 // Toast functions
-const showToast = (type, title, message, duration = 3000) => {
+const showToast = (
+  type: Toast['type'], 
+  title: string, 
+  message: string, 
+  duration: number = 3000
+): void => {
   const id = toastId++
   toasts.value.push({ id, type, title, message })
 
@@ -39,7 +52,7 @@ const showToast = (type, title, message, duration = 3000) => {
   }, duration)
 }
 
-const removeToast = (id) => {
+const removeToast = (id: number): void => {
   const index = toasts.value.findIndex(t => t.id === id)
   if (index !== -1) {
     toasts.value.splice(index, 1)
@@ -47,7 +60,7 @@ const removeToast = (id) => {
 }
 
 // Function to refresh dashboard data (may not be needed with router)
-const refreshDashboard = () => {
+const refreshDashboard = (): void => {
   // With router, we could navigate to dashboard to refresh
   if (router.currentRoute.value.name === 'Dashboard') {
     window.location.reload()

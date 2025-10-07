@@ -155,7 +155,7 @@ export const cacheService = new CacheService()
 // Query optimization helpers
 export const QueryOptimizer = {
   // Batch multiple queries together
-  batchQueries: async (queries: Promise<any>[]): Promise<any[]> => {
+  batchQueries: async(queries: Promise<any>[]): Promise<any[]> => {
     try {
       const results = await Promise.all(queries)
       return results
@@ -239,7 +239,7 @@ export const PerformanceMonitor = {
   },
 
   measure<T>(operation: string, func: (...args: any[]) => Promise<T>) {
-    return async (...args: any[]): Promise<T> => {
+    return async(...args: any[]): Promise<T> => {
       this.start(operation)
       try {
         const result = await func(...args)

@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsparser from '@typescript-eslint/parser'
+import vueParser from 'vue-eslint-parser'
 
 export default [
   // Ignore files (replaces .eslintignore)
@@ -51,11 +52,40 @@ export default [
         'varsIgnorePattern': '^_'
       }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/prefer-const': 'error',
       '@typescript-eslint/no-inferrable-types': 'error',
       '@typescript-eslint/no-non-null-assertion': 'warn',
 
       // Disable conflicting JS rules for TS files
+      'no-unused-vars': 'off',
+      'no-undef': 'off' // TypeScript handles this
+    }
+  },
+
+  // Vue TypeScript configuration
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: vueParser,
+      parserOptions: {
+        parser: tsparser,
+        ecmaVersion: 2022,
+        sourceType: 'module'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint
+    },
+    rules: {
+      // TypeScript-specific rules for Vue files
+      '@typescript-eslint/no-unused-vars': ['error', {
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_'
+      }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-inferrable-types': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+
+      // Disable conflicting JS rules for TS in Vue files
       'no-unused-vars': 'off',
       'no-undef': 'off' // TypeScript handles this
     }

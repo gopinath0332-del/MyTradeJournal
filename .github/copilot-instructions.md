@@ -3,7 +3,7 @@
 
 - [x] Clarify Project Requirements
 	Project type: Frontend web application
-	Framework: React
+	Framework: Vue
 	Language: TypeScript
 	Build tool: Vite
 

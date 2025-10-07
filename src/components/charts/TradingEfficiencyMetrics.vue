@@ -704,7 +704,7 @@ const exportMetrics = () => {
     bestWinStreak: bestWinStreak.value,
     worstLossStreak: worstLossStreak.value
   }
-  
+
   // eslint-disable-next-line no-console
   console.log('Exporting metrics:', metrics)
   // Could implement CSV/JSON export here

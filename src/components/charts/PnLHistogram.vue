@@ -432,7 +432,7 @@ const formatBinLabel = (bin) => {
     if (abs >= 1000) return `₹${(amount / 1000).toFixed(0)}K`
     return `₹${amount}`
   }
-  
+
   if (bin.start >= 0 && bin.end > 0) {
     return `${formatShort(bin.start)} to ${formatShort(bin.end)}`
   } else if (bin.start < 0 && bin.end <= 0) {

@@ -3,6 +3,26 @@
   <div class="trade-history">
     <h2>Trade History</h2>
 
+    <!-- Tabs -->
+    <div class="tabs-container">
+      <div class="tabs">
+        <button 
+          class="tab-button" 
+          :class="{ active: activeTab === 'open' }"
+          @click="activeTab = 'open'"
+        >
+          Open Trades ({{ openTrades.length }})
+        </button>
+        <button 
+          class="tab-button" 
+          :class="{ active: activeTab === 'closed' }"
+          @click="activeTab = 'closed'"
+        >
+          Closed Trades ({{ closedTrades.length }})
+        </button>
+      </div>
+    </div>
+
     <!-- Filters -->
     <div class="filters">
       <div class="filter-group date-filter">
@@ -67,18 +87,18 @@
     <!-- Results Summary -->
     <div class="results-summary">
       <div class="total-results">
-        Showing {{ sortedTrades.length }} trade{{ sortedTrades.length !== 1 ? 's' : '' }}
+        Showing {{ currentTabTrades.length }} {{ activeTab }} trade{{ currentTabTrades.length !== 1 ? 's' : '' }}
       </div>
       <div class="trades-summary">
         <div class="trades-summary">
           <div class="summary-stats">
             <span class="profit-count">
-              Profitable: {{ sortedTrades.filter(t => t.pnlAmount > 0).length }}
+              Profitable: {{ currentTabTrades.filter(t => t.pnlAmount > 0).length }}
             </span>
             <span class="loss-count">
-              Loss: {{ sortedTrades.filter(t => t.pnlAmount < 0).length }} </span>
+              Loss: {{ currentTabTrades.filter(t => t.pnlAmount < 0).length }} </span>
             <span class="breakeven-count">
-              Breakeven: {{ sortedTrades.filter(t => t.pnlAmount === 0).length }}
+              Breakeven: {{ currentTabTrades.filter(t => t.pnlAmount === 0).length }}
             </span>
           </div>
           <div
@@ -137,7 +157,7 @@
         </thead>
         <tbody>
           <tr
-            v-for="trade in sortedTrades"
+            v-for="trade in currentTabTrades"
             :key="trade.id"
             :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
           >
@@ -166,12 +186,12 @@
             </td>
           </tr>
           <!-- Empty state row -->
-          <tr v-if="!isLoadingTrades && sortedTrades.length === 0">
+          <tr v-if="!isLoadingTrades && currentTabTrades.length === 0">
             <td colspan="7" class="empty-state-cell">
               <EmptyState
                 icon="📈"
-                title="No trades found"
-                message="Try adjusting your filters or add some trades to get started"
+                :title="`No ${activeTab} trades found`"
+                :message="activeTab === 'open' ? 'No open trades at the moment' : 'Try adjusting your filters or add some trades to get started'"
                 :full-height="false"
               />
             </td>
@@ -208,7 +228,7 @@
 
       <div class="trade-cards">
         <div
-          v-for="trade in sortedTrades"
+          v-for="trade in currentTabTrades"
           :key="trade.id"
           class="trade-card"
           :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
@@ -254,11 +274,11 @@
           </div>
         </div>
 
-        <div v-if="!isLoadingTrades && sortedTrades.length === 0" class="empty-state-mobile">
+        <div v-if="!isLoadingTrades && currentTabTrades.length === 0" class="empty-state-mobile">
           <EmptyState
             icon="📊"
-            title="No trades found"
-            message="Try adjusting your filters or add your first trade to get started"
+            :title="`No ${activeTab} trades found`"
+            :message="activeTab === 'open' ? 'No open trades at the moment' : 'Try adjusting your filters or add your first trade to get started'"
             :full-height="true"
           />
         </div>
@@ -500,6 +520,7 @@ const sortKey = ref('entryDate')
 const sortDir = ref('desc')
 const showEditModal = ref(false)
 const editedTrade = ref({})
+const activeTab = ref('closed') // Default to closed trades
 
 const filters = ref({
     dateRange: 'current-month',
@@ -651,9 +672,23 @@ const toggleSortOrder = () => {
     sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
 }
 
-// Calculate net profit from sorted trades
+// Calculate net profit from current tab trades
 const calculateNetProfit = computed(() => {
-    return sortedTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+    return currentTabTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
+})
+
+// Separate open and closed trades
+const openTrades = computed(() => {
+    return sortedTrades.value.filter(trade => !trade.exitPrice || trade.exitPrice === null || trade.exitPrice === 0)
+})
+
+const closedTrades = computed(() => {
+    return sortedTrades.value.filter(trade => trade.exitPrice && trade.exitPrice !== null && trade.exitPrice !== 0)
+})
+
+// Current tab trades based on active tab
+const currentTabTrades = computed(() => {
+    return activeTab.value === 'open' ? openTrades.value : closedTrades.value
 })
 
 // Sort trades (filtering is now done server-side)
@@ -727,6 +762,55 @@ const deleteTrade = async(trade) => {
 @media (min-width: 768px) {
     .trade-history {
         padding: 20px;
+    }
+}
+
+/* Tabs Styles */
+.tabs-container {
+    margin-bottom: 1.5rem;
+}
+
+.tabs {
+    display: flex;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.tab-button:hover {
+    color: #374151;
+    background-color: #e5e7eb;
+}
+
+.tab-button.active {
+    background-color: #3b82f6;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 768px) {
+    .tabs-container {
+        margin-bottom: 2rem;
+    }
+    
+    .tab-button {
+        padding: 14px 20px;
+        font-size: 15px;
     }
 }
 

@@ -1,499 +1,71 @@
-# Implementing trade history component with filtering and sorting capabilities
 <template>
   <div class="trade-history">
     <h2>Trade History</h2>
 
-    <!-- Tabs -->
-    <div class="tabs-container">
-      <div class="tabs">
-        <button 
-          class="tab-button" 
-          :class="{ active: activeTab === 'open' }"
-          @click="activeTab = 'open'"
-        >
-          Open Trades ({{ openTrades.length }})
-        </button>
-        <button 
-          class="tab-button" 
-          :class="{ active: activeTab === 'closed' }"
-          @click="activeTab = 'closed'"
-        >
-          Closed Trades ({{ closedTrades.length }})
-        </button>
-      </div>
-    </div>
+    <!-- Tabs Component -->
+    <TradeTabs
+      v-model:active-tab="activeTab"
+      :open-count="openTrades.length"
+      :closed-count="closedTrades.length"
+    />
 
-    <!-- Filters -->
-    <div class="filters">
-      <div class="filter-group date-filter">
-        <label for="dateRange">Date Range</label>
-        <select id="dateRange" v-model="filters.dateRange">
-          <option value="7">Last 7 days</option>
-          <option value="last-month">Last Month</option>
-          <option value="last-3-months">Last 3 Months</option>
-          <option value="current-month">Current Month</option>
-          <option value="custom">Custom Range</option>
-          <option value="all">All time</option>
-        </select>
-        <div v-if="filters.dateRange === 'custom'" class="custom-date-range">
-          <div class="date-input">
-            <label for="startDate">Start Date</label>
-            <input
-              id="startDate"
-              v-model="filters.startDate"
-              type="date"
-              :max="filters.endDate || new Date().toISOString().slice(0, 10)"
-            >
-          </div>
-          <div class="date-input">
-            <label for="endDate">End Date</label>
-            <input
-              id="endDate"
-              v-model="filters.endDate"
-              type="date"
-              :min="filters.startDate"
-              :max="new Date().toISOString().slice(0, 10)"
-            >
-          </div>
-        </div>
-      </div>
-      <div class="filter-group">
-        <label for="symbol">Symbol</label>
-        <select id="symbol" v-model="filters.symbol">
-          <option value="all">All Symbols</option>
-          <option v-for="symbol in uniqueSymbols" :key="symbol" :value="symbol">
-            {{ symbol }}
-          </option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="type">Type</label>
-        <select id="type" v-model="filters.type">
-          <option value="all">All Types</option>
-          <option value="BUY">Buy</option>
-          <option value="SELL">Sell</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label for="profitability">Profitability</label>
-        <select id="profitability" v-model="filters.profitability">
-          <option value="all">All Trades</option>
-          <option value="profit">Profitable</option>
-          <option value="loss">Loss Making</option>
-        </select>
-      </div>
-    </div>
+    <!-- Filters Component -->
+    <TradeFilters
+      v-model:filters="filters"
+      :unique-symbols="uniqueSymbols"
+    />
 
-    <!-- Results Summary -->
-    <div class="results-summary">
-      <div class="total-results">
-        Showing {{ currentTabTrades.length }} {{ activeTab }} trade{{ currentTabTrades.length !== 1 ? 's' : '' }}
-      </div>
-      <div class="trades-summary">
-        <div class="trades-summary">
-          <div class="summary-stats">
-            <span class="profit-count">
-              Profitable: {{ currentTabTrades.filter(t => t.pnlAmount > 0).length }}
-            </span>
-            <span class="loss-count">
-              Loss: {{ currentTabTrades.filter(t => t.pnlAmount < 0).length }} </span>
-            <span class="breakeven-count">
-              Breakeven: {{ currentTabTrades.filter(t => t.pnlAmount === 0).length }}
-            </span>
-          </div>
-          <div
-            class="net-profit"
-            :class="{
-              'profit': calculateNetProfit > 0,
-              'loss': calculateNetProfit < 0
-            }"
-          >
-            Net P&L: {{ formatCurrency(calculateNetProfit) }}
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Results Summary Component -->
+    <TradeResultsSummary
+      :trades="currentTabTrades"
+      :active-tab="activeTab"
+    />
 
-    <!-- Trade Table for Desktop -->
-    <div class="table-container desktop-table">
-      <!-- Loading state -->
-      <LoadingSpinner
-        v-if="isLoadingTrades"
-        message="Loading trades..."
-        size="large"
-        full-height
-      />
+    <!-- Desktop Table Component -->
+    <TradeTable
+      :trades="currentTabTrades"
+      :sort-key="sortKey"
+      :sort-order="sortDir"
+      :is-loading="isLoadingTrades"
+      :active-tab="activeTab"
+      @sort="sortBy"
+      @view="viewTradeDetails"
+      @edit="handleEdit"
+      @delete="deleteTrade"
+    />
 
-      <!-- Desktop table -->
-      <table v-else-if="!isLoadingTrades">
-        <thead>
-          <tr>
-            <th :class="{ active: sortKey === 'entryDate' }" @click="sortBy('entryDate')">
-              Date
-              <span class="sort-arrow">{{ getSortArrow('entryDate') }}</span>
-            </th>
-            <th :class="{ active: sortKey === 'symbol' }" @click="sortBy('symbol')">
-              Symbol
-              <span class="sort-arrow">{{ getSortArrow('symbol') }}</span>
-            </th>
-            <th :class="{ active: sortKey === 'type' }" @click="sortBy('type')">
-              Type
-              <span class="sort-arrow">{{ getSortArrow('type') }}</span>
-            </th>
-            <th :class="{ active: sortKey === 'entryPrice' }" @click="sortBy('entryPrice')">
-              Entry Price
-              <span class="sort-arrow">{{ getSortArrow('entryPrice') }}</span>
-            </th>
-            <th :class="{ active: sortKey === 'exitPrice' }" @click="sortBy('exitPrice')">
-              Exit Price
-              <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
-            </th>
-            <th :class="{ active: sortKey === 'pnlAmount' }" @click="sortBy('pnlAmount')">
-              P&L
-              <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
-            </th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="trade in currentTabTrades"
-            :key="trade.id"
-            :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
-          >
-            <td>{{ formatDate(trade.entryDate) }}</td>
-            <td>{{ trade.symbol }}</td>
-            <td :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
-              {{ trade.type }}
-            </td>
-            <td>{{ formatCurrency(trade.entryPrice) }}</td>
-            <td>{{ formatCurrency(trade.exitPrice) }}</td>
-            <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-              {{ formatCurrency(trade.pnlAmount) }}
-            </td>
-            <td class="actions-cell">
-              <div class="actions-container">
-                <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
-                  View
-                </button>
-                <button class="action-btn edit-btn" @click="handleEdit(trade)">
-                  Edit
-                </button>
-                <button class="action-btn delete-btn" @click="deleteTrade(trade)">
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-          <!-- Empty state row -->
-          <tr v-if="!isLoadingTrades && currentTabTrades.length === 0">
-            <td colspan="7" class="empty-state-cell">
-              <EmptyState
-                icon="📈"
-                :title="`No ${activeTab} trades found`"
-                :message="activeTab === 'open' ? 'No open trades at the moment' : 'Try adjusting your filters or add some trades to get started'"
-                :full-height="false"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <!-- Mobile Cards Component -->
+    <TradeCards
+      :trades="currentTabTrades"
+      :sort-key="sortKey"
+      :sort-order="sortDir"
+      :is-loading="isLoadingTrades"
+      :active-tab="activeTab"
+      @sort="sortBy"
+      @toggle-sort="toggleSortOrder"
+      @view="viewTradeDetails"
+      @edit="handleEdit"
+      @delete="deleteTrade"
+    />
 
-    <!-- Mobile Card Layout -->
-    <div class="mobile-trades">
-      <!-- Loading state for mobile -->
-      <LoadingSpinner
-        v-if="isLoadingTrades"
-        message="Loading trades..."
-        size="large"
-        full-height
-      />
-
-      <!-- Sort controls for mobile -->
-      <div class="mobile-sort-controls">
-        <label for="mobileSortSelect">Sort by:</label>
-        <select id="mobileSortSelect" v-model="sortKey" @change="toggleSortOrder">
-          <option value="entryDate">Date</option>
-          <option value="symbol">Symbol</option>
-          <option value="type">Type</option>
-          <option value="entryPrice">Entry Price</option>
-          <option value="exitPrice">Exit Price</option>
-          <option value="pnlAmount">P&L</option>
-        </select>
-        <button class="sort-direction-btn" @click="toggleSortOrder">
-          {{ sortOrder === 'asc' ? '↑' : '↓' }}
-        </button>
-      </div>
-
-      <div class="trade-cards">
-        <div
-          v-for="trade in currentTabTrades"
-          :key="trade.id"
-          class="trade-card"
-          :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
-        >
-          <div class="trade-card-header">
-            <div class="trade-symbol">{{ trade.symbol }}</div>
-            <div class="trade-date">{{ formatDate(trade.entryDate) }}</div>
-          </div>
-
-          <div class="trade-card-body">
-            <div class="trade-row">
-              <span class="trade-label">Type:</span>
-              <span class="trade-value" :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
-                {{ trade.type }}
-              </span>
-            </div>
-            <div class="trade-row">
-              <span class="trade-label">Entry:</span>
-              <span class="trade-value">{{ formatCurrency(trade.entryPrice) }}</span>
-            </div>
-            <div class="trade-row">
-              <span class="trade-label">Exit:</span>
-              <span class="trade-value">{{ formatCurrency(trade.exitPrice) }}</span>
-            </div>
-            <div class="trade-row">
-              <span class="trade-label">P&L:</span>
-              <span class="trade-value pnl-value" :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-                {{ formatCurrency(trade.pnlAmount) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="trade-card-actions">
-            <button class="action-btn view-btn" :class="{ 'has-remarks': trade.remarks }" @click="viewTradeDetails(trade)">
-              View
-            </button>
-            <button class="action-btn edit-btn" @click="handleEdit(trade)">
-              Edit
-            </button>
-            <button class="action-btn delete-btn" @click="deleteTrade(trade)">
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div v-if="!isLoadingTrades && currentTabTrades.length === 0" class="empty-state-mobile">
-          <EmptyState
-            icon="📊"
-            :title="`No ${activeTab} trades found`"
-            :message="activeTab === 'open' ? 'No open trades at the moment' : 'Try adjusting your filters or add your first trade to get started'"
-            :full-height="true"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Trade Details Modal -->
-    <div v-if="selectedTrade" class="modal">
-      <div class="modal-content">
-        <h3>Trade Details</h3>
-        <div class="trade-details">
-          <div class="detail-row">
-            <span class="label">Symbol:</span>
-            <span class="value">{{ selectedTrade.symbol }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Contract:</span>
-            <span class="value">{{ selectedTrade.contract }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Type:</span>
-            <span
-              class="value"
-              :class="{ 'type-buy': selectedTrade.type === 'BUY', 'type-sell': selectedTrade.type === 'SELL' }"
-            >
-              {{ selectedTrade.type }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Entry Date:</span>
-            <span class="value">{{ formatDate(selectedTrade.entryDate) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Exit Date:</span>
-            <span class="value">{{ formatDate(selectedTrade.exitDate) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Entry Price:</span>
-            <span class="value">{{ formatCurrency(selectedTrade.entryPrice) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Exit Price:</span>
-            <span class="value">{{ formatCurrency(selectedTrade.exitPrice) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Size:</span>
-            <span class="value">{{ selectedTrade.lots }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Capital Used:</span>
-            <span class="value">{{ formatCurrency(selectedTrade.capitalUsed) }}</span>
-          </div>
-          <div class="detail-row">
-            <span class="label">P&L:</span>
-            <span
-              class="value"
-              :class="{ 'profit': selectedTrade.pnlAmount > 0, 'loss': selectedTrade.pnlAmount < 0 }"
-            >
-              {{ formatCurrency(selectedTrade.pnlAmount) }}
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Return %:</span>
-            <span
-              class="value"
-              :class="{ 'profit': selectedTrade.pnlPercentage > 0, 'loss': selectedTrade.pnlPercentage < 0 }"
-            >
-              {{ (selectedTrade.pnlPercentage || 0).toFixed(2) }}%
-            </span>
-          </div>
-          <div class="detail-row">
-            <span class="label">Days Held:</span>
-            <span class="value">{{ selectedTrade.daysHeld }}</span>
-          </div>
-          <div v-if="selectedTrade.strategy" class="detail-row">
-            <span class="label">Strategy:</span>
-            <span class="value">{{ selectedTrade.strategy }}</span>
-          </div>
-          <div v-if="selectedTrade.remarks" class="detail-row">
-            <span class="label">Remarks:</span>
-            <span class="value">{{ selectedTrade.remarks }}</span>
-          </div>
-          <div v-if="selectedTrade.notes" class="detail-notes">
-            <span class="label">Notes:</span>
-            <p class="value">{{ selectedTrade.notes }}</p>
-          </div>
-          <div v-if="selectedTrade.lessonsLearned" class="detail-notes">
-            <span class="label">Lessons Learned:</span>
-            <p class="value">{{ selectedTrade.lessonsLearned }}</p>
-          </div>
-        </div>
-        <button class="close-btn" @click="selectedTrade = null">Close</button>
-      </div>
-    </div>
-
-    <!-- Edit Trade Modal -->
-    <div v-if="showEditModal" class="modal">
-      <div class="modal-content">
-        <h3>Edit Trade</h3>
-        <form @submit.prevent="handleEditSubmit">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editSymbol">Symbol</label>
-              <input
-                id="editSymbol"
-                v-model="editedTrade.symbol"
-                type="text"
-                required
-              >
-            </div>
-            <div class="form-group">
-              <label for="editContract">Contract (Optional)</label>
-              <input id="editContract" v-model="editedTrade.contract" type="text">
-            </div>
-            <div class="form-group">
-              <label for="editType">Type</label>
-              <select id="editType" v-model="editedTrade.type" required>
-                <option value="BUY">Buy</option>
-                <option value="SELL">Sell</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editEntryDate">Entry Date</label>
-              <input
-                id="editEntryDate"
-                v-model="editedTrade.entryDate"
-                type="date"
-                required
-              >
-            </div>
-            <div class="form-group">
-              <label for="editExitDate">Exit Date (Optional)</label>
-              <input
-                id="editExitDate"
-                v-model="editedTrade.exitDate"
-                type="date"
-                :max="new Date().toISOString().slice(0, 10)"
-              >
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editEntryPrice">Entry Price</label>
-              <div class="input-with-prefix">
-                <span class="currency-prefix">₹</span>
-                <input
-                  id="editEntryPrice"
-                  v-model="editedTrade.entryPrice"
-                  type="number"
-                  required
-                  step="0.01"
-                >
-              </div>
-            </div>
-            <div class="form-group">
-              <label for="editExitPrice">Exit Price</label>
-              <div class="input-with-prefix">
-                <span class="currency-prefix">₹</span>
-                <input
-                  id="editExitPrice"
-                  v-model="editedTrade.exitPrice"
-                  type="number"
-                  step="0.01"
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="editLots">Size</label>
-              <input
-                id="editLots"
-                v-model="editedTrade.lots"
-                type="number"
-                required
-                min="1"
-              >
-            </div>
-            <div class="form-group">
-              <label for="editCapitalUsed">Capital Used</label>
-              <div class="input-with-prefix">
-                <span class="currency-prefix">₹</span>
-                <input
-                  id="editCapitalUsed"
-                  v-model="editedTrade.capitalUsed"
-                  type="number"
-                  required
-                  step="0.01"
-                  min="0"
-                >
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-actions">
-            <button type="button" class="cancel-btn" @click="closeEditModal">Cancel</button>
-            <button type="submit" class="save-btn">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <!-- Trade Details Modal Component -->
+    <TradeDetailsModal
+      :trade="selectedTrade"
+      @close="selectedTrade = null"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
-import LoadingSpinner from '../ui/LoadingSpinner.vue'
-import EmptyState from '../ui/EmptyState.vue'
 import { logger } from '@/utils/logger'
+import TradeTabs from './TradeHistory/TradeTabs.vue'
+import TradeFilters from './TradeHistory/TradeFilters.vue'
+import TradeResultsSummary from './TradeHistory/TradeResultsSummary.vue'
+import TradeTable from './TradeHistory/TradeTable.vue'
+import TradeCards from './TradeHistory/TradeCards.vue'
+import TradeDetailsModal from './TradeHistory/TradeDetailsModal.vue'
 
 // Loading states
 const isLoadingTrades = ref(false)
@@ -506,11 +78,11 @@ const refreshDashboard = inject('refreshDashboard')
 
 // Fallback if showToast is not provided
 const displayToast = (type, title, message) => {
-    if (showToast) {
-        showToast(type, title, message)
-    } else {
-        logger.info(`${type}: ${title} - ${message}`, 'TradeHistory')
-    }
+  if (showToast) {
+    showToast(type, title, message)
+  } else {
+    logger.info(`${type}: ${title} - ${message}`, 'TradeHistory')
+  }
 }
 
 const selectedTrade = ref(null)
@@ -518,1124 +90,174 @@ const trades = ref([])
 const uniqueSymbols = ref([])
 const sortKey = ref('entryDate')
 const sortDir = ref('desc')
-const showEditModal = ref(false)
-const editedTrade = ref({})
 const activeTab = ref('closed') // Default to closed trades
 
 const filters = ref({
-    dateRange: 'current-month',
-    startDate: '',
-    endDate: '',
-    symbol: 'all',
-    type: 'all',
-    profitability: 'all'
+  dateRange: 'current-month',
+  startDate: '',
+  endDate: '',
+  symbol: 'all',
+  type: 'all',
+  profitability: 'all'
 })
 
 // Load trades with current filters
 const loadTrades = async() => {
-    isLoadingTrades.value = true
-    try {
-        // Build filter object for API call
-        const filterParams = {
-            dateRange: filters.value.dateRange,
-            startDate: filters.value.startDate,
-            endDate: filters.value.endDate,
-            symbol: filters.value.symbol,
-            type: filters.value.type,
-            profitability: filters.value.profitability
-        }
-
-        trades.value = await tradeService.getFilteredTrades(filterParams)
-    } catch (error) {
-        logger.error('Error loading trades', 'TradeHistory', error)
-        trades.value = []
-        displayToast('error', 'Error', 'Failed to load trades. Please try again.')
-    } finally {
-        isLoadingTrades.value = false
+  isLoadingTrades.value = true
+  try {
+    // Build filter object for API call
+    const filterParams = {
+      dateRange: filters.value.dateRange,
+      startDate: filters.value.startDate,
+      endDate: filters.value.endDate,
+      symbol: filters.value.symbol,
+      type: filters.value.type,
+      profitability: filters.value.profitability
     }
+
+    trades.value = await tradeService.getFilteredTrades(filterParams)
+  } catch (error) {
+    logger.error('Error loading trades', 'TradeHistory', error)
+    trades.value = []
+    displayToast('error', 'Error', 'Failed to load trades. Please try again.')
+  } finally {
+    isLoadingTrades.value = false
+  }
 }
 
 // Load unique symbols for filter dropdown
 const loadUniqueSymbols = async() => {
-    try {
-        uniqueSymbols.value = await tradeService.getUniqueSymbols()
-    } catch (error) {
-        logger.error('Error loading unique symbols', 'TradeHistory', error)
-        uniqueSymbols.value = []
-    }
+  try {
+    uniqueSymbols.value = await tradeService.getUniqueSymbols()
+  } catch (error) {
+    logger.error('Error loading unique symbols', 'TradeHistory', error)
+    uniqueSymbols.value = []
+  }
 }
 
 // Watch for filter changes and reload data
 watch(filters, () => {
-    loadTrades()
+  loadTrades()
 }, { deep: true })
 
 // Initialize data on component mount
 onMounted(async() => {
-    await Promise.all([
-        loadTrades(),
-        loadUniqueSymbols()
-    ])
+  await Promise.all([
+    loadTrades(),
+    loadUniqueSymbols()
+  ])
 })
-
-// Format date
-const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    })
-}
-
-// Format currency
-const formatCurrency = (amount) => {
-    if (amount === null || amount === undefined) return ''
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount)
-}
 
 // Function to edit a trade
 const handleEdit = (trade) => {
-    // Format dates for the form inputs
-    const formattedTrade = {
-        ...trade,
-        entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 10) : '',
-        exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 10) : ''
-    }
-    startEditingTrade(formattedTrade)
-}
-
-const calculatePnL = (trade) => {
-    if (trade.entryPrice && trade.exitPrice && trade.lots) {
-        const priceDiff = trade.exitPrice - trade.entryPrice
-        const multiplier = trade.type === 'SELL' ? -1 : 1
-        return priceDiff * trade.lots * multiplier
-    }
-    return 0
-}
-
-const handleEditSubmit = () => {
-    try {
-        const tradesData = JSON.parse(localStorage.getItem('trades') || '[]')
-        const index = tradesData.findIndex(t => t.id === editedTrade.value.id)
-
-        if (index !== -1) {
-            // Calculate new P&L
-            const pnlAmount = calculatePnL(editedTrade.value)
-            const pnlPercentage = editedTrade.value.capitalUsed ? (pnlAmount / editedTrade.value.capitalUsed) * 100 : 0
-
-            // Update trade with new values
-            const updatedTrade = {
-                ...editedTrade.value,
-                pnlAmount,
-                pnlPercentage,
-                status: editedTrade.value.exitDate ? 'CLOSED' : 'OPEN'
-            }
-
-            tradesData[index] = updatedTrade
-            localStorage.setItem('trades', JSON.stringify(tradesData))
-
-            // Refresh the trades list
-            loadTrades()
-            closeEditModal()
-        }
-    } catch (error) {
-        logger.error('Error updating trade', 'TradeHistory', error)
-    }
-}
-
-const closeEditModal = () => {
-    showEditModal.value = false
-    editedTrade.value = {}
+  // Format dates for the form inputs
+  const formattedTrade = {
+    ...trade,
+    entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 10) : '',
+    exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 10) : ''
+  }
+  startEditingTrade(formattedTrade)
 }
 
 // Sorting functions
 const sortBy = (key) => {
-    if (sortKey.value === key) {
-        sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
-    } else {
-        sortKey.value = key
-        sortDir.value = 'asc'
-    }
-}
-
-const getSortArrow = (key) => {
-    if (sortKey.value !== key) return ''
-    return sortDir.value === 'asc' ? '↑' : '↓'
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'asc'
+  }
 }
 
 const toggleSortOrder = () => {
-    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
 }
-
-// Calculate net profit from current tab trades
-const calculateNetProfit = computed(() => {
-    return currentTabTrades.value.reduce((sum, trade) => sum + (trade.pnlAmount || 0), 0)
-})
 
 // Separate open and closed trades
 const openTrades = computed(() => {
-    return sortedTrades.value.filter(trade => !trade.exitPrice || trade.exitPrice === null || trade.exitPrice === 0)
+  return sortedTrades.value.filter(trade => !trade.exitPrice || trade.exitPrice === null || trade.exitPrice === 0)
 })
 
 const closedTrades = computed(() => {
-    return sortedTrades.value.filter(trade => trade.exitPrice && trade.exitPrice !== null && trade.exitPrice !== 0)
+  return sortedTrades.value.filter(trade => trade.exitPrice && trade.exitPrice !== null && trade.exitPrice !== 0)
 })
 
 // Current tab trades based on active tab
 const currentTabTrades = computed(() => {
-    return activeTab.value === 'open' ? openTrades.value : closedTrades.value
+  return activeTab.value === 'open' ? openTrades.value : closedTrades.value
 })
 
 // Sort trades (filtering is now done server-side)
 const sortedTrades = computed(() => {
-    const sorted = [...trades.value]
+  const sorted = [...trades.value]
 
-    // Sort trades
-    sorted.sort((a, b) => {
-        let aVal = a[sortKey.value]
-        let bVal = b[sortKey.value]
+  // Sort trades
+  sorted.sort((a, b) => {
+    let aVal = a[sortKey.value]
+    let bVal = b[sortKey.value]
 
-        // Handle date comparison
-        if (sortKey.value.includes('Date')) {
-            aVal = new Date(aVal)
-            bVal = new Date(bVal)
-        }
+    // Handle date comparison
+    if (sortKey.value.includes('Date')) {
+      aVal = new Date(aVal)
+      bVal = new Date(bVal)
+    }
 
-        // Handle numeric comparison
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-            return sortDir.value === 'asc' ? aVal - bVal : bVal - aVal
-        }
+    // Handle numeric comparison
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortDir.value === 'asc' ? aVal - bVal : bVal - aVal
+    }
 
-        // Handle string comparison
-        if (sortDir.value === 'asc') {
-            return aVal > bVal ? 1 : -1
-        } else {
-            return aVal < bVal ? 1 : -1
-        }
-    })
+    // Handle string comparison
+    if (sortDir.value === 'asc') {
+      return aVal > bVal ? 1 : -1
+    } else {
+      return aVal < bVal ? 1 : -1
+    }
+  })
 
-    return sorted
+  return sorted
 })
 
 // View trade details
 const viewTradeDetails = (trade) => {
-    selectedTrade.value = trade
+  selectedTrade.value = trade
 }
 
 // Delete trade
 const deleteTrade = async(trade) => {
-    if (confirm('Are you sure you want to delete this trade?')) {
-        isDeletingTrade.value = true
-        try {
-            await tradeService.deleteTrade(trade.id)
+  if (confirm('Are you sure you want to delete this trade?')) {
+    isDeletingTrade.value = true
+    try {
+      await tradeService.deleteTrade(trade.id)
 
-            // Reload filtered data instead of client-side filtering
-            await loadTrades()
+      // Reload filtered data instead of client-side filtering
+      await loadTrades()
 
-            // Also reload unique symbols in case this was the only trade for that symbol
-            await loadUniqueSymbols()
+      // Also reload unique symbols in case this was the only trade for that symbol
+      await loadUniqueSymbols()
 
-            // Refresh dashboard data
-            refreshDashboard()
+      // Refresh dashboard data
+      refreshDashboard()
 
-            displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
-        } catch (error) {
-            logger.error('Error deleting trade', 'TradeHistory', error)
-            displayToast('error', 'Error', 'Failed to delete trade. Please try again.')
-        } finally {
-            isDeletingTrade.value = false
-        }
+      displayToast('success', 'Trade Deleted', `Successfully deleted trade for ${trade.symbol}`)
+    } catch (error) {
+      logger.error('Error deleting trade', 'TradeHistory', error)
+      displayToast('error', 'Error', 'Failed to delete trade. Please try again.')
+    } finally {
+      isDeletingTrade.value = false
     }
+  }
 }
 </script>
 
 <style scoped>
 .trade-history {
-    padding: 1rem;
+  padding: 1rem;
 }
 
 @media (min-width: 768px) {
-    .trade-history {
-        padding: 20px;
-    }
-}
-
-/* Tabs Styles */
-.tabs-container {
-    margin-bottom: 1.5rem;
-}
-
-.tabs {
-    display: flex;
-    background-color: #f8fafc;
-    border-radius: 8px;
-    padding: 4px;
-    gap: 4px;
-}
-
-.tab-button {
-    flex: 1;
-    padding: 12px 16px;
-    border: none;
-    background: transparent;
-    color: #6b7280;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.tab-button:hover {
-    color: #374151;
-    background-color: #e5e7eb;
-}
-
-.tab-button.active {
-    background-color: #3b82f6;
-    color: white;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-@media (min-width: 768px) {
-    .tabs-container {
-        margin-bottom: 2rem;
-    }
-    
-    .tab-button {
-        padding: 14px 20px;
-        font-size: 15px;
-    }
-}
-
-.results-summary {
-    margin: 1rem 0;
-    padding: 1rem;
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-@media (min-width: 768px) {
-    .results-summary {
-        margin: 20px 0;
-        padding: 15px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0;
-    }
-}
-
-.total-results {
-    font-size: 1.1em;
-    color: #1e293b;
-}
-
-.trades-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
-}
-
-@media (min-width: 768px) {
-    .trades-summary {
-        flex-direction: row;
-        gap: 20px;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-    }
-}
-
-.summary-stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-}
-
-@media (min-width: 768px) {
-    .summary-stats {
-        gap: 20px;
-        justify-content: flex-start;
-        flex-wrap: nowrap;
-    }
-}
-
-.summary-stats span {
-    padding: 4px 12px;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-.net-profit {
-    font-size: 1.1em;
-    font-weight: 600;
-    padding: 4px 16px;
-    border-radius: 4px;
-}
-
-.net-profit.profit {
-    background-color: rgba(66, 184, 131, 0.1);
-    color: #42b883;
-}
-
-.net-profit.loss {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.profit-count {
-    background-color: rgba(66, 184, 131, 0.1);
-    color: #42b883;
-}
-
-.loss-count {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.breakeven-count {
-    background-color: rgba(100, 116, 139, 0.1);
-    color: #64748b;
-}
-
-.filter-group {
-    margin-right: 20px;
-    min-width: 150px;
-}
-
-.date-filter {
-    min-width: 200px;
-}
-
-.custom-date-range {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-}
-
-.date-input {
-    flex: 1;
-}
-
-.date-input label {
-    display: block;
-    font-size: 0.9em;
-    margin-bottom: 4px;
-}
-
-.date-input input[type="date"] {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background-color: white;
+  .trade-history {
     padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.edit-btn {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.save-btn {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.cancel-btn {
-    background-color: #f44336;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.filters {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-@media (min-width: 768px) {
-    .filters {
-        flex-direction: row;
-        gap: 20px;
-        margin-bottom: 30px;
-        flex-wrap: wrap;
-    }
-}
-
-.filter-group {
-    flex: 1;
-    min-width: auto;
-}
-
-@media (min-width: 768px) {
-    .filter-group {
-        min-width: 200px;
-    }
-}
-
-.filter-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-.filter-group select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    background-color: white;
-    font-size: 16px;
-    min-height: 44px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
-
-@media (min-width: 768px) {
-    .filter-group select {
-        padding: 8px;
-        font-size: 14px;
-        min-height: auto;
-    }
-}
-
-.table-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    margin: 1rem -1rem;
-    padding: 0 1rem;
-}
-
-@media (min-width: 768px) {
-    .table-container {
-        margin: 0;
-        padding: 0;
-    }
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    min-width: 800px;
-    font-size: 0.875rem;
-}
-
-@media (min-width: 768px) {
-    table {
-        margin-top: 20px;
-        min-width: 100%;
-        font-size: 1rem;
-    }
-}
-
-th {
-    background-color: #f8fafc;
-    padding: 8px;
-    text-align: left;
-    font-weight: 600;
-    color: #1e293b;
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-    font-size: 0.8rem;
-}
-
-@media (min-width: 768px) {
-    th {
-        padding: 12px;
-        font-size: 1rem;
-    }
-}
-
-th.active {
-    background-color: #e2e8f0;
-}
-
-td {
-    padding: 8px;
-    border-top: 1px solid #e2e8f0;
-    white-space: nowrap;
-    font-size: 0.8rem;
-}
-
-@media (min-width: 768px) {
-    td {
-        padding: 12px;
-        font-size: 1rem;
-    }
-}
-
-tr:hover {
-    background-color: #f1f5f9;
-}
-
-.sort-arrow {
-    margin-left: 5px;
-}
-
-.type-buy {
-    color: #42b883;
-}
-
-.type-sell {
-    color: #ef4444;
-}
-
-tr.profit {
-    background-color: rgba(66, 184, 131, 0.05);
-}
-
-tr.loss {
-    background-color: rgba(239, 68, 68, 0.05);
-}
-
-td.profit {
-    color: #42b883;
-    font-weight: 600;
-}
-
-td.loss {
-    color: #ef4444;
-    font-weight: 600;
-}
-
-.actions-cell {
-    min-width: 200px;
-}
-
-.actions-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-}
-
-@media (min-width: 768px) {
-    .actions-container {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
-        gap: 0;
-    }
-}
-
-.action-btn {
-    padding: 6px 10px;
-    margin: 2px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-    min-height: 36px;
-    min-width: 60px;
-    touch-action: manipulation;
-    display: inline-block;
-}
-
-@media (min-width: 768px) {
-    .action-btn {
-        padding: 4px 8px;
-        margin: 0 4px;
-        font-size: 14px;
-        min-height: auto;
-        min-width: auto;
-    }
-}
-
-.view-btn {
-    background-color: #e5e7eb; /* light gray */
-    color: #374151;
-    border: none;
-}
-
-.view-btn:hover {
-    background-color: #d1d5db;
-}
-
-/* Blue if trade has remark */
-.view-btn.has-remarks {
-    background-color: #3b82f6;
-    color: #fff;
-}
-.view-btn.has-remarks:hover {
-    background-color: #2563eb;
-}
-.delete-btn {
-    background-color: #ef4444;
-    color: white;
-    border: none;
-}
-
-.delete-btn:hover {
-    background-color: #dc2626;
-}
-
-.no-data {
-    text-align: center;
-    color: #64748b;
-    padding: 40px;
-}
-
-/* Modal styles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.trade-details {
-    margin-top: 20px;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.detail-row:last-child {
-    border-bottom: none;
-}
-
-.label {
-    color: #64748b;
-    font-weight: 500;
-}
-
-.value {
-    font-weight: 600;
-}
-
-.value.profit {
-    color: #42b883;
-}
-
-.value.loss {
-    color: #ef4444;
-}
-
-.detail-notes {
-    margin-top: 20px;
-}
-
-.detail-notes .label {
-    display: block;
-    margin-bottom: 10px;
-}
-
-.detail-notes .value {
-    white-space: pre-wrap;
-    background: #f8fafc;
-    padding: 15px;
-    border-radius: 4px;
-    font-weight: normal;
-}
-
-.close-btn {
-    margin-top: 20px;
-    width: 100%;
-    padding: 10px;
-    background-color: #e2e8f0;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.close-btn:hover {
-    background-color: #cbd5e1;
-}
-
-/* Mobile Modal Optimizations */
-@media (max-width: 767px) {
-    .modal-content {
-        padding: 16px;
-        max-width: 95%;
-        width: 95%;
-        margin: 10px;
-        max-height: 85vh;
-        border-radius: 12px;
-    }
-
-    .modal-content h3 {
-        font-size: 1.1rem;
-        margin: 0 0 16px 0;
-        text-align: center;
-        color: #1e293b;
-    }
-
-    .trade-details {
-        margin-top: 12px;
-    }
-
-    .detail-row {
-        padding: 8px 0;
-        font-size: 0.9rem;
-        align-items: center;
-    }
-
-    .detail-row .label {
-        font-size: 0.85rem;
-        color: #64748b;
-        font-weight: 500;
-        flex-shrink: 0;
-        min-width: 85px;
-    }
-
-    .detail-row .value {
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-align: right;
-        word-break: break-word;
-    }
-
-    .detail-notes {
-        margin-top: 16px;
-    }
-
-    .detail-notes .label {
-        font-size: 0.85rem;
-        margin-bottom: 6px;
-        font-weight: 600;
-    }
-
-    .detail-notes .value {
-        padding: 10px;
-        font-size: 0.85rem;
-        line-height: 1.4;
-        border-radius: 6px;
-        background: #f1f5f9;
-    }
-
-    .close-btn {
-        margin-top: 16px;
-        padding: 12px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        border-radius: 8px;
-        background-color: #3b82f6;
-        color: white;
-        touch-action: manipulation;
-        min-height: 44px;
-    }
-
-    .close-btn:hover {
-        background-color: #2563eb;
-    }
-}
-
-/* Loader Styles */
-.loader-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    z-index: 10;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Mobile/Desktop Responsive Layout */
-.desktop-table {
-    display: none;
-}
-
-.mobile-trades {
-    display: block;
-}
-
-@media (min-width: 768px) {
-    .desktop-table {
-        display: block;
-    }
-    .mobile-trades {
-        display: none;
-    }
-}
-
-.mobile-sort-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1rem;
-    padding: 12px;
-    background-color: #f8fafc;
-    border-radius: 8px;
-}
-
-.mobile-sort-controls label {
-    font-weight: 500;
-    color: #374151;
-}
-
-.mobile-sort-controls select {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    background-color: white;
-    font-size: 14px;
-}
-
-.sort-direction-btn {
-    padding: 8px 12px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    min-width: 40px;
-}
-
-.sort-direction-btn:hover {
-    background-color: #2563eb;
-}
-
-.trade-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.trade-card {
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-.trade-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-}
-
-.trade-card.profit {
-    border-left: 4px solid #22c55e;
-    background-color: rgba(34, 197, 94, 0.02);
-}
-
-.trade-card.loss {
-    border-left: 4px solid #ef4444;
-    background-color: rgba(239, 68, 68, 0.02);
-}
-
-.trade-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.trade-symbol {
-    font-size: 18px;
-    font-weight: 700;
-    color: #111827;
-}
-
-.trade-date {
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.trade-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.trade-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.trade-label {
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.trade-value {
-    font-size: 14px;
-    color: #111827;
-    font-weight: 600;
-}
-
-.trade-value.type-buy {
-    color: #22c55e;
-}
-
-.trade-value.type-sell {
-    color: #ef4444;
-}
-
-.pnl-value.profit {
-    color: #22c55e;
-}
-
-.pnl-value.loss {
-    color: #ef4444;
-}
-
-.trade-card-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.trade-card-actions .action-btn {
-    flex: 1;
-    min-width: 70px;
-    padding: 10px 12px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.no-data-mobile {
-    text-align: center;
-    padding: 40px 20px;
-    color: #6b7280;
-    font-size: 16px;
-    font-style: italic;
-    background-color: #f9fafb;
-    border-radius: 12px;
-    border: 2px dashed #d1d5db;
-}
-
-/* Ensure table doesn't break on smaller screens when shown */
-@media (min-width: 768px) {
-    table {
-        min-width: 100%;
-    }
-}
-
-@media (max-width: 767px) {
-    table {
-        min-width: 100%;
-        font-size: 0.75rem;
-    }
-
-    th, td {
-        padding: 6px 4px;
-        font-size: 0.75rem;
-    }
-
-    .actions-container {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .action-btn {
-        padding: 6px 8px;
-        font-size: 0.75rem;
-        min-width: 50px;
-    }
-}
-
-/* Empty state styles */
-.empty-state-cell {
-    border: none !important;
-    padding: 0 !important;
-}
-
-.empty-state-mobile {
-    width: 100%;
+  }
 }
 </style>

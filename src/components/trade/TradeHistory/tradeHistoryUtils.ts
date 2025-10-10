@@ -36,7 +36,6 @@ interface TradeForPnL {
   type?: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const calculatePnL = (trade: TradeForPnL): number => {
   if (trade.entryPrice && trade.exitPrice && trade.lots) {
     const priceDiff = trade.exitPrice - trade.entryPrice

@@ -36,7 +36,7 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label for="lots">Lots</label>
+        <label for="lots">Size</label>
         <input
           id="lots"
           type="number"

@@ -324,7 +324,7 @@
             <span class="value">{{ formatCurrency(selectedTrade.exitPrice) }}</span>
           </div>
           <div class="detail-row">
-            <span class="label">Lots:</span>
+            <span class="label">Size:</span>
             <span class="value">{{ selectedTrade.lots }}</span>
           </div>
           <div class="detail-row">
@@ -453,7 +453,7 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="editLots">Lots</label>
+              <label for="editLots">Size</label>
               <input
                 id="editLots"
                 v-model="editedTrade.lots"

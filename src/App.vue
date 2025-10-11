@@ -38,10 +38,10 @@ const toggleMobileMenu = (): void => {
 
 // Toast functions
 const showToast = (
-  type: Toast['type'], 
-  title: string, 
-  message: string, 
-  duration: number = 3000
+  type: Toast['type'],
+  title: string,
+  message: string,
+  duration = 3000
 ): void => {
   const id = toastId++
   toasts.value.push({ id, type, title, message })
@@ -147,6 +147,17 @@ provide('navigateTo', navigateTo)
             >
               <span class="nav-icon">🔥</span>
               <span class="nav-text">Heatmap</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/lessons"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📚</span>
+              <span class="nav-text">Lessons</span>
             </RouterLink>
           </li>
           <li class="nav-item">

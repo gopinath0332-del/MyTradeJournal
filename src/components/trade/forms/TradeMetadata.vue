@@ -59,6 +59,7 @@
         <option value="Against rules">Against rules</option>
         <option value="over trade">over trade</option>
         <option value="greedy">greedy</option>
+        <option value="Delayed - Entry">Delayed - Entry</option>
         <option value="Early Entry">Early Entry</option>
         <option value="Late entry - over analysis">Late entry - over analysis</option>
         <option value="Late entry - time past">Late entry - time past</option>

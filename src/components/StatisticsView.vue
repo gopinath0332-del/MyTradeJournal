@@ -170,10 +170,13 @@
           <section class="stats-section">
             <h3>Risk & Drawdown Analysis</h3>
             <DrawdownAnalysis
-              :metrics="drawdownMetrics"
-              :periods="drawdownPeriods"
-              :chart-data="drawdownChartData"
+              :metrics="symbolDrawdownMetrics"
+              :periods="symbolDrawdownPeriods"
+              :chart-data="symbolDrawdownChartData"
+              :available-symbols="availableDrawdownSymbols"
+              :selected-symbol="selectedDrawdownSymbol"
               no-data-message="No drawdown data available for the selected year"
+              @update:selected-symbol="setSelectedDrawdownSymbol"
             />
           </section>
 
@@ -236,7 +239,7 @@ import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
 import { useStrategyAnalysis } from '@/composables/useStrategyAnalysis'
-import { useDrawdownAnalysis } from '@/composables/useDrawdownAnalysis'
+import { useSymbolDrawdownAnalysis } from '@/composables/useSymbolDrawdownAnalysis'
 
 // Reactive data
 const isLoading = ref(false)
@@ -278,7 +281,16 @@ const formatPercentage = (percentage) => {
 const { symbolPerformance, top10Symbols } = useSymbolPerformance(trades)
 const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
 const { strategyPerformance } = useStrategyAnalysis(trades)
-const { drawdownMetrics, drawdownPeriods, drawdownChartData } = useDrawdownAnalysis(trades)
+
+// Initialize symbol-specific drawdown analysis
+const {
+  selectedSymbol: selectedDrawdownSymbol,
+  availableSymbols: availableDrawdownSymbols,
+  drawdownMetrics: symbolDrawdownMetrics,
+  drawdownPeriods: symbolDrawdownPeriods,
+  drawdownChartData: symbolDrawdownChartData,
+  setSelectedSymbol: setSelectedDrawdownSymbol
+} = useSymbolDrawdownAnalysis(trades)
 
 // Provide formatting functions to child components
 provide('formatCurrency', formatCurrency)

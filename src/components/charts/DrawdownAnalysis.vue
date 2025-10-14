@@ -1,5 +1,24 @@
 <template>
   <div class="drawdown-analysis">
+    <!-- Symbol Filter -->
+    <div v-if="availableSymbols && availableSymbols.length > 1" class="symbol-filter">
+      <label for="symbol-select">Filter by Symbol:</label>
+      <select
+        id="symbol-select"
+        class="symbol-select"
+        :value="selectedSymbol"
+        @change="$emit('update:selectedSymbol', $event.target.value)"
+      >
+        <option
+          v-for="symbol in availableSymbols"
+          :key="symbol"
+          :value="symbol"
+        >
+          {{ symbol === 'all' ? 'All Symbols (Portfolio)' : symbol }}
+        </option>
+      </select>
+    </div>
+
     <!-- Drawdown Metrics Cards -->
     <div class="metrics-grid">
       <div class="metric-card critical">
@@ -227,8 +246,18 @@ const props = defineProps({
   noDataMessage: {
     type: String,
     default: 'No drawdown data available'
+  },
+  availableSymbols: {
+    type: Array,
+    default: () => []
+  },
+  selectedSymbol: {
+    type: String,
+    default: 'all'
   }
 })
+
+defineEmits(['update:selectedSymbol'])
 
 // Chart dimensions
 const chartWidth = 800
@@ -413,6 +442,46 @@ const sortedPeriods = computed(() => {
 
 .drawdown-analysis > * + * {
   margin-top: 2rem;
+}
+
+.symbol-filter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.symbol-filter label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.symbol-select {
+  flex: 1;
+  max-width: 300px;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
+  font-size: 0.875rem;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.symbol-select:hover {
+  border-color: #3b82f6;
+}
+
+.symbol-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .metrics-grid {

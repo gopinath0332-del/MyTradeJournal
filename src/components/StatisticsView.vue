@@ -86,6 +86,12 @@
               </div>
             </div>
           </section>
+
+          <!-- Symbol Drawdown Deep Dive -->
+          <section class="stats-section">
+            <h3>Symbol Drawdown Deep Dive</h3>
+            <SymbolDrawdownDeepDive :metrics="symbolDrawdownMetrics" />
+          </section>
         </div>
 
         <!-- Streaks Tab -->
@@ -186,12 +192,14 @@ import PnLHistogram from './charts/PnLHistogram.vue'
 import HoldTimeDistribution from './charts/HoldTimeDistribution.vue'
 import TradingEfficiencyMetrics from './charts/TradingEfficiencyMetrics.vue'
 import StreakMetrics from './charts/StreakMetrics.vue'
+import SymbolDrawdownDeepDive from './charts/SymbolDrawdownDeepDive.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
 import { useStrategyAnalysis } from '@/composables/useStrategyAnalysis'
 import { useDrawdownAnalysis } from '@/composables/useDrawdownAnalysis'
 import { useStreakAnalysis } from '@/composables/useStreakAnalysis'
+import { useSymbolDrawdown } from '@/composables/useSymbolDrawdown'
 
 // Reactive data
 const isLoading = ref(false)
@@ -236,6 +244,7 @@ const { dayOfWeekPerformance, monthlyTrend } = useTimeAnalysis(trades)
 const { strategyPerformance } = useStrategyAnalysis(trades)
 const { drawdownMetrics, drawdownPeriods, drawdownChartData } = useDrawdownAnalysis(trades)
 const { globalStreakMetrics, symbolStreakMetrics, strategyStreakMetrics } = useStreakAnalysis(trades)
+const { symbolDrawdownMetrics } = useSymbolDrawdown(trades)
 
 // Provide formatting functions to child components
 provide('formatCurrency', formatCurrency)

@@ -13,17 +13,98 @@ import {
 import { db } from './config'
 import { logger } from '@/utils/logger'
 import { cacheService } from '@/utils/cache'
+import { profileService } from './profileService'
 import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
 
+// Listen for profile changes and invalidate caches
+if (typeof window !== 'undefined') {
+  window.addEventListener('profile-changed', () => {
+    logger.info('Profile changed, invalidating trade caches', 'tradeService')
+    // Clear cache service
+    cacheService.clear()
+    // Clear default profile ID cache
+    if (tradeService._defaultProfileId) {
+      tradeService._defaultProfileId = null
+    }
+  })
+}
+
 export const tradeService = {
+  // Helper to get default profile ID (cached)
+  _defaultProfileId: null as string | null,
+
+  async _getDefaultProfileId(): Promise<string | null> {
+    if (this._defaultProfileId) {
+      return this._defaultProfileId
+    }
+
+    try {
+      const profiles = await profileService.getAllProfiles()
+      const defaultProfile = profiles.find(p => p.name === 'Default Profile' && p.type === 'live')
+
+      if (defaultProfile?.id) {
+        this._defaultProfileId = defaultProfile.id
+        return defaultProfile.id
+      }
+
+      // If no default profile found, return the first profile
+      return profiles[0]?.id || null
+    } catch (error) {
+      logger.warn('Could not get default profile ID', 'tradeService', error)
+      return null
+    }
+  },
+
+  // Helper to get current profile ID
+  _getCurrentProfileId(): string | null {
+    return profileService.getActiveProfileId()
+  },
+
+  // Helper to add profile filter to query conditions
+  _addProfileFilter(conditions: ReturnType<typeof where>[]): void {
+    const profileId = this._getCurrentProfileId()
+    if (profileId) {
+      conditions.push(where('profileId', '==', profileId))
+    }
+  },
+
+  // Helper to filter trades by profile on client side
+  async _filterByProfile(trades: Trade[]): Promise<Trade[]> {
+    const profileId = this._getCurrentProfileId()
+    if (!profileId) {
+      return trades
+    }
+
+    // Get default profile ID for comparison
+    const defaultProfileId = await this._getDefaultProfileId()
+
+    return trades.filter(trade => {
+      // If trade has a profileId, match it directly
+      if (trade.profileId) {
+        return trade.profileId === profileId
+      }
+
+      // If trade has no profileId, it belongs to the default profile
+      return profileId === defaultProfileId
+    })
+  },
+
   // Create a new trade
   async addTrade(trade: Omit<Trade, 'id' | 'createdAt' | 'updatedAt'>): Promise<Trade> {
     try {
       const now = new Date().toISOString()
+      let profileId = this._getCurrentProfileId()
+
+      // If no active profile, assign to default profile
+      if (!profileId) {
+        profileId = await this._getDefaultProfileId()
+      }
+
       const tradeData = {
         ...trade,
+        ...(profileId && { profileId }),
         createdAt: now,
         updatedAt: now
       }
@@ -32,7 +113,7 @@ export const tradeService = {
       // Invalidate relevant caches
       this._invalidateTradesCaches()
 
-      return { ...tradeData, id: docRef.id }
+      return { ...tradeData, id: docRef.id } as Trade
     } catch (error) {
       logger.error('Error adding trade', 'tradeService', error)
       throw error
@@ -97,13 +178,16 @@ export const tradeService = {
       logger.info('Attempting to get all trades (simple)', 'tradeService')
       const querySnapshot = await getDocs(collection(db, COLLECTION_NAME))
       logger.info(`Successfully retrieved ${querySnapshot.size} trades (simple)`, 'tradeService')
-      return querySnapshot.docs.map(doc => ({
+      const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Trade[]
-    } catch (error: any) {
+
+      // Filter by active profile
+      return await this._filterByProfile(allTrades)
+    } catch (error) {
       logger.error('Error getting trades (simple)', 'tradeService', error)
-      throw new Error(`Failed to retrieve trades: ${error.message || error}`)
+      throw new Error(`Failed to retrieve trades: ${error instanceof Error ? error.message : String(error)}`)
     }
   },
 
@@ -114,29 +198,33 @@ export const tradeService = {
       const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
       const querySnapshot = await getDocs(q)
       logger.info(`Successfully retrieved ${querySnapshot.size} trades with ordering`, 'tradeService')
-      return querySnapshot.docs.map(doc => ({
+      const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Trade[]
-    } catch (error: any) {
+
+      // Filter by active profile
+      return await this._filterByProfile(allTrades)
+    } catch (error) {
       logger.warn('Ordered query failed, falling back to simple query', 'tradeService', error)
 
       // Fallback to simple query
       try {
         return await this.getAllTradesSimple()
-      } catch (fallbackError: any) {
+      } catch (fallbackError) {
         // Enhanced error handling for debugging
         logger.error('Both ordered and simple queries failed', 'tradeService', fallbackError)
 
-        if (fallbackError.code === 'permission-denied') {
+        const err = fallbackError as { code?: string; message?: string }
+        if (err.code === 'permission-denied') {
           throw new Error(`Permission denied accessing Firestore. Please check your Firestore security rules. See FIRESTORE_SETUP.md for instructions.`)
-        } else if (fallbackError.code === 'not-found') {
+        } else if (err.code === 'not-found') {
           throw new Error(`Firestore database or collection '${COLLECTION_NAME}' not found. Please ensure Firestore is enabled in your Firebase project.`)
-        } else if (fallbackError.code === 'unauthenticated') {
+        } else if (err.code === 'unauthenticated') {
           throw new Error(`Authentication required. Please check your Firebase configuration and security rules.`)
         }
 
-        throw new Error(`Failed to retrieve trades: ${fallbackError.message || fallbackError}`)
+        throw new Error(`Failed to retrieve trades: ${err.message || fallbackError}`)
       }
     }
   },
@@ -155,10 +243,13 @@ export const tradeService = {
         orderBy('entryDate', 'desc')
       )
       const querySnapshot = await getDocs(q)
-      return querySnapshot.docs.map(doc => ({
+      const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Trade[]
+
+      // Filter by active profile
+      return await this._filterByProfile(allTrades)
     } catch (error: any) {
       logger.warn(`Complex query for year ${year} failed, falling back to client-side filtering`, 'tradeService', error)
 
@@ -182,8 +273,16 @@ export const tradeService = {
       // Try complex query first
       const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
       const querySnapshot = await getDocs(q)
-      const years = [...new Set(querySnapshot.docs.map(doc =>
-        new Date(doc.data().entryDate).getFullYear()
+      const allTrades = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Trade[]
+
+      // Filter by active profile
+      const filteredTrades = await this._filterByProfile(allTrades)
+
+      const years = [...new Set(filteredTrades.map(trade =>
+        new Date(trade.entryDate).getFullYear()
       ))]
       return years.sort((a, b) => b - a)
     } catch (error: any) {
@@ -274,6 +373,9 @@ export const tradeService = {
         ...doc.data()
       })) as Trade[]
 
+      // Apply profile filter first
+      trades = await this._filterByProfile(trades)
+
       // Apply profitability filter on client-side (since we can't easily do complex calculations in Firestore)
       if (filters.profitability && filters.profitability !== 'all') {
         trades = trades.filter(trade => {
@@ -299,7 +401,8 @@ export const tradeService = {
 
   // Get unique symbols without loading all trade data
   async getUniqueSymbols() {
-    const cacheKey = 'unique-symbols'
+    const profileId = this._getCurrentProfileId()
+    const cacheKey = `unique-symbols:${profileId || 'all'}`
 
     // Try to get from cache first
     const cached = cacheService.get(cacheKey)
@@ -310,7 +413,15 @@ export const tradeService = {
     try {
       const q = query(collection(db, COLLECTION_NAME))
       const querySnapshot = await getDocs(q)
-      const symbols = [...new Set(querySnapshot.docs.map(doc => doc.data().symbol))]
+      const allTrades = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Trade[]
+
+      // Filter by active profile
+      const filteredTrades = await this._filterByProfile(allTrades)
+
+      const symbols = [...new Set(filteredTrades.map(trade => trade.symbol))]
       const sortedSymbols = symbols.sort()
 
       // Cache for 30 minutes (symbols don't change frequently)

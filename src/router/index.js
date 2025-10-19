@@ -8,6 +8,7 @@ const CalendarView = () => import('../components/CalendarView.vue')
 const HeatmapView = () => import('../components/HeatmapView.vue')
 const TradeForm = () => import('../components/trade/TradeForm.vue')
 const LessonsLibrary = () => import('../components/LessonsLibrary.vue')
+const ProfileManager = () => import('../components/ProfileManager.vue')
 const FirebaseDebug = () => import('../components/debug/FirebaseDebug.vue')
 
 const routes = [
@@ -69,6 +70,14 @@ const routes = [
     component: LessonsLibrary,
     meta: {
       title: 'Lessons Library'
+    }
+  },
+  {
+    path: '/profiles',
+    name: 'Profiles',
+    component: ProfileManager,
+    meta: {
+      title: 'Profile Management'
     }
   },
   {

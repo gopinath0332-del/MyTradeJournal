@@ -13,13 +13,51 @@
     />
 
     <!-- Empty State -->
-    <EmptyState
-      v-else-if="!isLoading && allLessons.length === 0"
-      icon="📖"
-      title="No lessons recorded yet"
-      message="Start adding lessons learned from your trades to build your knowledge base"
-      :full-height="true"
-    />
+    <div v-else-if="!isLoading && allLessons.length === 0" class="empty-state-custom">
+      <EmptyState
+        icon="📖"
+        title="No lessons recorded yet"
+        message="Add 'Lessons Learned' notes to your trades to build your knowledge base. These lessons will appear here automatically."
+        :full-height="false"
+      />
+
+      <div class="getting-started-card">
+        <h3>🚀 Getting Started with Lessons</h3>
+        <div class="steps">
+          <div class="step">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <strong>Create or Edit a Trade</strong>
+              <p>Go to the Trade Form or edit an existing trade</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <strong>Add Lessons Learned</strong>
+              <p>Scroll to the "Lessons Learned" field and write what you learned</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <strong>Save the Trade</strong>
+              <p>Your lesson will automatically appear here with insights and categorization</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="example-lessons">
+          <h4>💡 Example Lessons:</h4>
+          <ul>
+            <li>"Waited too long to exit - should have taken profit at resistance"</li>
+            <li>"Entry was perfect, followed my strategy exactly"</li>
+            <li>"FOMO trade - entered without proper setup"</li>
+            <li>"Stop loss was too tight, got shaken out before the move"</li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Content -->
     <div v-else class="lessons-content">
@@ -349,7 +387,10 @@ const loadTrades = async() => {
   isLoading.value = true
   try {
     trades.value = await tradeService.getAllTrades()
-  } catch {
+    console.log('Loaded trades:', trades.value.length)
+    console.log('Trades with lessons:', trades.value.filter(t => t.lessonsLearned).length)
+  } catch (error) {
+    console.error('Error loading lessons:', error)
     // Error loading lessons - show empty state
     trades.value = []
   } finally {
@@ -383,6 +424,105 @@ onMounted(() => {
 .subtitle {
   color: #64748b;
   font-size: 1rem;
+}
+
+/* Empty State Custom */
+.empty-state-custom {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.getting-started-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.getting-started-card h3 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content strong {
+  display: block;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+  font-size: 1.125rem;
+}
+
+.step-content p {
+  color: #64748b;
+  margin: 0;
+}
+
+.example-lessons {
+  background: #f8fafc;
+  border-left: 4px solid #667eea;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.example-lessons h4 {
+  color: #1e293b;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+}
+
+.example-lessons ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.example-lessons li {
+  color: #475569;
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.example-lessons li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
 }
 
 /* Stats Overview */

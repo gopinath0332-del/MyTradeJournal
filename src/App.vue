@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, provide } from 'vue'
 import { useRouter } from 'vue-router'
+import ProfileSelector from './components/ProfileSelector.vue'
 import type { Trade as TradeType } from '@/types'
 
 interface Toast {
@@ -34,6 +35,27 @@ const navigateTo = (routeName: string): void => {
 // Toggle mobile menu
 const toggleMobileMenu = (): void => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+// Handle profile manager opening
+const openProfileManager = (): void => {
+  router.push({ name: 'Profiles' })
+  isMobileMenuOpen.value = false
+}
+
+// Listen for profile changes and reload data
+const handleProfileChange = (): void => {
+  // Components will automatically react to profile change via the composable
+  // Force reload current route to refresh data
+  const currentRoute = router.currentRoute.value
+  router.push('/temp-redirect').then(() => {
+    router.push(currentRoute.fullPath)
+  })
+}
+
+// Add event listener for profile changes
+if (typeof window !== 'undefined') {
+  window.addEventListener('profile-changed', handleProfileChange)
 }
 
 // Toast functions
@@ -79,6 +101,11 @@ provide('navigateTo', navigateTo)
     <header>
       <div class="header-content">
         <h1>📈 Trade Journal</h1>
+
+        <!-- Profile Selector -->
+        <div class="profile-selector-wrapper">
+          <ProfileSelector @open-manager="openProfileManager" />
+        </div>
 
         <!-- Mobile Menu Button -->
         <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
@@ -158,6 +185,17 @@ provide('navigateTo', navigateTo)
             >
               <span class="nav-icon">📚</span>
               <span class="nav-text">Lessons</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/profiles"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">👤</span>
+              <span class="nav-text">Profiles</span>
             </RouterLink>
           </li>
           <li class="nav-item">
@@ -297,27 +335,44 @@ header {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.profile-selector-wrapper {
+  display: none;
+  order: 3;
 }
 
 header h1 {
   font-size: 1.75rem;
   margin: 0;
   color: #42b883;
+  flex: 0 0 auto;
+  order: 1;
 }
 
 @media (min-width: 768px) {
   header {
     margin-bottom: 30px;
-    text-align: center;
   }
 
   .header-content {
-    justify-content: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
     margin-bottom: 1.5rem;
+  }
+
+  .profile-selector-wrapper {
+    display: block;
+    order: 2;
+    flex: 0 0 auto;
   }
 
   header h1 {
     font-size: 2.5rem;
+    flex: 1 1 auto;
+    text-align: left;
   }
 }
 

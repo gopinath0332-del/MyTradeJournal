@@ -19,6 +19,7 @@ const editingTrade = ref<TradeType | null>(null)
 const toasts = ref<Toast[]>([])
 const isMobileMenuOpen = ref<boolean>(false)
 const showUserMenu = ref<boolean>(false)
+const isSidebarCollapsed = ref<boolean>(false)
 let toastId = 0
 
 // Provide the shared state to child components
@@ -39,6 +40,11 @@ const navigateTo = (routeName: string): void => {
 // Toggle mobile menu
 const toggleMobileMenu = (): void => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
+}
+
+// Toggle sidebar (desktop)
+const toggleSidebar = (): void => {
+  isSidebarCollapsed.value = !isSidebarCollapsed.value
 }
 
 // Toggle user menu
@@ -139,13 +145,139 @@ provide('navigateTo', navigateTo)
 <template>
   <AuthGuard>
     <div class="app-container">
-      <header>
-        <div class="header-content">
-          <h1>📈 Trade Journal</h1>
+      <!-- Mobile Header -->
+      <div class="mobile-header">
+        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+        </button>
+        <h1 class="mobile-title">
+          📈 Trade Journal
+        </h1>
+        <div class="mobile-profile-selector">
+          <ProfileSelector @open-manager="openProfileManager" />
+        </div>
+      </div>
 
-          <!-- User Menu (Desktop) -->
-          <div v-if="isAuthenticated" class="user-menu-wrapper">
-            <button class="user-menu-button" @click="toggleUserMenu">
+      <!-- Mobile Menu Overlay -->
+      <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false" />
+
+      <!-- Left Sidebar Navigation -->
+      <nav class="sidebar-nav" :class="{ 'sidebar-nav--open': isMobileMenuOpen, 'sidebar-nav--collapsed': isSidebarCollapsed }">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+          <h1 v-if="!isSidebarCollapsed" class="sidebar-logo">
+            📈 Trade Journal
+          </h1>
+          <!-- Desktop Toggle Button -->
+          <button class="sidebar-toggle desktop-only" aria-label="Toggle sidebar" @click="toggleSidebar">
+            <span class="toggle-icon">{{ isSidebarCollapsed ? '→' : '←' }}</span>
+          </button>
+        </div>
+
+        <!-- Navigation Menu -->
+        <ul class="nav-list">
+          <li class="nav-item">
+            <RouterLink
+              to="/dashboard"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Dashboard</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/history"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📋</span>
+              <span class="nav-text">Trade History</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/statistics"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📈</span>
+              <span class="nav-text">Statistics</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/calendar"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📅</span>
+              <span class="nav-text">Calendar</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/heatmap"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">🔥</span>
+              <span class="nav-text">Heatmap</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/lessons"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">📚</span>
+              <span class="nav-text">Lessons</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/profiles"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">👤</span>
+              <span class="nav-text">Profiles</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
+              to="/trade"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">➕</span>
+              <span class="nav-text">Log Trade</span>
+            </RouterLink>
+          </li>
+        </ul>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <!-- Profile Selector (Desktop) -->
+          <div class="desktop-profile-selector">
+            <ProfileSelector @open-manager="openProfileManager" />
+          </div>
+
+          <!-- User Menu -->
+          <div v-if="isAuthenticated" class="sidebar-user">
+            <button class="sidebar-user-button" @click="toggleUserMenu">
               <img
                 v-if="user?.photoURL"
                 :src="user.photoURL"
@@ -155,146 +287,30 @@ provide('navigateTo', navigateTo)
               <span v-else class="user-avatar-placeholder">
                 {{ user?.displayName?.charAt(0) || '?' }}
               </span>
-              <span class="user-name">{{ user?.displayName }}</span>
-              <span class="dropdown-arrow">▼</span>
+              <div v-if="!isSidebarCollapsed" class="user-details">
+                <span class="user-name">{{ user?.displayName }}</span>
+                <span class="user-email-small">{{ user?.email }}</span>
+              </div>
+              <span v-if="!isSidebarCollapsed" class="dropdown-arrow">▼</span>
             </button>
 
             <!-- User Dropdown Menu -->
             <div v-if="showUserMenu" class="user-dropdown">
-              <div class="user-info">
-                <div class="user-email">{{ user?.email }}</div>
-              </div>
-              <div class="dropdown-divider" />
               <button class="dropdown-item" @click="handleSignOut">
                 <span class="dropdown-icon">🚪</span>
                 Sign Out
               </button>
             </div>
           </div>
-
-          <!-- Profile Selector -->
-          <div class="profile-selector-wrapper">
-            <ProfileSelector @open-manager="openProfileManager" />
-          </div>
-
-          <!-- Mobile Menu Button -->
-          <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
-            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-          </button>
         </div>
+      </nav>
 
-        <!-- Mobile Menu Overlay -->
-        <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false" />
-
-        <!-- Navigation Menu -->
-        <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
-          <ul class="nav-list">
-            <li class="nav-item">
-              <RouterLink
-                to="/dashboard"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">📊</span>
-                <span class="nav-text">Dashboard</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/history"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">Trade History</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/statistics"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">📈</span>
-                <span class="nav-text">Statistics</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/calendar"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">📅</span>
-                <span class="nav-text">Calendar</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item desktop-only">
-              <RouterLink
-                to="/heatmap"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">🔥</span>
-                <span class="nav-text">Heatmap</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/lessons"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">📚</span>
-                <span class="nav-text">Lessons</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/profiles"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">Profiles</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item">
-              <RouterLink
-                to="/trade"
-                class="nav-link"
-                active-class="active"
-                @click="isMobileMenuOpen = false"
-              >
-                <span class="nav-icon">➕</span>
-                <span class="nav-text">Log Trade</span>
-              </RouterLink>
-            </li>
-            <li class="nav-item mobile-only">
-              <button
-                class="nav-link nav-button"
-                @click="handleSignOut"
-              >
-                <span class="nav-icon">🚪</span>
-                <span class="nav-text">Sign Out</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </header>
-
-      <main>
-        <RouterView />
-      </main>
+      <!-- Main Content Area -->
+      <div class="main-wrapper" :class="{ 'main-wrapper--expanded': isSidebarCollapsed }">
+        <main>
+          <RouterView />
+        </main>
+      </div>
 
       <!-- Toast Container -->
       <div class="toast-container">
@@ -394,71 +410,249 @@ provide('navigateTo', navigateTo)
   }
 }
 
+/* App Container with Sidebar Layout */
 .app-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
+  display: flex;
+  min-height: 100vh;
+  background: #f8f9fa;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .app-container {
-    padding: 20px;
+    flex-direction: column;
   }
 }
 
-header {
-  margin-bottom: 1.5rem;
-}
-
-.header-content {
+/* Mobile Header */
+.mobile-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  gap: 1rem;
-  flex-wrap: wrap;
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.profile-selector-wrapper {
-  display: none;
-  order: 3;
+.mobile-title {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #42b883;
+  flex: 1;
+  text-align: center;
 }
 
-/* User Menu Styles */
-.user-menu-wrapper {
-  position: relative;
-  display: none;
-  order: 2;
-}
-
-.user-menu-button {
+.mobile-profile-selector {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .mobile-header {
+    display: none;
+  }
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+  width: 280px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Collapsed State */
+.sidebar-nav--collapsed {
+  width: 80px;
+}
+
+@media (max-width: 767px) {
+  .sidebar-nav {
+    position: fixed;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 280px;
+  }
+
+  .sidebar-nav--open {
+    transform: translateX(0);
+  }
+
+  /* Don't allow collapse on mobile */
+  .sidebar-nav--collapsed {
+    width: 280px;
+  }
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #42b883 0%, #369870 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  min-height: 64px;
+}
+
+.sidebar-nav--collapsed .sidebar-header {
+  padding: 1rem;
+  justify-content: center;
+}
+
+.sidebar-logo {
+  font-size: 1.5rem;
+  margin: 0;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.sidebar-nav--collapsed .sidebar-toggle {
+  position: absolute;
+  /* right: -18px; */
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  color: #42b883;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.sidebar-nav--collapsed .sidebar-toggle:hover {
+  background: #f9fafb;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.toggle-icon {
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Sidebar User Section */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  transition: padding 0.3s ease;
+}
+
+.sidebar-nav--collapsed .sidebar-footer {
+  padding: 0.75rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.desktop-profile-selector {
+  margin-bottom: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-nav--collapsed .desktop-profile-selector {
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .desktop-profile-selector {
+    display: none;
+  }
+}
+
+.sidebar-user {
+  position: relative;
+}
+
+.sidebar-user-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  padding: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
-  font-size: 0.875rem;
+  min-height: 56px;
 }
 
-.user-menu-button:hover {
+.sidebar-nav--collapsed .sidebar-user-button {
+  justify-content: center;
+  padding: 0.5rem;
+  min-height: 56px;
+}
+
+.sidebar-user-button:hover {
   background: #f9fafb;
-  border-color: #d1d5db;
+  border-color: #42b883;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(66, 184, 131, 0.15);
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .user-avatar-placeholder {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -466,119 +660,84 @@ header {
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
 }
 
 .user-name {
-  max-width: 150px;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.875rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #1f2937;
-  font-weight: 500;
+  width: 100%;
+}
+
+.user-email-small {
+  font-size: 0.75rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .dropdown-arrow {
   font-size: 0.75rem;
   color: #6b7280;
   transition: transform 0.2s;
+  flex-shrink: 0;
 }
 
-.user-menu-button:hover .dropdown-arrow {
-  transform: translateY(2px);
+.sidebar-user-button:hover .dropdown-arrow {
+  transform: rotate(180deg);
 }
 
 .user-dropdown {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  bottom: calc(100% + 0.5rem);
+  left: 0;
   right: 0;
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  min-width: 220px;
-  z-index: 1000;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-}
-
-.user-info {
-  padding: 0.75rem 1rem;
-  background: #f9fafb;
-}
-
-.user-email {
-  font-size: 0.875rem;
-  color: #6b7280;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: #e5e7eb;
-  margin: 0;
+  z-index: 1001;
 }
 
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   background: none;
   border: none;
   text-align: left;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
   font-size: 0.875rem;
   color: #374151;
+  font-weight: 500;
 }
 
 .dropdown-item:hover {
-  background: #f3f4f6;
+  background: linear-gradient(135deg, #e8f5f1 0%, #f1f9f6 100%);
+  color: #42b883;
 }
 
 .dropdown-icon {
-  font-size: 1rem;
-}
-
-header h1 {
-  font-size: 1.75rem;
-  margin: 0;
-  color: #42b883;
-  flex: 0 0 auto;
-  order: 1;
-}
-
-@media (min-width: 768px) {
-  header {
-    margin-bottom: 30px;
-  }
-
-  .header-content {
-    justify-content: space-between;
-    flex-wrap: nowrap;
-    margin-bottom: 1.5rem;
-  }
-
-  .user-menu-wrapper {
-    display: block;
-    order: 1;
-  }
-
-  .profile-selector-wrapper {
-    display: block;
-    order: 3;
-    flex: 0 0 auto;
-  }
-
-  header h1 {
-    font-size: 2.5rem;
-    flex: 1 1 auto;
-    text-align: left;
-    order: 2;
-  }
+  font-size: 1.125rem;
 }
 
 /* Mobile Menu Toggle */
@@ -622,17 +781,15 @@ header h1 {
 }
 
 /* Mobile Menu Overlay */
-@media (max-width: 767px) {
-  .mobile-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    animation: fadeIn 0.3s ease;
-  }
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
@@ -640,138 +797,213 @@ header h1 {
   to { opacity: 1; }
 }
 
-/* Navigation Menu */
-.nav-menu {
-  position: relative;
-}
-
-@media (max-width: 767px) {
-  .nav-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-100%);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    padding: 1rem 0;
-  }
-
-  .nav-menu--open {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-  }
-}
-
+/* Navigation List */
 .nav-list {
   list-style: none;
-  padding: 0;
+  padding: 1rem 0.5rem;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-@media (max-width: 767px) {
-  .nav-list {
-    padding: 1rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .nav-list {
-    flex-direction: row;
-    justify-content: center;
-    gap: 1rem;
-  }
+.sidebar-nav--collapsed .nav-list {
+  padding: 1rem 0.5rem;
+  gap: 0.75rem;
+  align-items: center;
 }
 
 .nav-item {
   position: relative;
 }
 
+/* Navigation Links */
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
   text-decoration: none;
   color: #64748b;
   font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  margin: 0 0.25rem;
+  white-space: nowrap;
+  min-height: 48px;
 }
 
-@media (min-width: 768px) {
-  .nav-link {
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    border: 2px solid transparent;
-  }
+.sidebar-nav--collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem;
+  margin: 0;
+  min-height: 48px;
+  width: 56px;
+  flex-shrink: 0;
+}
+
+/* Ripple effect on hover */
+.nav-link::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(66, 184, 131, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.nav-link:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .nav-link:hover {
-  background-color: #f1f5f9;
+  background: linear-gradient(135deg, #e8f5f1 0%, #f1f9f6 100%);
   color: #42b883;
+  transform: translateX(4px);
+  padding-left: 1.25rem;
+}
+
+.sidebar-nav--collapsed .nav-link:hover {
+  transform: scale(1.05);
+  padding-left: 0.75rem;
 }
 
 .nav-link.active {
-  background-color: #42b883;
+  background: linear-gradient(135deg, #42b883 0%, #369870 100%);
   color: white;
+  box-shadow: 0 2px 8px rgba(66, 184, 131, 0.3);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 70%;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 0 4px 4px 0;
+  animation: slideIn 0.3s ease;
+}
+
+.sidebar-nav--collapsed .nav-link.active::after {
+  width: 3px;
+  height: 80%;
+}
+
+@keyframes slideIn {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: 70%;
+    opacity: 1;
+  }
 }
 
 .nav-link.active:hover {
-  background-color: #369870;
+  background: linear-gradient(135deg, #369870 0%, #2d8360 100%);
+  transform: translateX(4px);
 }
 
 .nav-icon {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.sidebar-nav--collapsed .nav-icon {
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+}
+
+.nav-link:hover .nav-icon {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.sidebar-nav--collapsed .nav-link:hover .nav-icon {
+  transform: scale(1.1);
+}
+
+.nav-link.active .nav-icon {
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .nav-text {
-  font-size: 1rem;
+  font-size: 0.9375rem;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-nav--collapsed .nav-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+/* Main Content Area */
+.main-wrapper {
+  flex: 1;
+  margin-left: 280px;
+  min-height: 100vh;
+  background: #f8f9fa;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-wrapper--expanded {
+  margin-left: 80px;
+}
+
+@media (max-width: 767px) {
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .main-wrapper--expanded {
+    margin-left: 0;
+  }
 }
 
 main {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-top: 1rem;
+  padding: 1.5rem;
+  min-height: calc(100vh - 3rem);
 }
 
 @media (min-width: 768px) {
   main {
-    margin-top: 0;
-  }
-}
-
-/* Hide heatmap menu on mobile devices */
-@media (max-width: 767px) {
-  .nav-item.desktop-only {
-    display: none;
-  }
-}
-
-/* Show mobile-only items only on mobile */
-.nav-item.mobile-only {
-  display: block;
-}
-
-@media (min-width: 768px) {
-  .nav-item.mobile-only {
-    display: none;
+    padding: 2rem;
   }
 }
 

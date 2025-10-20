@@ -6,10 +6,11 @@ import {
   onAuthStateChanged,
   type User
 } from 'firebase/auth'
+import { app } from './config'
 import { logger } from '@/utils/logger'
 
 // Initialize Firebase Auth
-const auth = getAuth()
+const auth = getAuth(app)
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider()

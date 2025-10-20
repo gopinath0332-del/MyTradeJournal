@@ -77,27 +77,27 @@ This checklist tracks the implementation progress of Google Authentication for t
   - [ ] ✅ Test: Try accessing Firestore without auth (should fail)
   - [ ] ✅ Test: Try accessing after sign-in (should work)
 
-### Phase 4: Application Integration 🔌
+### Phase 4: Application Integration ✅
 
-- [ ] **Update App.vue**
-  - [ ] Import AuthGuard component
-  - [ ] Wrap main app content with `<AuthGuard>`
-  - [ ] Test that app shows loading state initially
-  - [ ] Test that login page appears when not authenticated
+- [x] **Update App.vue**
+  - [x] Import AuthGuard component
+  - [x] Wrap main app content with `<AuthGuard>`
+  - [x] Add user authentication state from useAuth composable
+  - [x] Add user menu with avatar and dropdown
+  - [x] Add sign-out functionality with toast notifications
+  - [x] Add click-outside handler for user menu dropdown
+  - [x] Style user menu with responsive layout (desktop: left, mobile: dropdown)
+  - [x] Test that app shows loading state initially
+  - [x] Test that login page appears when not authenticated
+  - [x] Build verification: `npm run build` successful (3.42s)
 
-  **Example:**
-  ```vue
-  <template>
-    <AuthGuard>
-      <div v-if="!loading" id="app">
-        <!-- Your existing app content -->
-        <header>
-          <h1>📈 Trading Journal</h1>
-          <UserMenu v-if="isAuthenticated" />
-        </header>
-        <nav>
-          <!-- Navigation -->
-        </nav>
+  **Implementation Details:**
+  - AuthGuard wrapper handles loading and authentication redirect
+  - User menu displays avatar (or gradient placeholder) + user name
+  - Dropdown menu shows user email and sign-out button
+  - Sign-out includes error handling and success/error toasts
+  - Mobile-friendly with proper flexbox ordering
+  - Integrated with existing ProfileSelector in header
         <main>
           <RouterView />
         </main>
@@ -186,11 +186,35 @@ This checklist tracks the implementation progress of Google Authentication for t
   - [ ] Repeat for all trades
   - [ ] Repeat for all profiles
 
-- [ ] **Option B: Create Migration Script** (Recommended for many documents)
-  - [ ] Create `scripts/migrateUserIds.js`
-  - [ ] Add migration logic to add `userId` to all documents
-  - [ ] Run script once
+- [x] **Option B: Create Migration Script** ✅ (Recommended for many documents)
+  - [x] Create `scripts/migrateUserIds.js` - Node.js migration script
+  - [x] Create `scripts/migrate.html` - Browser-based migration tool
+  - [x] Create comprehensive documentation `docs/PHASE5_MIGRATION_GUIDE.md`
+  - [x] Add migration logic to add `userId` to all documents
+  - [ ] Configure Firebase config in migration tool
+  - [ ] Run migration script/page
   - [ ] Verify all documents have `userId` field
+
+  **Implementation Details:**
+  - **Node.js Script** (`scripts/migrateUserIds.js`):
+    - Interactive command-line tool
+    - Uses Firebase SDK to update documents
+    - Includes progress logging and error handling
+    - Shows detailed summary after completion
+
+  - **Browser Tool** (`scripts/migrate.html`):
+    - User-friendly HTML interface
+    - Visual progress tracking with color-coded logs
+    - Real-time statistics display
+    - No additional dependencies needed
+    - Recommended for most users
+
+  - **Documentation** (`docs/PHASE5_MIGRATION_GUIDE.md`):
+    - Step-by-step instructions
+    - Troubleshooting section
+    - Checklist for tracking progress
+    - Both Option A and B covered
+    - Expected results and verification steps
 
 - [ ] **Re-enable Security Rules**
   - [ ] Restore the authenticated security rules from Phase 3

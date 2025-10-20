@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Trades collection - require authentication and user ownership
+    match /trades/{tradeId} {
+      // Allow read if authenticated and user owns this trade
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Allow create if authenticated and creating with own userId
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Allow update/delete if authenticated and user owns this trade
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Profiles collection - require authentication and user ownership
+    match /profiles/{profileId} {
+      // Allow read if authenticated and user owns this profile
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Allow create if authenticated and creating with own userId
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Allow update/delete if authenticated and user owns this profile
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Lessons collection (if you have it)
+    match /lessons/{lessonId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+  }
+}

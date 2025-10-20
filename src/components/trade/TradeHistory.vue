@@ -119,7 +119,16 @@ const loadTrades = async() => {
   } catch (error) {
     logger.error('Error loading trades', 'TradeHistory', error)
     trades.value = []
-    displayToast('error', 'Error', 'Failed to load trades. Please try again.')
+
+    // Show more helpful error messages
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('authenticated')) {
+      displayToast('error', 'Authentication Required', 'Please sign in with Google to view your trades.')
+    } else if (errorMessage.includes('permission')) {
+      displayToast('error', 'Permission Error', 'Database access denied. Please check Firestore rules.')
+    } else {
+      displayToast('error', 'Error', 'Failed to load trades. Please try again.')
+    }
   } finally {
     isLoadingTrades.value = false
   }
@@ -132,6 +141,7 @@ const loadUniqueSymbols = async() => {
   } catch (error) {
     logger.error('Error loading unique symbols', 'TradeHistory', error)
     uniqueSymbols.value = []
+    // Symbols are not critical, so just log the error
   }
 }
 

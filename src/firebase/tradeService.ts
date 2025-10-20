@@ -14,6 +14,7 @@ import { db } from './config'
 import { logger } from '@/utils/logger'
 import { cacheService } from '@/utils/cache'
 import { profileService } from './profileService'
+import { authService } from './authService'
 import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
@@ -102,9 +103,16 @@ export const tradeService = {
         profileId = await this._getDefaultProfileId()
       }
 
+      // Get current user ID (required for auth)
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to create trades')
+      }
+
       const tradeData = {
         ...trade,
         ...(profileId && { profileId }),
+        userId, // Add userId to the trade
         createdAt: now,
         updatedAt: now
       }

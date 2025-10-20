@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './config'
 import { logger } from '@/utils/logger'
+import { authService } from './authService'
 import type { Profile } from '@/types/profile'
 
 const COLLECTION_NAME = 'profiles'
@@ -22,8 +23,16 @@ export const profileService = {
   async createProfile(profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'>): Promise<Profile> {
     try {
       const now = new Date().toISOString()
+
+      // Get current user ID (required for auth)
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to create profiles')
+      }
+
       const profileData = {
         ...profile,
+        userId, // Add userId to the profile
         createdAt: now,
         updatedAt: now
       }

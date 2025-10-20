@@ -50,6 +50,7 @@ const toggleUserMenu = (): void => {
 const handleSignOut = async(): Promise<void> => {
   try {
     showUserMenu.value = false
+    isMobileMenuOpen.value = false
     await signOut()
     showToast('success', 'Signed Out', 'You have been successfully signed out.')
   } catch (error) {

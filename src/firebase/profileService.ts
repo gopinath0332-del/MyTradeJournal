@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './config'
 import { logger } from '@/utils/logger'
+import { authService } from './authService'
 import type { Profile } from '@/types/profile'
 
 const COLLECTION_NAME = 'profiles'
@@ -22,8 +23,16 @@ export const profileService = {
   async createProfile(profile: Omit<Profile, 'id' | 'createdAt' | 'updatedAt'>): Promise<Profile> {
     try {
       const now = new Date().toISOString()
+
+      // Get current user ID (required for auth)
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to create profiles')
+      }
+
       const profileData = {
         ...profile,
+        userId, // Add userId to the profile
         createdAt: now,
         updatedAt: now
       }
@@ -92,7 +101,18 @@ export const profileService = {
   // Get all profiles
   async getAllProfiles(): Promise<Profile[]> {
     try {
-      const q = query(collection(db, COLLECTION_NAME), orderBy('createdAt', 'desc'))
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access profiles')
+      }
+
+      // Query with userId filter for security
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      )
       const querySnapshot = await getDocs(q)
 
       return querySnapshot.docs.map(doc => ({
@@ -104,7 +124,18 @@ export const profileService = {
 
       // Fallback to simple query without ordering
       try {
-        const querySnapshot = await getDocs(collection(db, COLLECTION_NAME))
+        // Get current user ID
+        const userId = authService.getCurrentUserId()
+        if (!userId) {
+          throw new Error('User must be authenticated to access profiles')
+        }
+
+        // Query with userId filter for security
+        const q = query(
+          collection(db, COLLECTION_NAME),
+          where('userId', '==', userId)
+        )
+        const querySnapshot = await getDocs(q)
         return querySnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -119,8 +150,16 @@ export const profileService = {
   // Get active profiles only
   async getActiveProfiles(): Promise<Profile[]> {
     try {
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access profiles')
+      }
+
+      // Query with userId filter for security
       const q = query(
         collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
         where('isActive', '==', true),
         orderBy('name', 'asc')
       )

@@ -21,6 +21,7 @@ export interface Trade {
   pnlPercentage?: number
   pnlAmount?: number
   profileId?: string // Associate trade with a profile
+  userId?: string // Associate trade with a user (for authentication)
   createdAt: string
   updatedAt: string
 }

@@ -14,6 +14,7 @@ import { db } from './config'
 import { logger } from '@/utils/logger'
 import { cacheService } from '@/utils/cache'
 import { profileService } from './profileService'
+import { authService } from './authService'
 import type { Trade, TradeFilters } from '@/types'
 
 const COLLECTION_NAME = 'trades'
@@ -62,6 +63,14 @@ export const tradeService = {
     return profileService.getActiveProfileId()
   },
 
+  // Helper to add userId filter to query conditions (REQUIRED for security)
+  _addUserIdFilter(conditions: ReturnType<typeof where>[]): void {
+    const userId = authService.getCurrentUserId()
+    if (userId) {
+      conditions.push(where('userId', '==', userId))
+    }
+  },
+
   // Helper to add profile filter to query conditions
   _addProfileFilter(conditions: ReturnType<typeof where>[]): void {
     const profileId = this._getCurrentProfileId()
@@ -102,9 +111,16 @@ export const tradeService = {
         profileId = await this._getDefaultProfileId()
       }
 
+      // Get current user ID (required for auth)
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to create trades')
+      }
+
       const tradeData = {
         ...trade,
         ...(profileId && { profileId }),
+        userId, // Add userId to the trade
         createdAt: now,
         updatedAt: now
       }
@@ -176,7 +192,18 @@ export const tradeService = {
   async getAllTradesSimple() {
     try {
       logger.info('Attempting to get all trades (simple)', 'tradeService')
-      const querySnapshot = await getDocs(collection(db, COLLECTION_NAME))
+
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
+      // Query with userId filter for security
+      const conditions = [where('userId', '==', userId)]
+      const q = query(collection(db, COLLECTION_NAME), ...conditions)
+      const querySnapshot = await getDocs(q)
+
       logger.info(`Successfully retrieved ${querySnapshot.size} trades (simple)`, 'tradeService')
       const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -195,7 +222,19 @@ export const tradeService = {
   async getAllTrades() {
     try {
       logger.info('Attempting to get all trades with ordering', 'tradeService')
-      const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
+
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
+      // Query with userId filter for security
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
+        orderBy('entryDate', 'desc')
+      )
       const querySnapshot = await getDocs(q)
       logger.info(`Successfully retrieved ${querySnapshot.size} trades with ordering`, 'tradeService')
       const allTrades = querySnapshot.docs.map(doc => ({
@@ -232,12 +271,19 @@ export const tradeService = {
   // Get trades for a specific year with fallback
   async getTradesByYear(year: number) {
     try {
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
       // Try complex query first
       const startDate = `${year}-01-01`
       const endDate = `${year + 1}-01-01`
 
       const q = query(
         collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
         where('entryDate', '>=', startDate),
         where('entryDate', '<', endDate),
         orderBy('entryDate', 'desc')
@@ -270,8 +316,18 @@ export const tradeService = {
   // Get available years with fallback
   async getAvailableYears() {
     try {
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
       // Try complex query first
-      const q = query(collection(db, COLLECTION_NAME), orderBy('entryDate', 'desc'))
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('userId', '==', userId),
+        orderBy('entryDate', 'desc')
+      )
       const querySnapshot = await getDocs(q)
       const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -314,8 +370,14 @@ export const tradeService = {
     }
 
     try {
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
       let q = query(collection(db, COLLECTION_NAME))
-      const conditions = []
+      const conditions = [where('userId', '==', userId)] // Always filter by userId
 
       // Apply date range filter
       if (filters.startDate && filters.endDate) {
@@ -411,7 +473,17 @@ export const tradeService = {
     }
 
     try {
-      const q = query(collection(db, COLLECTION_NAME))
+      // Get current user ID
+      const userId = authService.getCurrentUserId()
+      if (!userId) {
+        throw new Error('User must be authenticated to access trades')
+      }
+
+      // Query with userId filter for security
+      const q = query(
+        collection(db, COLLECTION_NAME),
+        where('userId', '==', userId)
+      )
       const querySnapshot = await getDocs(q)
       const allTrades = querySnapshot.docs.map(doc => ({
         id: doc.id,

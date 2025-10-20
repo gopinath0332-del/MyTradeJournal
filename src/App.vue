@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import AuthGuard from './components/auth/AuthGuard.vue'
+import { useAuth } from './composables/useAuth'
 import ProfileSelector from './components/ProfileSelector.vue'
 import type { Trade as TradeType } from '@/types'
 
@@ -12,9 +14,11 @@ interface Toast {
 }
 
 const router = useRouter()
+const { user, isAuthenticated, signOut } = useAuth()
 const editingTrade = ref<TradeType | null>(null)
 const toasts = ref<Toast[]>([])
 const isMobileMenuOpen = ref<boolean>(false)
+const showUserMenu = ref<boolean>(false)
 let toastId = 0
 
 // Provide the shared state to child components
@@ -37,6 +41,23 @@ const toggleMobileMenu = (): void => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value
 }
 
+// Toggle user menu
+const toggleUserMenu = (): void => {
+  showUserMenu.value = !showUserMenu.value
+}
+
+// Handle sign out
+const handleSignOut = async(): Promise<void> => {
+  try {
+    showUserMenu.value = false
+    await signOut()
+    showToast('success', 'Signed Out', 'You have been successfully signed out.')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to sign out'
+    showToast('error', 'Sign Out Failed', message)
+  }
+}
+
 // Handle profile manager opening
 const openProfileManager = (): void => {
   router.push({ name: 'Profiles' })
@@ -53,10 +74,28 @@ const handleProfileChange = (): void => {
   })
 }
 
-// Add event listener for profile changes
-if (typeof window !== 'undefined') {
-  window.addEventListener('profile-changed', handleProfileChange)
+// Close user menu when clicking outside
+const handleClickOutside = (event: MouseEvent): void => {
+  const target = event.target as HTMLElement
+  if (!target.closest('.user-menu-wrapper')) {
+    showUserMenu.value = false
+  }
 }
+
+// Add event listeners
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('profile-changed', handleProfileChange)
+    document.addEventListener('click', handleClickOutside)
+  }
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('profile-changed', handleProfileChange)
+    document.removeEventListener('click', handleClickOutside)
+  }
+})
 
 // Toast functions
 const showToast = (
@@ -97,144 +136,175 @@ provide('navigateTo', navigateTo)
 </script>
 
 <template>
-  <div class="app-container">
-    <header>
-      <div class="header-content">
-        <h1>📈 Trade Journal</h1>
+  <AuthGuard>
+    <div class="app-container">
+      <header>
+        <div class="header-content">
+          <h1>📈 Trade Journal</h1>
 
-        <!-- Profile Selector -->
-        <div class="profile-selector-wrapper">
-          <ProfileSelector @open-manager="openProfileManager" />
+          <!-- User Menu (Desktop) -->
+          <div v-if="isAuthenticated" class="user-menu-wrapper">
+            <button class="user-menu-button" @click="toggleUserMenu">
+              <img
+                v-if="user?.photoURL"
+                :src="user.photoURL"
+                :alt="user.displayName || 'User'"
+                class="user-avatar"
+              >
+              <span v-else class="user-avatar-placeholder">
+                {{ user?.displayName?.charAt(0) || '?' }}
+              </span>
+              <span class="user-name">{{ user?.displayName }}</span>
+              <span class="dropdown-arrow">▼</span>
+            </button>
+
+            <!-- User Dropdown Menu -->
+            <div v-if="showUserMenu" class="user-dropdown">
+              <div class="user-info">
+                <div class="user-email">{{ user?.email }}</div>
+              </div>
+              <div class="dropdown-divider" />
+              <button class="dropdown-item" @click="handleSignOut">
+                <span class="dropdown-icon">🚪</span>
+                Sign Out
+              </button>
+            </div>
+          </div>
+
+          <!-- Profile Selector -->
+          <div class="profile-selector-wrapper">
+            <ProfileSelector @open-manager="openProfileManager" />
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
+            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+            <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
+          </button>
         </div>
 
-        <!-- Mobile Menu Button -->
-        <button class="mobile-menu-toggle" aria-label="Toggle navigation menu" @click="toggleMobileMenu">
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-          <span class="hamburger-line" :class="{ active: isMobileMenuOpen }" />
-        </button>
-      </div>
+        <!-- Mobile Menu Overlay -->
+        <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false" />
 
-      <!-- Mobile Menu Overlay -->
-      <div v-if="isMobileMenuOpen" class="mobile-menu-overlay" @click="isMobileMenuOpen = false" />
+        <!-- Navigation Menu -->
+        <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <RouterLink
+                to="/dashboard"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Dashboard</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/history"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">Trade History</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/statistics"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Statistics</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/calendar"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">📅</span>
+                <span class="nav-text">Calendar</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item desktop-only">
+              <RouterLink
+                to="/heatmap"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">🔥</span>
+                <span class="nav-text">Heatmap</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/lessons"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">📚</span>
+                <span class="nav-text">Lessons</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/profiles"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">Profiles</span>
+              </RouterLink>
+            </li>
+            <li class="nav-item">
+              <RouterLink
+                to="/trade"
+                class="nav-link"
+                active-class="active"
+                @click="isMobileMenuOpen = false"
+              >
+                <span class="nav-icon">➕</span>
+                <span class="nav-text">Log Trade</span>
+              </RouterLink>
+            </li>
+          </ul>
+        </nav>
+      </header>
 
-      <!-- Navigation Menu -->
-      <nav class="nav-menu" :class="{ 'nav-menu--open': isMobileMenuOpen }">
-        <ul class="nav-list">
-          <li class="nav-item">
-            <RouterLink
-              to="/dashboard"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">📊</span>
-              <span class="nav-text">Dashboard</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/history"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">📋</span>
-              <span class="nav-text">Trade History</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/statistics"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">📈</span>
-              <span class="nav-text">Statistics</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/calendar"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">📅</span>
-              <span class="nav-text">Calendar</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item desktop-only">
-            <RouterLink
-              to="/heatmap"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">🔥</span>
-              <span class="nav-text">Heatmap</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/lessons"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">📚</span>
-              <span class="nav-text">Lessons</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/profiles"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">👤</span>
-              <span class="nav-text">Profiles</span>
-            </RouterLink>
-          </li>
-          <li class="nav-item">
-            <RouterLink
-              to="/trade"
-              class="nav-link"
-              active-class="active"
-              @click="isMobileMenuOpen = false"
-            >
-              <span class="nav-icon">➕</span>
-              <span class="nav-text">Log Trade</span>
-            </RouterLink>
-          </li>
-        </ul>
-      </nav>
-    </header>
+      <main>
+        <RouterView />
+      </main>
 
-    <main>
-      <RouterView />
-    </main>
-
-    <!-- Toast Container -->
-    <div class="toast-container">
-      <div
-        v-for="toast in toasts"
-        :key="toast.id"
-        class="toast"
-        :class="toast.type"
-      >
-        <div class="toast-header">
-          <strong>{{ toast.title }}</strong>
-          <button class="close-button" @click="removeToast(toast.id)">&times;</button>
-        </div>
-        <div class="toast-body">
-          {{ toast.message }}
+      <!-- Toast Container -->
+      <div class="toast-container">
+        <div
+          v-for="toast in toasts"
+          :key="toast.id"
+          class="toast"
+          :class="toast.type"
+        >
+          <div class="toast-header">
+            <strong>{{ toast.title }}</strong>
+            <button class="close-button" @click="removeToast(toast.id)">&times;</button>
+          </div>
+          <div class="toast-body">
+            {{ toast.message }}
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </AuthGuard>
 </template>
 
 <style>
@@ -344,6 +414,125 @@ header {
   order: 3;
 }
 
+/* User Menu Styles */
+.user-menu-wrapper {
+  position: relative;
+  display: none;
+  order: 2;
+}
+
+.user-menu-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.user-menu-button:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.user-name {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+.dropdown-arrow {
+  font-size: 0.75rem;
+  color: #6b7280;
+  transition: transform 0.2s;
+}
+
+.user-menu-button:hover .dropdown-arrow {
+  transform: translateY(2px);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  min-width: 220px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.user-info {
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+}
+
+.user-email {
+  font-size: 0.875rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.dropdown-item:hover {
+  background: #f3f4f6;
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+}
+
 header h1 {
   font-size: 1.75rem;
   margin: 0;
@@ -363,9 +552,14 @@ header h1 {
     margin-bottom: 1.5rem;
   }
 
+  .user-menu-wrapper {
+    display: block;
+    order: 1;
+  }
+
   .profile-selector-wrapper {
     display: block;
-    order: 2;
+    order: 3;
     flex: 0 0 auto;
   }
 
@@ -373,6 +567,7 @@ header h1 {
     font-size: 2.5rem;
     flex: 1 1 auto;
     text-align: left;
+    order: 2;
   }
 }
 

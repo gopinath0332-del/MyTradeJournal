@@ -10,6 +10,7 @@ export interface Profile {
   isActive: boolean
   color?: string // UI color for visual distinction
   icon?: string // emoji or icon identifier
+  userId?: string // Associate profile with a user (for authentication)
   createdAt: string
   updatedAt: string
 }

@@ -50,6 +50,7 @@ const toggleUserMenu = (): void => {
 const handleSignOut = async(): Promise<void> => {
   try {
     showUserMenu.value = false
+    isMobileMenuOpen.value = false
     await signOut()
     showToast('success', 'Signed Out', 'You have been successfully signed out.')
   } catch (error) {
@@ -277,6 +278,15 @@ provide('navigateTo', navigateTo)
                 <span class="nav-icon">➕</span>
                 <span class="nav-text">Log Trade</span>
               </RouterLink>
+            </li>
+            <li class="nav-item mobile-only">
+              <button
+                class="nav-link nav-button"
+                @click="handleSignOut"
+              >
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Sign Out</span>
+              </button>
             </li>
           </ul>
         </nav>
@@ -752,5 +762,26 @@ main {
   .nav-item.desktop-only {
     display: none;
   }
+}
+
+/* Show mobile-only items only on mobile */
+.nav-item.mobile-only {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .nav-item.mobile-only {
+    display: none;
+  }
+}
+
+/* Style for nav buttons (like sign out) */
+.nav-button {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
 }
 </style>

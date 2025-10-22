@@ -13,12 +13,11 @@ const uiStore = useUIStore()
 
 // Destructure store state with storeToRefs to maintain reactivity
 const { user, isAuthenticated } = storeToRefs(authStore)
-const { 
-  toasts, 
-  isMobileMenuOpen, 
-  showUserMenu, 
+const {
+  toasts,
+  isMobileMenuOpen,
   isSidebarCollapsed,
-  editingTrade 
+  editingTrade
 } = storeToRefs(uiStore)
 
 // Provide the shared state to child components for backward compatibility
@@ -44,11 +43,6 @@ const toggleMobileMenu = (): void => {
 // Toggle sidebar (desktop)
 const toggleSidebar = (): void => {
   uiStore.toggleSidebar()
-}
-
-// Toggle user menu
-const toggleUserMenu = (): void => {
-  uiStore.toggleUserMenu()
 }
 
 // Handle sign out
@@ -81,8 +75,10 @@ const handleProfileChange = (): void => {
 }
 
 // Close user menu when clicking outside
-const handleClickOutside = (event: MouseEvent): void => {
-  const target = event.target as HTMLElement
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handleClickOutside = (event: any): void => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const target = event.target as any
   if (!target.closest('.user-menu-wrapper')) {
     uiStore.closeUserMenu()
   }
@@ -251,9 +247,9 @@ provide('navigateTo', navigateTo)
             <ProfileSelector @open-manager="openProfileManager" />
           </div>
 
-          <!-- User Menu -->
-          <div v-if="isAuthenticated" class="sidebar-user">
-            <button class="sidebar-user-button" @click="toggleUserMenu">
+          <!-- User Info -->
+          <div v-if="isAuthenticated" class="sidebar-user-info">
+            <div class="user-profile-display">
               <img
                 v-if="user?.photoURL"
                 :src="user.photoURL"
@@ -267,16 +263,13 @@ provide('navigateTo', navigateTo)
                 <span class="user-name">{{ user?.displayName }}</span>
                 <span class="user-email-small">{{ user?.email }}</span>
               </div>
-              <span v-if="!isSidebarCollapsed" class="dropdown-arrow">▼</span>
-            </button>
-
-            <!-- User Dropdown Menu -->
-            <div v-if="showUserMenu" class="user-dropdown">
-              <button class="dropdown-item" @click="handleSignOut">
-                <span class="dropdown-icon">🚪</span>
-                Sign Out
-              </button>
             </div>
+
+            <!-- Logout Button -->
+            <button class="logout-button" @click="handleSignOut">
+              <span class="nav-icon">🚪</span>
+              <span v-if="!isSidebarCollapsed" class="nav-text">Log Out</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -587,35 +580,33 @@ provide('navigateTo', navigateTo)
   }
 }
 
-.sidebar-user {
-  position: relative;
+/* Sidebar User Info Section */
+.sidebar-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid #e5e7eb;
 }
 
-.sidebar-user-button {
+.user-profile-display {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 100%;
+  padding: 0.5rem;
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
   min-height: 56px;
 }
 
-.sidebar-nav--collapsed .sidebar-user-button {
+.sidebar-nav--collapsed .user-profile-display {
   justify-content: center;
   padding: 0.5rem;
-  min-height: 56px;
 }
 
-.sidebar-user-button:hover {
-  background: #f9fafb;
-  border-color: #42b883;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(66, 184, 131, 0.15);
+.sidebar-nav--collapsed .sidebar-user-info {
+  padding: 0.5rem;
 }
 
 .user-avatar {
@@ -665,55 +656,6 @@ provide('navigateTo', navigateTo)
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-}
-
-.dropdown-arrow {
-  font-size: 0.75rem;
-  color: #6b7280;
-  transition: transform 0.2s;
-  flex-shrink: 0;
-}
-
-.sidebar-user-button:hover .dropdown-arrow {
-  transform: rotate(180deg);
-}
-
-.user-dropdown {
-  position: absolute;
-  bottom: calc(100% + 0.5rem);
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-  z-index: 1001;
-}
-
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.875rem 1rem;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
-  color: #374151;
-  font-weight: 500;
-}
-
-.dropdown-item:hover {
-  background: linear-gradient(135deg, #e8f5f1 0%, #f1f9f6 100%);
-  color: #42b883;
-}
-
-.dropdown-icon {
-  font-size: 1.125rem;
 }
 
 /* Mobile Menu Toggle */
@@ -790,6 +732,51 @@ provide('navigateTo', navigateTo)
   padding: 1rem 0.5rem;
   gap: 0.75rem;
   align-items: center;
+}
+
+/* Logout Button */
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  min-height: 48px;
+  font-size: 0.875rem;
+}
+
+.logout-button:hover {
+  background: linear-gradient(135deg, #fecaca 0%, #fee2e2 100%);
+  border-color: #ef4444;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+}
+
+.sidebar-nav--collapsed .logout-button {
+  padding: 0.75rem;
+  min-width: 48px;
+}
+
+.sidebar-nav--collapsed .logout-button .nav-text {
+  display: none;
+}
+
+.sidebar-nav--collapsed .logout-button .nav-icon {
+  font-size: 1.25rem;
 }
 
 .nav-item {

@@ -1,74 +1,73 @@
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { provide, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import AuthGuard from './components/auth/AuthGuard.vue'
-import { useAuth } from './composables/useAuth'
+import { useAuthStore, useUIStore } from './stores'
 import ProfileSelector from './components/ProfileSelector.vue'
 import type { Trade as TradeType } from '@/types'
 
-interface Toast {
-  id: number
-  type: 'success' | 'error' | 'info' | 'warning'
-  title: string
-  message: string
-}
-
 const router = useRouter()
-const { user, isAuthenticated, signOut } = useAuth()
-const editingTrade = ref<TradeType | null>(null)
-const toasts = ref<Toast[]>([])
-const isMobileMenuOpen = ref<boolean>(false)
-const showUserMenu = ref<boolean>(false)
-const isSidebarCollapsed = ref<boolean>(false)
-let toastId = 0
+const authStore = useAuthStore()
+const uiStore = useUIStore()
 
-// Provide the shared state to child components
+// Destructure store state with storeToRefs to maintain reactivity
+const { user, isAuthenticated } = storeToRefs(authStore)
+const { 
+  toasts, 
+  isMobileMenuOpen, 
+  showUserMenu, 
+  isSidebarCollapsed,
+  editingTrade 
+} = storeToRefs(uiStore)
+
+// Provide the shared state to child components for backward compatibility
 provide('editingTrade', editingTrade)
 
 // Function to start editing a trade
 const startEditingTrade = (trade: TradeType): void => {
-  editingTrade.value = trade
+  uiStore.setEditingTrade(trade)
   router.push({ name: 'EditTrade', params: { id: trade.id || '' } })
 }
 
 // Function to handle navigation and close mobile menu
 const navigateTo = (routeName: string): void => {
   router.push({ name: routeName })
-  isMobileMenuOpen.value = false
+  uiStore.closeMobileMenu()
 }
 
 // Toggle mobile menu
 const toggleMobileMenu = (): void => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
+  uiStore.toggleMobileMenu()
 }
 
 // Toggle sidebar (desktop)
 const toggleSidebar = (): void => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
+  uiStore.toggleSidebar()
 }
 
 // Toggle user menu
 const toggleUserMenu = (): void => {
-  showUserMenu.value = !showUserMenu.value
+  uiStore.toggleUserMenu()
 }
 
 // Handle sign out
 const handleSignOut = async(): Promise<void> => {
   try {
-    showUserMenu.value = false
-    isMobileMenuOpen.value = false
-    await signOut()
-    showToast('success', 'Signed Out', 'You have been successfully signed out.')
+    uiStore.closeUserMenu()
+    uiStore.closeMobileMenu()
+    await authStore.signOut()
+    uiStore.showToast('success', 'Signed Out', 'You have been successfully signed out.')
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to sign out'
-    showToast('error', 'Sign Out Failed', message)
+    uiStore.showToast('error', 'Sign Out Failed', message)
   }
 }
 
 // Handle profile manager opening
 const openProfileManager = (): void => {
   router.push({ name: 'Profiles' })
-  isMobileMenuOpen.value = false
+  uiStore.closeMobileMenu()
 }
 
 // Listen for profile changes and reload data
@@ -85,7 +84,7 @@ const handleProfileChange = (): void => {
 const handleClickOutside = (event: MouseEvent): void => {
   const target = event.target as HTMLElement
   if (!target.closest('.user-menu-wrapper')) {
-    showUserMenu.value = false
+    uiStore.closeUserMenu()
   }
 }
 
@@ -104,29 +103,6 @@ onUnmounted(() => {
   }
 })
 
-// Toast functions
-const showToast = (
-  type: Toast['type'],
-  title: string,
-  message: string,
-  duration = 3000
-): void => {
-  const id = toastId++
-  toasts.value.push({ id, type, title, message })
-
-  // Automatically remove the toast after duration
-  setTimeout(() => {
-    removeToast(id)
-  }, duration)
-}
-
-const removeToast = (id: number): void => {
-  const index = toasts.value.findIndex(t => t.id === id)
-  if (index !== -1) {
-    toasts.value.splice(index, 1)
-  }
-}
-
 // Function to refresh dashboard data (may not be needed with router)
 const refreshDashboard = (): void => {
   // With router, we could navigate to dashboard to refresh
@@ -135,9 +111,9 @@ const refreshDashboard = (): void => {
   }
 }
 
-// Provide functions to child components
+// Provide functions to child components for backward compatibility
 provide('startEditingTrade', startEditingTrade)
-provide('showToast', showToast)
+provide('showToast', uiStore.showToast)
 provide('refreshDashboard', refreshDashboard)
 provide('navigateTo', navigateTo)
 </script>
@@ -322,7 +298,7 @@ provide('navigateTo', navigateTo)
         >
           <div class="toast-header">
             <strong>{{ toast.title }}</strong>
-            <button class="close-button" @click="removeToast(toast.id)">&times;</button>
+            <button class="close-button" @click="uiStore.removeToast(toast.id)">&times;</button>
           </div>
           <div class="toast-body">
             {{ toast.message }}

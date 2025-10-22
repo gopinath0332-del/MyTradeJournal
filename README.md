@@ -6,7 +6,14 @@ A comprehensive, modern trading journal application built with Vue 3, TypeScript
 
 **🚀 [Visit MyTradeJournal](https://gopinath0332-del.github.io/MyTradeJournal/)**
 
-Experience the full a## 📱 Mobile Optimization
+Experience the full application with all features including:
+- Dashboard with real-time analytics
+- Advanced statistics and performance analysis
+- Mobile-optimized interface
+- Trade management and history
+- Interactive charts and visualizations
+
+## 📱 Mobile Optimization
 
 ### Mobile-First Design
 - **Responsive Layouts**: Optimized for screens from 320px to 4K displays
@@ -177,12 +184,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 
 **Built with ❤️ using Vue 3, TypeScript, and Firebase**
 
-*MyTradeJournal - Track, Analyze, Improve your Trading Performance* 📈with all features including:
-- Dashboard with real-time analytics
-- Advanced statistics and performance analysis
-- Mobile-optimized interface
-- Trade management and history
-- Interactive charts and visualizations
+*MyTradeJournal - Track, Analyze, Improve your Trading Performance* 📈
 
 ## ✨ Key Features
 
@@ -557,33 +559,103 @@ The application uses Firebase Firestore for:
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions to MyTradeJournal! Here's how you can help:
 
-## � Documentation
+### Development Setup
+1. Fork the repository and clone your fork
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Install dependencies: `npm install`
+4. Set up your development environment with `.env.local`
+5. Make your changes and test thoroughly
+6. Commit with descriptive messages: `git commit -m 'Add amazing feature'`
+7. Push to your branch: `git push origin feature/amazing-feature`
+8. Open a Pull Request with a clear description
 
-For comprehensive feature documentation, development guides, and implementation roadmaps, see the [`/docs`](./docs/) folder:
+### Contribution Guidelines
+- **Code Quality**: Follow ESLint rules and maintain TypeScript compatibility
+- **Testing**: Test your changes across different screen sizes and browsers
+- **Documentation**: Update README and add comments for complex logic
+- **Performance**: Consider performance impact of your changes
+- **Mobile**: Ensure mobile compatibility for all new features
 
+### Areas for Contribution
+- 🐛 Bug fixes and performance improvements
+- 📱 Mobile UX enhancements
+- 📊 New chart types and analytics features
+- 🎨 UI/UX improvements and accessibility
+- 🔧 Developer experience and tooling
+- 📖 Documentation and examples
+
+### 📚 Documentation
+
+For comprehensive feature documentation and development guides:
+
+### Core Documentation
 - **[Feature Documentation](./docs/README.md)** - Complete feature specifications and roadmap
 - **[Analytics Features](./docs/analytics-features.md)** - Advanced analytics and performance metrics
+- **[ESLint Configuration](./docs/ESLINT.md)** - Code quality rules and troubleshooting
+- **[Trade History Refactoring](./docs/TRADE_HISTORY_REFACTORING.md)** - Component architecture and refactoring details
+
+### Implementation Guides
 - **[Strategy Management](./docs/strategy-management.md)** - Trading strategies and risk management
 - **[Technical Features](./docs/technical-features.md)** - API integrations and infrastructure
-- **[UX & Mobile](./docs/ux-mobile-features.md)** - User experience and mobile optimization
-- **[AI & Automation](./docs/ai-automation.md)** - Machine learning and automation features
-- **[Learning & Community](./docs/learning-community.md)** - Educational and social features
 - **[Implementation Roadmap](./docs/implementation-roadmap.md)** - Development priorities and timeline
 
-## �📄 License
+### User Experience
+- **[UX & Mobile Features](./docs/ux-mobile-features.md)** - User experience and mobile optimization
+- **[AI & Automation](./docs/ai-automation.md)** - Machine learning and automation features
+- **[Learning & Community](./docs/learning-community.md)** - Educational and social features
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## 🛠️ Troubleshooting
 
-## 🆘 Support
+### Common Issues
 
-If you encounter any issues or have questions, please open an issue on GitHub.
+#### Firebase Connection Issues
+```bash
+# Check Firebase configuration
+npm run build  # Validates environment variables
+```
+
+#### Build Failures
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+#### Mobile Layout Issues
+```bash
+# Test responsive design
+npm run dev
+# Open browser dev tools and test different screen sizes
+```
+
+#### SPA Routing on GitHub Pages
+```bash
+# Test SPA routing fix
+./test-spa-routing.sh
+```
+
+### Getting Help
+- 📖 Check the [documentation](./docs/) for detailed guides
+- 🐛 Search [existing issues](https://github.com/gopinath0332-del/MyTradeJournal/issues)
+- 💬 Open a new issue with detailed reproduction steps
+- 📧 Contact the maintainers for complex issues
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Vue.js Team** for the amazing Vue 3 framework
+- **Firebase Team** for robust backend services
+- **Vite Team** for lightning-fast build tooling
+- **Trading Community** for feedback and feature requests
 
 ---
 
-Built with ❤️ using Vue 3 and Firebase
+**Built with ❤️ using Vue 3, TypeScript, and Firebase**
+
+*MyTradeJournal - Track, Analyze, Improve your Trading Performance* 📈

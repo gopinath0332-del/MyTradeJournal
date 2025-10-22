@@ -105,7 +105,7 @@ We welcome contributions to MyTradeJournal! Here's how you can help:
 - 🔧 Developer experience and tooling
 - 📖 Documentation and examples
 
-## 📚 Documentation
+### 📚 Documentation
 
 For comprehensive feature documentation and development guides:
 
@@ -113,6 +113,7 @@ For comprehensive feature documentation and development guides:
 - **[Feature Documentation](./docs/README.md)** - Complete feature specifications and roadmap
 - **[Analytics Features](./docs/analytics-features.md)** - Advanced analytics and performance metrics
 - **[ESLint Configuration](./docs/ESLINT.md)** - Code quality rules and troubleshooting
+- **[Trade History Refactoring](./docs/TRADE_HISTORY_REFACTORING.md)** - Component architecture and refactoring details
 
 ### Implementation Guides
 - **[Strategy Management](./docs/strategy-management.md)** - Trading strategies and risk management
@@ -213,9 +214,10 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 
 ### 🔧 **Developer Experience**
 - **TypeScript Integration**: Full type safety and IntelliSense support
-- **Component Architecture**: Modular, reusable Vue 3 components
+- **Component Architecture**: Modular, reusable Vue 3 components with refactored structure
 - **Composition API**: Modern Vue patterns with composables
 - **ESLint Configuration**: Consistent code quality and formatting
+- **Refactored Components**: Smaller, maintainable components (e.g., TradeHistory reduced by 72%)
 
 ## 🛠️ Tech Stack
 
@@ -299,8 +301,16 @@ src/
 │   │   │   ├── TradeMetadata.vue # Notes and metadata
 │   │   │   ├── TradePricing.vue # Price and quantity
 │   │   │   └── TradeSummary.vue # P&L summary
+│   │   ├── TradeHistory/       # Refactored trade history components
+│   │   │   ├── TradeCards.vue  # Mobile card view
+│   │   │   ├── TradeDetailsModal.vue # Trade details modal
+│   │   │   ├── TradeFilters.vue # Filter controls
+│   │   │   ├── TradeResultsSummary.vue # Results summary
+│   │   │   ├── TradeTabs.vue   # Tab navigation
+│   │   │   ├── TradeTable.vue  # Desktop table view
+│   │   │   └── tradeHistoryUtils.ts # Shared utilities
 │   │   ├── TradeForm.vue       # Main trade form container
-│   │   ├── TradeHistory.vue    # Trade list and management
+│   │   ├── TradeHistory.vue    # Trade history orchestrator
 │   │   └── TradeRow.vue        # Individual trade display
 │   ├── ui/                     # Reusable UI components
 │   │   ├── EmptyState.vue      # Empty state messaging
@@ -448,9 +458,26 @@ npm run test:spa         # Test SPA routing configuration
 - **TradeMetadata**: Notes, strategy, confidence, and additional metadata
 - **TradeActions**: Form submission, validation, and action buttons
 
-#### Trade Display Components
-- **TradeHistory**: Comprehensive trade list with advanced filtering
-- **TradeRow**: Individual trade display with edit/delete capabilities
+#### Refactored Trade History Components
+The TradeHistory component has been refactored into a modular architecture for better maintainability:
+
+- **TradeHistory.vue**: Main orchestrator component (reduced from 900+ to 250 lines)
+- **TradeTabs.vue**: Tab navigation between open and closed trades
+- **TradeFilters.vue**: Advanced filtering controls (date range, symbol, type, profitability)
+- **TradeResultsSummary.vue**: Summary statistics and net P&L display
+- **TradeTable.vue**: Desktop table view with sortable columns
+- **TradeCards.vue**: Mobile-optimized card layout with touch interactions
+- **TradeDetailsModal.vue**: Detailed trade information modal
+- **tradeHistoryUtils.ts**: Shared utility functions for formatting and calculations
+
+**Benefits of the refactored architecture:**
+- 72% reduction in main component size
+- Improved maintainability and testability
+- Better separation of concerns
+- Reusable components across the application
+- Enhanced developer experience
+
+See [docs/TRADE_HISTORY_REFACTORING.md](./docs/TRADE_HISTORY_REFACTORING.md) for detailed documentation.
 
 ### 🎨 **UI & Utility Components**
 - **LoadingSpinner**: Consistent loading states with customizable messages

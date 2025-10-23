@@ -42,6 +42,7 @@
         >
           <option value="Supertrend">Supertrend</option>
           <option value="Donchian">Donchian</option>
+          <option value="STEMA">STEMA</option>
         </select>
       </div>
     </div>

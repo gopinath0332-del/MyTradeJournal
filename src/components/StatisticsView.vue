@@ -3,26 +3,45 @@
     <div class="stats-header">
       <h2>📊 Advanced Statistics</h2>
       <div class="stats-controls">
-        <YearSelector v-if="availableYears.length > 0" :selected-year="selectedYear" :available-years="availableYears"
-          @year-change="onYearChange" />
+        <YearSelector
+          v-if="availableYears.length > 0"
+          :selected-year="selectedYear"
+          :available-years="availableYears"
+          @year-change="onYearChange"
+        />
       </div>
     </div>
 
     <!-- Loading State -->
-    <LoadingSpinner v-if="isLoading" message="Loading advanced statistics..." size="large" full-height />
+    <LoadingSpinner
+      v-if="isLoading"
+      message="Loading advanced statistics..."
+      size="large"
+      full-height
+    />
 
     <!-- Error State -->
     <div v-else-if="error" class="error-state">
-      <EmptyState icon="⚠️" title="Error Loading Statistics" :message="error" action-text="Try Again"
-        :action-handler="retryLoad" />
+      <EmptyState
+        icon="⚠️"
+        title="Error Loading Statistics"
+        :message="error"
+        action-text="Try Again"
+        :action-handler="retryLoad"
+      />
     </div>
 
     <!-- Statistics Content -->
     <div v-else-if="!isLoading && trades.length > 0" class="stats-content">
       <!-- Tab Navigation -->
       <div class="tab-navigation">
-        <button v-for="tab in tabs" :key="tab.id" class="tab-button" :class="{ active: activeTab === tab.id }"
-          @click="activeTab = tab.id">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          class="tab-button"
+          :class="{ active: activeTab === tab.id }"
+          @click="activeTab = tab.id"
+        >
           <span class="tab-icon">{{ tab.icon }}</span>
           <span class="tab-label">{{ tab.label }}</span>
         </button>
@@ -43,16 +62,22 @@
             <!-- Top 10 Symbol Performance Chart -->
             <div class="top-symbols-chart">
               <h4>Top 10 Symbol Performance by Total P&L</h4>
-              <HorizontalBarChart :data="symbolChartData" :show-rank="true" :value-formatter="formatCurrency"
-                no-data-message="No symbol data available for the selected year" />
+              <HorizontalBarChart
+                :data="symbolChartData"
+                :show-rank="true"
+                :value-formatter="formatCurrency"
+                no-data-message="No symbol data available for the selected year"
+              />
             </div>
 
             <!-- Symbol Performance Table -->
             <div class="symbol-analysis">
               <!-- Mobile Card View -->
               <div class="mobile-only">
-                <SymbolCards :symbols="symbolPerformance"
-                  no-data-message="No symbol data available for the selected year" />
+                <SymbolCards
+                  :symbols="symbolPerformance"
+                  no-data-message="No symbol data available for the selected year"
+                />
               </div>
 
               <!-- Desktop Table View -->
@@ -98,8 +123,11 @@
         <div v-if="activeTab === 'streaks'" class="tab-panel">
           <section class="stats-section">
             <h3>Winning & Losing Streak Analysis</h3>
-            <StreakMetrics :global-metrics="globalStreakMetrics" :symbol-metrics="symbolStreakMetrics"
-              :strategy-metrics="strategyStreakMetrics" />
+            <StreakMetrics
+              :global-metrics="globalStreakMetrics"
+              :symbol-metrics="symbolStreakMetrics"
+              :strategy-metrics="strategyStreakMetrics"
+            />
           </section>
         </div>
 
@@ -111,22 +139,36 @@
             <div class="time-analysis">
               <div class="time-performance">
                 <h4>Day of Week Performance</h4>
-                <HorizontalBarChart :data="dayChartData" :value-formatter="formatCurrency"
-                  no-data-message="No day of week data available for the selected year" />
+                <HorizontalBarChart
+                  :data="dayChartData"
+                  :value-formatter="formatCurrency"
+                  no-data-message="No day of week data available for the selected year"
+                />
               </div>
 
               <div class="time-performance">
                 <h4>Monthly Trend</h4>
-                <HorizontalBarChart :data="monthChartData" :value-formatter="formatCurrency"
-                  no-data-message="No monthly data available for the selected year" />
+                <HorizontalBarChart
+                  :data="monthChartData"
+                  :value-formatter="formatCurrency"
+                  no-data-message="No monthly data available for the selected year"
+                />
               </div>
             </div>
 
             <!-- Weekly Performance Analysis -->
-            <WeeklyBreakdown v-if="availableYears.length > 0" :weekly-data="weeklyData" :selected-month="selectedMonth"
-              :selected-year="selectedYear" :available-months="availableMonths" :available-years="availableYears"
-              :is-loading="isLoadingWeekly" :error="weeklyError" :on-retry="retryWeekly"
-              @month-change="onMonthChange" />
+            <WeeklyBreakdown
+              v-if="availableYears.length > 0"
+              :weekly-data="weeklyData"
+              :selected-month="selectedMonth"
+              :selected-year="selectedYear"
+              :available-months="availableMonths"
+              :available-years="availableYears"
+              :is-loading="isLoadingWeekly"
+              :error="weeklyError"
+              :on-retry="retryWeekly"
+              @month-change="onMonthChange"
+            />
           </section>
         </div>
 
@@ -134,8 +176,10 @@
         <div v-if="activeTab === 'strategy'" class="tab-panel">
           <section class="stats-section">
             <h3>Strategy Performance Analysis</h3>
-            <StrategyPerformance :strategies="strategyPerformance"
-              no-data-message="No strategy data available. Existing trades don't have strategy information. New trades will include strategy analysis." />
+            <StrategyPerformance
+              :strategies="strategyPerformance"
+              no-data-message="No strategy data available. Existing trades don't have strategy information. New trades will include strategy analysis."
+            />
           </section>
         </div>
 
@@ -143,8 +187,12 @@
         <div v-if="activeTab === 'risk'" class="tab-panel">
           <section class="stats-section">
             <h3>Risk & Drawdown Analysis</h3>
-            <DrawdownAnalysis :metrics="drawdownMetrics" :periods="drawdownPeriods" :chart-data="drawdownChartData"
-              no-data-message="No drawdown data available for the selected year" />
+            <DrawdownAnalysis
+              :metrics="drawdownMetrics"
+              :periods="drawdownPeriods"
+              :chart-data="drawdownChartData"
+              no-data-message="No drawdown data available for the selected year"
+            />
           </section>
 
           <section class="stats-section">
@@ -168,12 +216,22 @@
             <TradingEfficiencyMetrics :trades="trades" />
           </section>
         </div>
+
+        <!-- Sequences Tab -->
+        <div v-if="activeTab === 'sequences'" class="tab-panel">
+          <TradeSequenceAnalytics />
+        </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <EmptyState v-else-if="!isLoading && trades.length === 0" icon="📈" title="No trading data available"
-      message="Start logging trades to see advanced statistics and analytics" :full-height="true" />
+    <EmptyState
+      v-else-if="!isLoading && trades.length === 0"
+      icon="📈"
+      title="No trading data available"
+      message="Start logging trades to see advanced statistics and analytics"
+      :full-height="true"
+    />
   </div>
 </template>
 
@@ -193,6 +251,7 @@ import HoldTimeDistribution from './charts/HoldTimeDistribution.vue'
 import TradingEfficiencyMetrics from './charts/TradingEfficiencyMetrics.vue'
 import StreakMetrics from './charts/StreakMetrics.vue'
 import SymbolDrawdownDeepDive from './charts/SymbolDrawdownDeepDive.vue'
+import TradeSequenceAnalytics from './analytics/TradeSequenceAnalytics.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
@@ -217,7 +276,8 @@ const tabs = [
   { id: 'strategy', label: 'Strategy', icon: '📋' },
   { id: 'risk', label: 'Risk', icon: '⚠️' },
   { id: 'patterns', label: 'Patterns', icon: '🔍' },
-  { id: 'efficiency', label: 'Efficiency', icon: '⚡' }
+  { id: 'efficiency', label: 'Efficiency', icon: '⚡' },
+  { id: 'sequences', label: 'Sequences', icon: '🔄' }
 ]
 
 // Formatting functions (moved up to be available for computed properties)
@@ -265,7 +325,7 @@ const {
 } = useDashboardStats()
 
 // Load trades data
-const loadTrades = async () => {
+const loadTrades = async() => {
   isLoading.value = true
   error.value = null
 
@@ -281,7 +341,7 @@ const loadTrades = async () => {
 }
 
 // Separate function to load available years efficiently
-const loadAvailableYears = async () => {
+const loadAvailableYears = async() => {
   try {
     const years = await tradeService.getAvailableYears()
     availableYears.value = years
@@ -346,13 +406,13 @@ const onYearChange = (year) => {
   loadTrades()
 }
 
-const retryLoad = async () => {
+const retryLoad = async() => {
   await loadAvailableYears()
   await loadTrades()
 }
 
 // Initialize
-onMounted(async () => {
+onMounted(async() => {
   // First load available years, then load trades for selected year
   await loadAvailableYears()
   await loadTrades()

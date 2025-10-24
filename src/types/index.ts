@@ -160,3 +160,6 @@ export interface ServiceResponse<T = unknown> {
 
 // Export failure mode types
 export * from './failureMode'
+
+// Export Markov chain types
+export * from './markov'

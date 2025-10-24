@@ -163,3 +163,6 @@ export * from './failureMode'
 
 // Export Markov chain types
 export * from './markov'
+
+// Export cohort analysis types
+export * from './cohort'

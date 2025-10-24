@@ -221,6 +221,11 @@
         <div v-if="activeTab === 'sequences'" class="tab-panel">
           <TradeSequenceAnalytics />
         </div>
+
+        <!-- Cohort Tab -->
+        <div v-if="activeTab === 'cohort'" class="tab-panel">
+          <CohortAnalytics />
+        </div>
       </div>
     </div>
 
@@ -252,6 +257,7 @@ import TradingEfficiencyMetrics from './charts/TradingEfficiencyMetrics.vue'
 import StreakMetrics from './charts/StreakMetrics.vue'
 import SymbolDrawdownDeepDive from './charts/SymbolDrawdownDeepDive.vue'
 import TradeSequenceAnalytics from './analytics/TradeSequenceAnalytics.vue'
+import CohortAnalytics from './analytics/CohortAnalytics.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
@@ -277,7 +283,8 @@ const tabs = [
   { id: 'risk', label: 'Risk', icon: '⚠️' },
   { id: 'patterns', label: 'Patterns', icon: '🔍' },
   { id: 'efficiency', label: 'Efficiency', icon: '⚡' },
-  { id: 'sequences', label: 'Sequences', icon: '🔄' }
+  { id: 'sequences', label: 'Sequences', icon: '🔄' },
+  { id: 'cohort', label: 'Cohort', icon: '📊' }
 ]
 
 // Formatting functions (moved up to be available for computed properties)

@@ -166,3 +166,6 @@ export * from './markov'
 
 // Export cohort analysis types
 export * from './cohort'
+
+// Export drift detection types
+export * from './drift'

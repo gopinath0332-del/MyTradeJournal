@@ -44,7 +44,12 @@
           :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
         >
           <td>{{ formatDate(trade.entryDate) }}</td>
-          <td>{{ trade.symbol }}</td>
+          <td>
+            {{ trade.symbol }}
+            <span v-if="trade.failureModes && trade.failureModes.length > 0" class="failure-indicator" title="Has failure analysis">
+              🔍
+            </span>
+          </td>
           <td :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
             {{ trade.type }}
           </td>
@@ -100,6 +105,7 @@ interface Trade {
   exitPrice: number
   pnlAmount: number
   remarks?: string
+  failureModes?: string[]
 }
 
 const props = defineProps<{
@@ -195,6 +201,13 @@ td {
   border-top: 1px solid #e2e8f0;
   white-space: nowrap;
   font-size: 0.8rem;
+}
+
+.failure-indicator {
+  margin-left: 4px;
+  font-size: 0.875rem;
+  opacity: 0.8;
+  cursor: help;
 }
 
 @media (min-width: 768px) {

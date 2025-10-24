@@ -82,6 +82,32 @@
           <span class="label">Lessons Learned:</span>
           <p class="value">{{ trade.lessonsLearned }}</p>
         </div>
+
+        <!-- Failure Mode Analysis (for losing trades) -->
+        <div v-if="trade.failureModes && trade.failureModes.length > 0" class="detail-failure-modes">
+          <span class="label">Failure Analysis:</span>
+          <div class="failure-tags">
+            <span
+              v-for="modeId in trade.failureModes"
+              :key="modeId"
+              class="failure-tag"
+              :style="{ '--tag-color': getFailureModeColor(modeId) }"
+            >
+              {{ getFailureModeIcon(modeId) }} {{ getFailureModeLabel(modeId) }}
+            </span>
+          </div>
+          <div v-if="trade.failureNotes" class="failure-notes-section">
+            <p class="value">{{ trade.failureNotes }}</p>
+          </div>
+          <div v-if="trade.failureConfidence" class="failure-confidence">
+            <span class="confidence-label">Analysis Confidence:</span>
+            <span class="confidence-stars">
+              <span v-for="i in 5" :key="i" class="star">
+                {{ i <= (trade.failureConfidence || 0) ? '★' : '☆' }}
+              </span>
+            </span>
+          </div>
+        </div>
       </div>
       <button class="close-btn" @click="$emit('close')">Close</button>
     </div>
@@ -90,6 +116,7 @@
 
 <script setup lang="ts">
 import { formatDate, formatCurrency } from './tradeHistoryUtils'
+import { getFailureModeById } from '@/types/failureMode'
 
 interface Trade {
   id: string
@@ -109,6 +136,9 @@ interface Trade {
   remarks?: string
   notes?: string
   lessonsLearned?: string
+  failureModes?: string[]
+  failureNotes?: string
+  failureConfidence?: number
 }
 
 defineProps<{
@@ -118,6 +148,19 @@ defineProps<{
 defineEmits<{
   close: []
 }>()
+
+// Helper functions for failure modes
+const getFailureModeIcon = (modeId: string): string => {
+  return getFailureModeById(modeId)?.icon || '❓'
+}
+
+const getFailureModeLabel = (modeId: string): string => {
+  return getFailureModeById(modeId)?.label || modeId
+}
+
+const getFailureModeColor = (modeId: string): string => {
+  return getFailureModeById(modeId)?.color || '#6b7280'
+}
 </script>
 
 <style scoped>
@@ -199,6 +242,81 @@ defineEmits<{
   padding: 15px;
   border-radius: 4px;
   font-weight: normal;
+}
+
+/* Failure Mode Styles */
+.detail-failure-modes {
+  margin-top: 20px;
+  padding: 20px;
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: 8px;
+}
+
+.detail-failure-modes .label {
+  display: block;
+  margin-bottom: 12px;
+  color: #991b1b;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.failure-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.failure-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: white;
+  border: 2px solid var(--tag-color);
+  color: var(--tag-color);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.failure-notes-section {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  border-left: 4px solid #ef4444;
+}
+
+.failure-notes-section .value {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.failure-confidence {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confidence-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.confidence-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.confidence-stars .star {
+  color: #fbbf24;
+  font-size: 1.125rem;
 }
 
 .close-btn {

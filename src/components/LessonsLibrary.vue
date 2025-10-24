@@ -85,6 +85,98 @@
         </div>
       </div>
 
+      <!-- Failure Mode Analysis Section -->
+      <div v-if="hasFailureAnalysis" class="failure-analysis-section">
+        <div class="section-header">
+          <h3>🔍 Failure Mode Analysis</h3>
+          <p class="section-subtitle">Understanding what went wrong in losing trades</p>
+        </div>
+
+        <div class="failure-stats-grid">
+          <div class="failure-stat-card">
+            <div class="stat-icon">📉</div>
+            <div class="stat-value">{{ analyzedLosses }}</div>
+            <div class="stat-label">Analyzed Losses</div>
+          </div>
+          <div class="failure-stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value">{{ topFailureMode?.count || 0 }}</div>
+            <div class="stat-label">Most Common Issue</div>
+          </div>
+          <div class="failure-stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value">{{ failureCategoryCount }}</div>
+            <div class="stat-label">Issue Categories</div>
+          </div>
+        </div>
+
+        <!-- Top Failure Modes -->
+        <div class="top-failure-modes">
+          <h4>Most Common Failure Patterns</h4>
+          <div class="failure-mode-list">
+            <div
+              v-for="mode in topFailureModes.slice(0, 5)"
+              :key="mode.id"
+              class="failure-mode-item"
+            >
+              <div class="failure-mode-header">
+                <span class="failure-mode-icon">{{ mode.icon }}</span>
+                <span class="failure-mode-label">{{ mode.label }}</span>
+                <span class="failure-mode-count">{{ mode.count }}×</span>
+              </div>
+              <div class="failure-mode-bar">
+                <div
+                  class="failure-mode-bar-fill"
+                  :style="{
+                    width: `${mode.percentage}%`,
+                    backgroundColor: mode.color
+                  }"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lessons with Failure Analysis -->
+        <div class="analyzed-lessons">
+          <h4>Recent Analyzed Losses</h4>
+          <div class="analyzed-lessons-grid">
+            <div
+              v-for="lesson in lessonsWithFailureAnalysis.slice(0, 6)"
+              :key="lesson.trade.id"
+              class="analyzed-lesson-card"
+            >
+              <div class="analyzed-lesson-header">
+                <span class="lesson-symbol-large">{{ lesson.symbol }}</span>
+                <span class="lesson-date-small">{{ formatDate(lesson.date) }}</span>
+              </div>
+
+              <div class="failure-modes-tags">
+                <span
+                  v-for="modeId in lesson.trade.failureModes"
+                  :key="modeId"
+                  class="failure-mode-tag"
+                  :style="{ '--tag-color': getFailureModeColor(modeId) }"
+                >
+                  {{ getFailureModeIcon(modeId) }} {{ getFailureModeLabel(modeId) }}
+                </span>
+              </div>
+
+              <div v-if="lesson.trade.failureNotes" class="failure-notes-preview">
+                {{ truncateText(lesson.trade.failureNotes, 120) }}
+              </div>
+
+              <div class="analyzed-lesson-footer">
+                <span class="lesson-pnl-large loss">{{ formatCurrency(lesson.pnl) }}</span>
+                <span v-if="lesson.trade.failureConfidence" class="confidence-stars">
+                  <span v-for="i in lesson.trade.failureConfidence" :key="i">★</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Category Filter -->
       <div class="filter-section">
         <div class="filter-buttons">
@@ -222,6 +314,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
+import { getFailureModeById } from '@/types/failureMode'
 import LoadingSpinner from './ui/LoadingSpinner.vue'
 import EmptyState from './ui/EmptyState.vue'
 
@@ -364,6 +457,76 @@ const mostCommonTheme = computed(() => {
     .sort((a, b) => b.lessons.length - a.lessons.length)[0]?.name
 })
 
+// Failure Mode Analysis Computed Properties
+const lessonsWithFailureAnalysis = computed(() => {
+  return allLessons.value.filter(lesson =>
+    lesson.trade.failureModes && lesson.trade.failureModes.length > 0
+  )
+})
+
+const hasFailureAnalysis = computed(() => {
+  return lessonsWithFailureAnalysis.value.length > 0
+})
+
+const analyzedLosses = computed(() => {
+  return lessonsWithFailureAnalysis.value.length
+})
+
+const topFailureModes = computed(() => {
+  const modeCount = {}
+
+  lessonsWithFailureAnalysis.value.forEach(lesson => {
+    lesson.trade.failureModes.forEach(modeId => {
+      modeCount[modeId] = (modeCount[modeId] || 0) + 1
+    })
+  })
+
+  return Object.entries(modeCount)
+    .map(([id, count]) => {
+      const mode = getFailureModeById(id)
+      return {
+        id,
+        label: mode?.label || id,
+        icon: mode?.icon || '❓',
+        color: mode?.color || '#6b7280',
+        count,
+        percentage: (count / analyzedLosses.value) * 100
+      }
+    })
+    .sort((a, b) => b.count - a.count)
+})
+
+const topFailureMode = computed(() => topFailureModes.value[0])
+
+const failureCategoryCount = computed(() => {
+  const categories = new Set()
+  topFailureModes.value.forEach(mode => {
+    const modeData = getFailureModeById(mode.id)
+    if (modeData?.category) {
+      categories.add(modeData.category)
+    }
+  })
+  return categories.size
+})
+
+// Helper functions for failure modes
+const getFailureModeIcon = (modeId) => {
+  return getFailureModeById(modeId)?.icon || '❓'
+}
+
+const getFailureModeLabel = (modeId) => {
+  return getFailureModeById(modeId)?.label || modeId
+}
+
+const getFailureModeColor = (modeId) => {
+  return getFailureModeById(modeId)?.color || '#6b7280'
+}
+
+const truncateText = (text, maxLength) => {
+  if (!text || text.length <= maxLength) return text
+  return `${text.slice(0, maxLength)}...`
+}
+
 // Formatting functions
 const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-IN', {
@@ -387,10 +550,7 @@ const loadTrades = async() => {
   isLoading.value = true
   try {
     trades.value = await tradeService.getAllTrades()
-    console.log('Loaded trades:', trades.value.length)
-    console.log('Trades with lessons:', trades.value.filter(t => t.lessonsLearned).length)
-  } catch (error) {
-    console.error('Error loading lessons:', error)
+  } catch {
     // Error loading lessons - show empty state
     trades.value = []
   } finally {
@@ -904,6 +1064,207 @@ onMounted(() => {
   font-size: 0.75rem;
   color: #475569;
   font-weight: 500;
+}
+
+/* Failure Analysis Section */
+.failure-analysis-section {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid #fef2f2;
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+  font-size: 1.5rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.failure-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.failure-stat-card {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  padding: 1.5rem;
+  border-radius: 10px;
+  text-align: center;
+  border: 2px solid #fecaca;
+}
+
+.top-failure-modes {
+  margin-bottom: 2rem;
+}
+
+.top-failure-modes h4 {
+  font-size: 1.125rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.failure-mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.failure-mode-item {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+.failure-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.failure-mode-icon {
+  font-size: 1.25rem;
+}
+
+.failure-mode-label {
+  flex: 1;
+  font-weight: 600;
+  color: #374151;
+}
+
+.failure-mode-count {
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.failure-mode-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.failure-mode-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.analyzed-lessons {
+  margin-top: 2rem;
+}
+
+.analyzed-lessons h4 {
+  font-size: 1.125rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.analyzed-lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.analyzed-lesson-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+  border: 2px solid #fecaca;
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analyzed-lesson-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.analyzed-lesson-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.lesson-symbol-large {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.lesson-date-small {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.failure-modes-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.failure-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  background: white;
+  border: 1.5px solid var(--tag-color);
+  color: var(--tag-color);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.failure-notes-preview {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  font-style: italic;
+  background: white;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 3px solid #ef4444;
+}
+
+.analyzed-lesson-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lesson-pnl-large {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.lesson-pnl-large.loss {
+  color: #ef4444;
+}
+
+.confidence-stars {
+  color: #fbbf24;
+  font-size: 1rem;
 }
 
 /* Responsive */

@@ -46,6 +46,16 @@
         @update-pnl="updatePnLFromAmount"
       />
 
+      <!-- Failure Mode Analysis (show only for losing trades with exit date) -->
+      <FailureModeSelector
+        v-if="trade.exitDate && pnl.amount < 0"
+        v-model="trade.failureModes"
+        :initial-notes="trade.failureNotes"
+        :initial-confidence="trade.failureConfidence"
+        @update:notes="trade.failureNotes = $event"
+        @update:confidence="trade.failureConfidence = $event"
+      />
+
       <!-- Additional Metadata -->
       <TradeMetadata
         v-model="trade"
@@ -78,6 +88,7 @@ import TradeSummary from './forms/TradeSummary.vue'
 import TradeMetadata from './forms/TradeMetadata.vue'
 import TradeActions from './forms/TradeActions.vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import FailureModeSelector from './FailureModeSelector.vue'
 
 // Router setup
 const router = useRouter()
@@ -114,7 +125,10 @@ const trade = ref({
   remarks: '',
   confidence: 3,
   executionQuality: 3,
-  lessonsLearned: ''
+  lessonsLearned: '',
+  failureModes: [],
+  failureNotes: '',
+  failureConfidence: 3
 })
 
 // P&L calculation
@@ -251,7 +265,10 @@ const resetForm = () => {
     remarks: '',
     confidence: 3,
     executionQuality: 3,
-    lessonsLearned: ''
+    lessonsLearned: '',
+    failureModes: [],
+    failureNotes: '',
+    failureConfidence: 3
   }
 
   pnl.value = {

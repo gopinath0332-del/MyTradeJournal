@@ -22,6 +22,9 @@ export interface Trade {
   pnlAmount?: number
   profileId?: string // Associate trade with a profile
   userId?: string // Associate trade with a user (for authentication)
+  failureModes?: string[] // Array of failure mode IDs for losing trades
+  failureNotes?: string // Detailed notes about what went wrong
+  failureConfidence?: number // Confidence in failure classification (1-5)
   createdAt: string
   updatedAt: string
 }
@@ -149,8 +152,11 @@ export interface ErrorStates {
 }
 
 // Firebase service response types
-export interface ServiceResponse<T = any> {
+export interface ServiceResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
 }
+
+// Export failure mode types
+export * from './failureMode'

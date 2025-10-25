@@ -169,3 +169,6 @@ export * from './cohort'
 
 // Export drift detection types
 export * from './drift'
+
+// Export NLP analysis types
+export * from './nlp'

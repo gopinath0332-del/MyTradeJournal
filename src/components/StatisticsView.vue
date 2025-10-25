@@ -231,6 +231,11 @@
         <div v-if="activeTab === 'drift'" class="tab-panel">
           <EquityDriftAnalytics />
         </div>
+
+        <!-- Notes NLP Tab -->
+        <div v-if="activeTab === 'notes'" class="tab-panel">
+          <TradeNotesNLP />
+        </div>
       </div>
     </div>
 
@@ -264,6 +269,7 @@ import SymbolDrawdownDeepDive from './charts/SymbolDrawdownDeepDive.vue'
 import TradeSequenceAnalytics from './analytics/TradeSequenceAnalytics.vue'
 import CohortAnalytics from './analytics/CohortAnalytics.vue'
 import EquityDriftAnalytics from './analytics/EquityDriftAnalytics.vue'
+import TradeNotesNLP from './analytics/TradeNotesNLP.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
@@ -291,7 +297,8 @@ const tabs = [
   { id: 'efficiency', label: 'Efficiency', icon: '⚡' },
   { id: 'sequences', label: 'Sequences', icon: '🔄' },
   { id: 'cohort', label: 'Cohort', icon: '📊' },
-  { id: 'drift', label: 'Drift', icon: '📉' }
+  { id: 'drift', label: 'Drift', icon: '📉' },
+  { id: 'notes', label: 'Notes', icon: '💬' }
 ]
 
 // Formatting functions (moved up to be available for computed properties)

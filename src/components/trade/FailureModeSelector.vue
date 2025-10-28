@@ -13,6 +13,7 @@
       <button
         v-for="category in categories"
         :key="category.id"
+        type="button"
         class="category-tab"
         :class="{ active: activeCategory === category.id }"
         :style="{ '--category-color': category.color }"
@@ -87,6 +88,7 @@
         <button
           v-for="level in 5"
           :key="level"
+          type="button"
           class="confidence-btn"
           :class="{ active: confidence === level }"
           @click="setConfidence(level)"

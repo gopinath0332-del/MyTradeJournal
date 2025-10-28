@@ -185,6 +185,10 @@ const getStrategyClass = (strategyName) => {
   border-left: 4px solid #f59e0b;
 }
 
+.strategy-card.rsi-long {
+  border-left: 4px solid #8b5cf6;
+}
+
 .strategy-header {
   display: flex;
   justify-content: space-between;

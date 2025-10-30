@@ -17,6 +17,7 @@
           <option value="entryPrice">Entry Price</option>
           <option value="exitPrice">Exit Price</option>
           <option value="pnlAmount">P&L</option>
+          <option v-if="activeTab === 'open'" value="capitalUsed">Capital Used</option>
         </select>
         <button class="sort-direction-btn" @click="$emit('toggleSort')">
           {{ sortOrder === 'asc' ? '↑' : '↓' }}
@@ -61,6 +62,10 @@
               >
                 {{ formatCurrency(trade.pnlAmount) }}
               </span>
+            </div>
+            <div v-if="activeTab === 'open'" class="trade-row">
+              <span class="trade-label">Capital Used:</span>
+              <span class="trade-value">{{ formatCurrency(trade.capitalUsed) }}</span>
             </div>
           </div>
 
@@ -107,6 +112,7 @@ interface Trade {
   entryPrice: number
   exitPrice: number
   pnlAmount: number
+  capitalUsed: number
   remarks?: string
 }
 

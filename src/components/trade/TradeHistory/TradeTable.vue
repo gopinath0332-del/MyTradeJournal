@@ -34,6 +34,10 @@
             P&L
             <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
           </th>
+          <th v-if="activeTab === 'open'" :class="{ active: sortKey === 'capitalUsed' }" @click="$emit('sort', 'capitalUsed')">
+            Capital Used
+            <span class="sort-arrow">{{ getSortArrow('capitalUsed') }}</span>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -58,6 +62,9 @@
           <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
             {{ formatCurrency(trade.pnlAmount) }}
           </td>
+          <td v-if="activeTab === 'open'">
+            {{ formatCurrency(trade.capitalUsed) }}
+          </td>
           <td class="actions-cell">
             <div class="actions-container">
               <button
@@ -77,7 +84,7 @@
           </td>
         </tr>
         <tr v-if="!isLoading && trades.length === 0">
-          <td colspan="7" class="empty-state-cell">
+          <td :colspan="activeTab === 'open' ? 8 : 7" class="empty-state-cell">
             <EmptyState
               icon="📈"
               :title="`No ${activeTab} trades found`"
@@ -104,6 +111,7 @@ interface Trade {
   entryPrice: number
   exitPrice: number
   pnlAmount: number
+  capitalUsed: number
   remarks?: string
   failureModes?: string[]
 }

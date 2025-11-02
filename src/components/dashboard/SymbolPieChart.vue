@@ -207,16 +207,34 @@ watchEffect(() => {
     return // Keep current selection or default
   }
 
-  const currentMonth = new Date().getMonth() // September 2025 = 8
+  const currentMonth = new Date().getMonth() // Current month (e.g., November 2025 = 10)
   const hasCurrentMonthData = availableMonths.value.some(month => month.value === currentMonth)
 
-  // Set current month as default if it has data and no manual selection has been made
-  if (hasCurrentMonthData && selectedMonth.value === currentMonth) {
-    // Current month is already selected, keep it
-    return
-  } else if (hasCurrentMonthData && (selectedMonth.value === 'all' || !availableMonths.value.some(m => m.value === selectedMonth.value))) {
-    // Switch to current month if it has data and current selection is 'all' or invalid
-    selectedMonth.value = currentMonth
+  // If current month has data, select it
+  if (hasCurrentMonthData) {
+    if (selectedMonth.value !== currentMonth) {
+      selectedMonth.value = currentMonth
+    }
+  } else {
+    // Current month has no data, find the most recent month with data (before current month)
+    const monthsBeforeCurrent = availableMonths.value
+      .filter(month => month.value < currentMonth)
+      .sort((a, b) => b.value - a.value) // Sort descending (most recent first)
+    
+    if (monthsBeforeCurrent.length > 0) {
+      // Select the most recent month before current month
+      const mostRecentMonth = monthsBeforeCurrent[0].value
+      if (selectedMonth.value !== mostRecentMonth) {
+        selectedMonth.value = mostRecentMonth
+      }
+    } else {
+      // No months before current month, select the latest available month
+      const latestMonth = availableMonths.value
+        .sort((a, b) => b.value - a.value)[0]
+      if (latestMonth && selectedMonth.value !== latestMonth.value) {
+        selectedMonth.value = latestMonth.value
+      }
+    }
   }
 })
 

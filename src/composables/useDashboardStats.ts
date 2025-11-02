@@ -292,11 +292,35 @@ export function useDashboardStats() {
 
   // Auto-adjust equity month selection when available months change
   watch(availableEquityMonths, (newMonths) => {
-    if (newMonths.length > 0) {
-      // If current selected month is not available, select the first available month
-      const isCurrentMonthAvailable = newMonths.some(month => month.value === selectedEquityMonth.value)
-      if (!isCurrentMonthAvailable && newMonths.length > 0) {
-        selectedEquityMonth.value = newMonths[0]!.value
+    if (newMonths.length === 0) return
+
+    const currentMonth = new Date().getMonth() // Current month (e.g., November 2025 = 10)
+    const hasCurrentMonthData = newMonths.some(month => month.value === currentMonth)
+
+    // If current month has data, select it
+    if (hasCurrentMonthData) {
+      if (selectedEquityMonth.value !== currentMonth) {
+        selectedEquityMonth.value = currentMonth
+      }
+    } else {
+      // Current month has no data, find the most recent month with data (before current month)
+      const monthsBeforeCurrent = newMonths
+        .filter(month => month.value < currentMonth)
+        .sort((a, b) => b.value - a.value) // Sort descending (most recent first)
+
+      if (monthsBeforeCurrent.length > 0) {
+        // Select the most recent month before current month
+        const mostRecentMonth = monthsBeforeCurrent[0]!.value
+        if (selectedEquityMonth.value !== mostRecentMonth) {
+          selectedEquityMonth.value = mostRecentMonth
+        }
+      } else {
+        // No months before current month, select the latest available month
+        const sortedMonths = [...newMonths].sort((a, b) => b.value - a.value)
+        const latestMonth = sortedMonths[0]
+        if (latestMonth && selectedEquityMonth.value !== latestMonth.value) {
+          selectedEquityMonth.value = latestMonth.value
+        }
       }
     }
   }, { immediate: true })
@@ -459,7 +483,7 @@ export function useDashboardStats() {
   }
 
   // Get trades for a year (with caching and error handling)
-  const getTradesForYear = async(year: number) => {
+  const getTradesForYear = async (year: number) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
@@ -476,7 +500,7 @@ export function useDashboardStats() {
   }
 
   // Initialize available years
-  const initializeAvailableYears = async() => {
+  const initializeAvailableYears = async () => {
     try {
       availableYears.value = await tradeService.getAvailableYears()
 
@@ -491,14 +515,14 @@ export function useDashboardStats() {
   }
 
   // Load trades and update cache
-  const loadTradesForYear = async(year: number) => {
+  const loadTradesForYear = async (year: number) => {
     const trades = await getTradesForYear(year)
     // Trades are now cached and computed properties will automatically update
     return trades
   }
 
   // Calculate main statistics
-  const calculateStats = async() => {
+  const calculateStats = async () => {
     isLoadingStats.value = true
     statsError.value = null
 
@@ -514,7 +538,7 @@ export function useDashboardStats() {
   }
 
   // Calculate monthly breakdown
-  const calculateMonthlyBreakdown = async() => {
+  const calculateMonthlyBreakdown = async () => {
     isLoadingMonthly.value = true
     monthlyError.value = null
 
@@ -530,7 +554,7 @@ export function useDashboardStats() {
   }
 
   // Calculate weekly breakdown
-  const calculateWeeklyBreakdown = async() => {
+  const calculateWeeklyBreakdown = async () => {
     isLoadingWeekly.value = true
     weeklyError.value = null
 
@@ -593,7 +617,7 @@ export function useDashboardStats() {
   }
 
   // Initialize all data
-  const initializeDashboard = async() => {
+  const initializeDashboard = async () => {
     try {
       await initializeAvailableYears()
       await Promise.all([

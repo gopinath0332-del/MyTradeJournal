@@ -3,47 +3,28 @@
     <div class="form-row">
       <div class="form-group">
         <label for="entryDate">Entry Date</label>
-        <input
-          id="entryDate"
-          v-model="entryDateValue"
-          type="date"
-          required
-        >
+        <input id="entryDate" v-model="entryDateValue" type="date" required>
       </div>
       <div class="form-group">
         <label for="exitDate">Exit Date (Optional)</label>
-        <input
-          id="exitDate"
-          v-model="exitDateValue"
-          type="date"
-          :max="maxDate"
-        >
+        <input id="exitDate" v-model="exitDateValue" type="date" :max="maxDate">
       </div>
     </div>
 
     <div class="form-row">
       <div class="form-group">
         <label for="daysHeld">Days Held</label>
-        <input
-          id="daysHeld"
-          type="number"
-          :value="modelValue.daysHeld"
-          disabled
-          class="calculated-field"
-        >
+        <input id="daysHeld" type="number" :value="modelValue.daysHeld" disabled class="calculated-field">
       </div>
       <div class="form-group">
         <label for="strategy">Strategy *</label>
-        <select
-          id="strategy"
-          :value="modelValue.strategy"
-          required
-          @change="updateTrade({ strategy: $event.target.value })"
-        >
+        <select id="strategy" :value="modelValue.strategy" required
+          @change="updateTrade({ strategy: $event.target.value })">
           <option value="Supertrend">Supertrend</option>
           <option value="Donchian">Donchian</option>
           <option value="STEMA">STEMA</option>
           <option value="RSI-Long">RSI-Long</option>
+          <option value="Double dip">Double dip</option>
         </select>
       </div>
     </div>
@@ -137,7 +118,8 @@ label {
   color: var(--text-color);
 }
 
-input, select {
+input,
+select {
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
@@ -146,7 +128,8 @@ input, select {
   font-family: inherit;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);

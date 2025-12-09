@@ -196,14 +196,16 @@ const formatValue = (value) => {
   }
 }
 
-.bar-container {
-  flex: 1;
-  position: relative;
-  height: 36px;
-  background: #e5e7eb;
-  border-radius: 0.375rem;
-  overflow: hidden;
-}
+  .bar-container {
+    flex: 1;
+    position: relative;
+    height: 36px;
+    background: #e5e7eb;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
 
 @media (min-width: 768px) {
   .bar-container {
@@ -236,12 +238,28 @@ const formatValue = (value) => {
   background: linear-gradient(90deg, #6b7280, #4b5563);
 }
 
+
 .bar-label {
   color: white;
   font-weight: 700;
   font-size: 0.8rem;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   white-space: nowrap;
+  width: 100%;
+  text-align: left;
+  padding-left: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .bar-label {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .bar-label {
+    font-size: 0.9rem;
+  }
 }
 
 @media (min-width: 480px) {

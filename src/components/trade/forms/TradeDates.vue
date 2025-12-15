@@ -25,6 +25,7 @@
           <option value="STEMA">STEMA</option>
           <option value="RSI-Long">RSI-Long</option>
           <option value="Double dip">Double dip</option>
+          <option value="Weekly momentum">Weekly momentum</option>
         </select>
       </div>
     </div>

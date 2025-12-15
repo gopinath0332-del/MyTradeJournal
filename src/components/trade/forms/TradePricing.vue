@@ -69,7 +69,7 @@
     </div>
 
     <!-- Partial Exits Section -->
-    <div class="partial-exits-section">
+    <div v-if="!modelValue.exitDate" class="partial-exits-section">
       <h3>Partial Exits</h3>
 
       <div class="partial-exit-form">

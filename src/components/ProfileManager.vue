@@ -3,6 +3,9 @@
     <div class="manager-header">
       <h2>📊 Profile Management</h2>
       <p class="subtitle">Create and manage your trading workspaces</p>
+      <router-link to="/profile-migration" class="migration-link">
+        🔄 Migrate Data Between Profiles
+      </router-link>
     </div>
 
     <!-- Profile List -->
@@ -392,7 +395,26 @@ async function switchToProfile(profileId: string) {
 
 .subtitle {
   color: #6b7280;
-  margin: 0;
+  margin: 0 0 1rem;
+}
+
+.migration-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+}
+
+.migration-link:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .profiles-grid {

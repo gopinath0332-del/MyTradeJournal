@@ -9,6 +9,7 @@ const HeatmapView = () => import('../components/HeatmapView.vue')
 const TradeForm = () => import('../components/trade/TradeForm.vue')
 const LessonsLibrary = () => import('../components/LessonsLibrary.vue')
 const ProfileManager = () => import('../components/ProfileManager.vue')
+const ProfileMigrationTool = () => import('../components/ProfileMigrationTool.vue')
 const FirebaseDebug = () => import('../components/debug/FirebaseDebug.vue')
 
 const routes = [
@@ -78,6 +79,14 @@ const routes = [
     component: ProfileManager,
     meta: {
       title: 'Profile Management'
+    }
+  },
+  {
+    path: '/profile-migration',
+    name: 'ProfileMigration',
+    component: ProfileMigrationTool,
+    meta: {
+      title: 'Profile Migration'
     }
   },
   {

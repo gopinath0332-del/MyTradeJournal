@@ -483,7 +483,7 @@ export function useDashboardStats() {
   }
 
   // Get trades for a year (with caching and error handling)
-  const getTradesForYear = async (year: number) => {
+  const getTradesForYear = async(year: number) => {
     const cacheKey = `year_${year}`
     if (tradesCache.value.has(cacheKey)) {
       return tradesCache.value.get(cacheKey)
@@ -500,7 +500,7 @@ export function useDashboardStats() {
   }
 
   // Initialize available years
-  const initializeAvailableYears = async () => {
+  const initializeAvailableYears = async() => {
     try {
       availableYears.value = await tradeService.getAvailableYears()
 
@@ -515,14 +515,14 @@ export function useDashboardStats() {
   }
 
   // Load trades and update cache
-  const loadTradesForYear = async (year: number) => {
+  const loadTradesForYear = async(year: number) => {
     const trades = await getTradesForYear(year)
     // Trades are now cached and computed properties will automatically update
     return trades
   }
 
   // Calculate main statistics
-  const calculateStats = async () => {
+  const calculateStats = async() => {
     isLoadingStats.value = true
     statsError.value = null
 
@@ -538,7 +538,7 @@ export function useDashboardStats() {
   }
 
   // Calculate monthly breakdown
-  const calculateMonthlyBreakdown = async () => {
+  const calculateMonthlyBreakdown = async() => {
     isLoadingMonthly.value = true
     monthlyError.value = null
 
@@ -554,7 +554,7 @@ export function useDashboardStats() {
   }
 
   // Calculate weekly breakdown
-  const calculateWeeklyBreakdown = async () => {
+  const calculateWeeklyBreakdown = async() => {
     isLoadingWeekly.value = true
     weeklyError.value = null
 
@@ -617,7 +617,7 @@ export function useDashboardStats() {
   }
 
   // Initialize all data
-  const initializeDashboard = async () => {
+  const initializeDashboard = async() => {
     try {
       await initializeAvailableYears()
       await Promise.all([

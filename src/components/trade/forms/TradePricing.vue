@@ -4,7 +4,7 @@
       <div class="form-group">
         <label for="entryPrice">Entry Price</label>
         <div class="input-with-prefix">
-          <span class="currency-prefix">₹</span>
+          <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="entryPrice"
             type="number"
@@ -14,13 +14,13 @@
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handlePriceChange('entryPrice', $event)"
-          />
+          >
         </div>
       </div>
       <div class="form-group">
         <label for="exitPrice">Exit Price</label>
         <div class="input-with-prefix">
-          <span class="currency-prefix">₹</span>
+          <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="exitPrice"
             type="number"
@@ -29,7 +29,7 @@
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handlePriceChange('exitPrice', $event)"
-          />
+          >
         </div>
       </div>
     </div>
@@ -47,12 +47,12 @@
           inputmode="numeric"
           pattern="[0-9]*"
           @input="handleNumberChange('lots', $event)"
-        />
+        >
       </div>
       <div class="form-group">
         <label for="capitalUsed">Capital Used</label>
         <div class="input-with-prefix">
-          <span class="currency-prefix">₹</span>
+          <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="capitalUsed"
             type="number"
@@ -63,7 +63,7 @@
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handlePriceChange('capitalUsed', $event)"
-          />
+          >
         </div>
       </div>
     </div>
@@ -76,35 +76,35 @@
         <div class="form-row compact">
           <div class="form-group">
             <label for="pe-date">Date</label>
-            <input id="pe-date" type="date" v-model="newPartialExit.date" />
+            <input id="pe-date" v-model="newPartialExit.date" type="date">
           </div>
           <div class="form-group">
             <label for="pe-price">Price</label>
             <div class="input-with-prefix">
-              <span class="currency-prefix">₹</span>
+              <span class="currency-prefix">{{ currencySymbol }}</span>
               <input
                 id="pe-price"
-                type="number"
                 v-model.number="newPartialExit.price"
+                type="number"
                 step="0.01"
-              />
+              >
             </div>
           </div>
           <div class="form-group">
             <label for="pe-lots">Lots</label>
             <input
               id="pe-lots"
-              type="number"
               v-model.number="newPartialExit.lots"
+              type="number"
               step="1"
-            />
+            >
           </div>
           <div class="form-group button-group">
             <button
               type="button"
               class="btn-add"
-              @click="addPartialExit"
               :disabled="!isValidPartialExit"
+              @click="addPartialExit"
             >
               Add
             </button>
@@ -122,7 +122,7 @@
           class="partial-exit-item"
         >
           <span>{{ formatDate(exit.date) }}</span>
-          <span>@ ₹{{ exit.price }}</span>
+          <span>@ {{ currencySymbol }}{{ exit.price }}</span>
           <span>{{ exit.lots }} Lots</span>
           <button
             type="button"
@@ -138,84 +138,87 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed } from 'vue'
+import { useProfiles } from '@/composables/useProfiles'
 
 const props = defineProps({
   modelValue: {
     type: Object,
-    required: true,
-  },
-});
+    required: true
+  }
+})
 
-const emit = defineEmits(["update:modelValue", "calculate-pnl"]);
+const emit = defineEmits(['update:modelValue', 'calculate-pnl'])
+
+const { currencySymbol } = useProfiles()
 
 // Partial Exit State
 const newPartialExit = ref({
-  date: "",
+  date: '',
   price: null,
-  lots: null,
-});
+  lots: null
+})
 
 const isValidPartialExit = computed(() => {
   return (
     newPartialExit.value.date &&
     newPartialExit.value.price > 0 &&
     newPartialExit.value.lots > 0
-  );
-});
+  )
+})
 
 const addPartialExit = () => {
-  if (!isValidPartialExit.value) return;
+  if (!isValidPartialExit.value) return
 
-  const currentPartialExits = props.modelValue.partialExits || [];
+  const currentPartialExits = props.modelValue.partialExits || []
   const updatedPartialExits = [
     ...currentPartialExits,
-    { ...newPartialExit.value },
-  ];
+    { ...newPartialExit.value }
+  ]
 
-  updateField("partialExits", updatedPartialExits);
+  updateField('partialExits', updatedPartialExits)
 
   // Reset form
   newPartialExit.value = {
-    date: "",
+    date: '',
     price: null,
-    lots: null,
-  };
+    lots: null
+  }
 
-  emit("calculate-pnl");
-};
+  emit('calculate-pnl')
+}
 
 const removePartialExit = (index) => {
-  const currentPartialExits = props.modelValue.partialExits || [];
-  const updatedPartialExits = currentPartialExits.filter((_, i) => i !== index);
+  const currentPartialExits = props.modelValue.partialExits || []
+  const updatedPartialExits = currentPartialExits.filter((_, i) => i !== index)
 
-  updateField("partialExits", updatedPartialExits);
-  emit("calculate-pnl");
-};
+  updateField('partialExits', updatedPartialExits)
+  emit('calculate-pnl')
+}
 
 const formatDate = (dateString) => {
-  if (!dateString) return "";
-  return new Date(dateString).toLocaleDateString();
-};
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleDateString()
+}
 
 const updateField = (field, value) => {
-  emit("update:modelValue", {
+  emit('update:modelValue', {
     ...props.modelValue,
-    [field]: value,
-  });
-};
+    [field]: value
+  })
+}
 
 const handlePriceChange = (field, event) => {
-  const value = parseFloat(event.target.value) || null;
-  updateField(field, value);
-  emit("calculate-pnl");
-};
+  const value = parseFloat(event.target.value) || null
+  updateField(field, value)
+  emit('calculate-pnl')
+}
 
 const handleNumberChange = (field, event) => {
-  const value = parseInt(event.target.value) || null;
-  updateField(field, value);
-  emit("calculate-pnl");
-};
+  const value = parseInt(event.target.value) || null
+  updateField(field, value)
+  emit('calculate-pnl')
+}
 </script>
 
 <style scoped>

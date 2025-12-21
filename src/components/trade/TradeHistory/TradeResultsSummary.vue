@@ -25,10 +25,10 @@
               'loss': netProfit < 0
             }"
           >
-            Net P&L: {{ formatCurrency(netProfit) }}
+            Net P&L: {{ formatVal(netProfit) }}
           </div>
           <div v-if="activeTab === 'open'" class="metric-item invested-total">
-            Invested Total: {{ formatCurrency(totalCapitalUsed) }}
+            Invested Total: {{ formatVal(totalCapitalUsed) }}
           </div>
         </div>
       </div>
@@ -39,6 +39,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { formatCurrency } from './tradeHistoryUtils'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 interface Trade {
   pnlAmount: number
@@ -71,6 +74,8 @@ const netProfit = computed(() =>
 const totalCapitalUsed = computed(() =>
   props.trades.reduce((sum, trade) => sum + (trade.capitalUsed || 0), 0)
 )
+
+const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 </script>
 
 <style scoped>
@@ -183,7 +188,7 @@ const totalCapitalUsed = computed(() =>
   .trades-summary {
     width: 100%;
   }
-  
+
   .summary-stats,
   .metrics {
     justify-content: center;

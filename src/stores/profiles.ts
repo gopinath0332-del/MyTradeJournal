@@ -190,12 +190,12 @@ export const useProfilesStore = defineStore('profiles', () => {
     activeProfileId,
     loading,
     error,
-    
+
     // Getters
     activeProfile,
     activeProfiles,
     profilesByType,
-    
+
     // Actions
     loadProfiles,
     createProfile,

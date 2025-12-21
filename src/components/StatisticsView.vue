@@ -301,11 +301,24 @@ const tabs = [
   { id: 'notes', label: 'Notes', icon: '💬' }
 ]
 
-// Formatting functions (moved up to be available for computed properties)
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+
+// Formatting functions
 const formatCurrency = (amount) => {
+  const currencyMap = {
+    '₹': 'INR',
+    '$': 'USD',
+    '€': 'EUR',
+    '£': 'GBP',
+    '¥': 'JPY'
+  }
+  const currency = currencyMap[currencySymbol.value] || 'INR'
+
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount)

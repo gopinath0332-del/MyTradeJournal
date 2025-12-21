@@ -42,7 +42,7 @@
           <div class="monthly-stat">
             <span class="stat-label">P&L:</span>
             <span class="stat-value" :class="{ 'positive': month.totalPnL > 0, 'negative': month.totalPnL < 0 }">
-              ₹{{ month.totalPnL.toLocaleString() }}
+              {{ currencySymbol }}{{ month.totalPnL.toLocaleString() }}
             </span>
           </div>
           <div class="monthly-stat">
@@ -52,7 +52,7 @@
           <div class="monthly-stat">
             <span class="stat-label">Avg P&L:</span>
             <span class="stat-value" :class="{ 'positive': month.avgPnL > 0, 'negative': month.avgPnL < 0 }">
-              ₹{{ month.avgPnL.toLocaleString() }}
+              {{ currencySymbol }}{{ month.avgPnL.toLocaleString() }}
             </span>
           </div>
           <div class="monthly-stat">
@@ -99,6 +99,9 @@
 <script setup>
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 const _props = defineProps({
   monthlyData: {

@@ -48,11 +48,11 @@
             </div>
             <div class="trade-row">
               <span class="trade-label">Entry:</span>
-              <span class="trade-value">{{ formatCurrency(trade.entryPrice) }}</span>
+              <span class="trade-value">{{ formatVal(trade.entryPrice) }}</span>
             </div>
             <div class="trade-row">
               <span class="trade-label">Exit:</span>
-              <span class="trade-value">{{ formatCurrency(trade.exitPrice) }}</span>
+              <span class="trade-value">{{ formatVal(trade.exitPrice) }}</span>
             </div>
             <div class="trade-row">
               <span class="trade-label">P&L:</span>
@@ -60,12 +60,12 @@
                 class="trade-value pnl-value"
                 :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
               >
-                {{ formatCurrency(trade.pnlAmount) }}
+                {{ formatVal(trade.pnlAmount) }}
               </span>
             </div>
             <div v-if="activeTab === 'open'" class="trade-row">
               <span class="trade-label">Capital Used:</span>
-              <span class="trade-value">{{ formatCurrency(trade.capitalUsed) }}</span>
+              <span class="trade-value">{{ formatVal(trade.capitalUsed) }}</span>
             </div>
           </div>
 
@@ -103,6 +103,10 @@
 import LoadingSpinner from '../../ui/LoadingSpinner.vue'
 import EmptyState from '../../ui/EmptyState.vue'
 import { formatDate, formatCurrency } from './tradeHistoryUtils'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
 interface Trade {
   id: string

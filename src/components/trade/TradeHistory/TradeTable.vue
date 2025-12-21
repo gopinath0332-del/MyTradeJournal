@@ -57,13 +57,13 @@
           <td :class="{ 'type-buy': trade.type === 'BUY', 'type-sell': trade.type === 'SELL' }">
             {{ trade.type }}
           </td>
-          <td>{{ formatCurrency(trade.entryPrice) }}</td>
-          <td>{{ formatCurrency(trade.exitPrice) }}</td>
+          <td>{{ formatVal(trade.entryPrice) }}</td>
+          <td>{{ formatVal(trade.exitPrice) }}</td>
           <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-            {{ formatCurrency(trade.pnlAmount) }}
+            {{ formatVal(trade.pnlAmount) }}
           </td>
           <td v-if="activeTab === 'open'">
-            {{ formatCurrency(trade.capitalUsed) }}
+            {{ formatVal(trade.capitalUsed) }}
           </td>
           <td class="actions-cell">
             <div class="actions-container">
@@ -102,6 +102,11 @@
 import LoadingSpinner from '../../ui/LoadingSpinner.vue'
 import EmptyState from '../../ui/EmptyState.vue'
 import { formatDate, formatCurrency } from './tradeHistoryUtils'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+
+const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
 interface Trade {
   id: string

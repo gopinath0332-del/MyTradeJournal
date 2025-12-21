@@ -30,6 +30,17 @@ export function useProfiles() {
     deleteProfile: profilesStore.deleteProfile,
     switchProfile: profilesStore.switchProfile,
     duplicateProfile: profilesStore.duplicateProfile,
-    getProfileById: profilesStore.getProfileById
+    getProfileById: profilesStore.getProfileById,
+
+    // Helpers
+    currencySymbol: computed(() => {
+      const profile = profilesStore.activeProfile
+      if (profile?.settings?.currency) return profile.settings.currency
+
+      // Smart fallback for crypto profiles
+      if (profile?.name?.toLowerCase().includes('crypto')) return '$'
+
+      return '₹'
+    })
   }
 }

@@ -3,9 +3,9 @@
     <div class="manager-header">
       <h2>📊 Profile Management</h2>
       <p class="subtitle">Create and manage your trading workspaces</p>
-      <router-link to="/profile-migration" class="migration-link">
+      <RouterLink to="/profile-migration" class="migration-link">
         🔄 Migrate Data Between Profiles
-      </router-link>
+      </RouterLink>
     </div>
 
     <!-- Profile List -->
@@ -206,6 +206,17 @@
                   placeholder="Optional"
                 >
               </div>
+
+              <div class="form-group">
+                <label for="currency">Currency</label>
+                <select id="currency" v-model="formData.settings.currency">
+                  <option value="₹">INR (₹)</option>
+                  <option value="$">USD ($)</option>
+                  <option value="€">EUR (€)</option>
+                  <option value="£">GBP (£)</option>
+                  <option value="¥">JPY (¥)</option>
+                </select>
+              </div>
             </details>
           </div>
 
@@ -251,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useProfiles } from '@/composables/useProfiles'
 import type { Profile, ProfileType } from '@/types/profile'
 
@@ -287,7 +298,8 @@ const defaultFormData = {
     defaultPositionSize: undefined,
     maxOpenPositions: undefined,
     broker: '',
-    accountNumber: ''
+    accountNumber: '',
+    currency: '₹'
   }
 }
 
@@ -319,10 +331,35 @@ function openEditModal(profile: Profile) {
     description: profile.description || '',
     icon: profile.icon || '',
     isActive: profile.isActive,
-    settings: { ...profile.settings }
+    settings: {
+      ...profile.settings,
+      currency: profile.settings.currency || '₹'
+    }
   })
   showModal.value = true
 }
+
+// Watcher to auto-set currency for Crypto profiles
+watch(() => formData.name, (newName) => {
+  if (!isEditing.value) { // Only auto-set for new profiles or explicit intent
+    if (newName.toLowerCase().includes('crypto')) {
+      formData.settings.currency = '$'
+    } else if (formData.settings.currency === '$' && !newName.toLowerCase().includes('crypto') && formData.type !== 'live') {
+       // Optional: revert if they change their mind, but maybe better to just leave it if they set it.
+       // For now, let's just strictly follow the instruction: "if selected profile is crypto, currency must be dollar $"
+       // The instruction implies when CREATING/SELECTING. "Selected profile is crypto" could mean the type or name.
+       // The user prompt was "if the selected profile is crypto", usually "Crypto" is a name people give.
+    }
+  }
+})
+
+// Also watch for profile type changes or just generally ensure the rule is followed
+watch([() => formData.name, () => formData.type], ([newName]) => {
+  const nameIsCrypto = newName.toLowerCase().includes('crypto')
+  if (nameIsCrypto) {
+    formData.settings.currency = '$'
+  }
+})
 
 function closeModal() {
   showModal.value = false

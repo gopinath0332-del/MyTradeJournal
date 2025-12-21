@@ -55,7 +55,7 @@
           <div class="weekly-stat">
             <span class="stat-label">P&L:</span>
             <span class="stat-value" :class="{ 'positive': week.totalPnL > 0, 'negative': week.totalPnL < 0 }">
-              ₹{{ week.totalPnL.toLocaleString() }}
+              {{ currencySymbol }}{{ week.totalPnL.toLocaleString() }}
             </span>
           </div>
           <div class="weekly-stat">
@@ -65,7 +65,7 @@
           <div class="weekly-stat">
             <span class="stat-label">Avg P&L:</span>
             <span class="stat-value" :class="{ 'positive': week.avgPnL > 0, 'negative': week.avgPnL < 0 }">
-              ₹{{ week.avgPnL.toLocaleString() }}
+              {{ currencySymbol }}{{ week.avgPnL.toLocaleString() }}
             </span>
           </div>
           <div class="weekly-stat">
@@ -94,6 +94,10 @@
 </template>
 
 <script setup>
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+
 const _props = defineProps({
   weeklyData: {
     type: Array,

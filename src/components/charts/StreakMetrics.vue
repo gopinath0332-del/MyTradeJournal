@@ -1,186 +1,191 @@
 <template>
-    <div class="streak-metrics">
-        <!-- Global Streak Overview -->
-        <div class="streak-overview">
-            <div class="metric-card current-streak" :class="streakClass">
-                <div class="metric-icon">{{ streakIcon }}</div>
-                <div class="metric-content">
-                    <div class="metric-label">Current Streak</div>
-                    <div class="metric-value">
-                        {{ globalMetrics.currentStreak }}
-                        <span class="streak-type">{{ streakTypeLabel }}</span>
-                    </div>
-                    <div class="streak-sparkline">
-                        <div v-for="(period, index) in recentStreakHistory" :key="index" class="sparkline-bar"
-                            :class="period.type" :style="{ height: getSparklineHeight(period.length) }"
-                            :title="`${period.type} streak: ${period.length} trades`" />
-                    </div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-icon">🏆</div>
-                <div class="metric-content">
-                    <div class="metric-label">Longest Win Streak</div>
-                    <div class="metric-value positive">{{ globalMetrics.longestWinStreak }}</div>
-                    <div class="metric-sublabel">trades</div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-icon">📉</div>
-                <div class="metric-content">
-                    <div class="metric-label">Longest Lose Streak</div>
-                    <div class="metric-value negative">{{ globalMetrics.longestLoseStreak }}</div>
-                    <div class="metric-sublabel">trades</div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-icon">📊</div>
-                <div class="metric-content">
-                    <div class="metric-label">Avg Win Streak</div>
-                    <div class="metric-value">{{ formatNumber(globalMetrics.averageWinStreak, 1) }}</div>
-                    <div class="metric-sublabel">trades</div>
-                </div>
-            </div>
-
-            <div class="metric-card">
-                <div class="metric-icon">📉</div>
-                <div class="metric-content">
-                    <div class="metric-label">Avg Lose Streak</div>
-                    <div class="metric-value">{{ formatNumber(globalMetrics.averageLoseStreak, 1) }}</div>
-                    <div class="metric-sublabel">trades</div>
-                </div>
-            </div>
+  <div class="streak-metrics">
+    <!-- Global Streak Overview -->
+    <div class="streak-overview">
+      <div class="metric-card current-streak" :class="streakClass">
+        <div class="metric-icon">{{ streakIcon }}</div>
+        <div class="metric-content">
+          <div class="metric-label">Current Streak</div>
+          <div class="metric-value">
+            {{ globalMetrics.currentStreak }}
+            <span class="streak-type">{{ streakTypeLabel }}</span>
+          </div>
+          <div class="streak-sparkline">
+            <div
+              v-for="(period, index) in recentStreakHistory"
+              :key="index"
+              class="sparkline-bar"
+              :class="period.type"
+              :style="{ height: getSparklineHeight(period.length) }"
+              :title="`${period.type} streak: ${period.length} trades`"
+            />
+          </div>
         </div>
+      </div>
 
-        <!-- Symbol Streaks -->
-        <div v-if="symbolMetrics.length > 0" class="streak-section">
-            <h4>Symbol Streaks</h4>
-            <div class="streak-table-container">
-                <table class="streak-table">
-                    <thead>
-                        <tr>
-                            <th>Symbol</th>
-                            <th>Current Streak</th>
-                            <th>Longest Win</th>
-                            <th>Longest Loss</th>
-                            <th>Total Trades</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="symbol in topSymbolStreaks" :key="symbol.symbol">
-                            <td class="symbol-name">{{ symbol.symbol }}</td>
-                            <td>
-                                <span class="streak-badge" :class="symbol.currentStreakType">
-                                    {{ symbol.currentStreak }} {{ symbol.currentStreakType === 'winning' ? '🔥' : '❄️'
-                                    }}
-                                </span>
-                            </td>
-                            <td class="positive">{{ symbol.longestWinStreak }}</td>
-                            <td class="negative">{{ symbol.longestLoseStreak }}</td>
-                            <td>{{ symbol.trades }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+      <div class="metric-card">
+        <div class="metric-icon">🏆</div>
+        <div class="metric-content">
+          <div class="metric-label">Longest Win Streak</div>
+          <div class="metric-value positive">{{ globalMetrics.longestWinStreak }}</div>
+          <div class="metric-sublabel">trades</div>
         </div>
+      </div>
 
-        <!-- Strategy Streaks -->
-        <div v-if="strategyMetrics.length > 0" class="streak-section">
-            <h4>Strategy Streaks</h4>
-            <div class="streak-table-container">
-                <table class="streak-table">
-                    <thead>
-                        <tr>
-                            <th>Strategy</th>
-                            <th>Current Streak</th>
-                            <th>Longest Win</th>
-                            <th>Longest Loss</th>
-                            <th>Total Trades</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="strategy in topStrategyStreaks" :key="strategy.strategy">
-                            <td class="strategy-name">{{ strategy.strategy }}</td>
-                            <td>
-                                <span class="streak-badge" :class="strategy.currentStreakType">
-                                    {{ strategy.currentStreak }} {{ strategy.currentStreakType === 'winning' ? '🔥' :
-                                    '❄️' }}
-                                </span>
-                            </td>
-                            <td class="positive">{{ strategy.longestWinStreak }}</td>
-                            <td class="negative">{{ strategy.longestLoseStreak }}</td>
-                            <td>{{ strategy.trades }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+      <div class="metric-card">
+        <div class="metric-icon">📉</div>
+        <div class="metric-content">
+          <div class="metric-label">Longest Lose Streak</div>
+          <div class="metric-value negative">{{ globalMetrics.longestLoseStreak }}</div>
+          <div class="metric-sublabel">trades</div>
         </div>
+      </div>
 
-        <!-- Mobile Cards View -->
-        <div class="mobile-only">
-            <!-- Symbol Streak Cards -->
-            <div v-if="symbolMetrics.length > 0" class="streak-section-mobile">
-                <h4>Symbol Streaks</h4>
-                <div class="streak-cards">
-                    <div v-for="symbol in topSymbolStreaks" :key="symbol.symbol" class="streak-card">
-                        <div class="card-header">
-                            <span class="card-title">{{ symbol.symbol }}</span>
-                            <span class="streak-badge" :class="symbol.currentStreakType">
-                                {{ symbol.currentStreak }} {{ symbol.currentStreakType === 'winning' ? '🔥' : '❄️' }}
-                            </span>
-                        </div>
-                        <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Longest Win</span>
-                                <span class="stat-value positive">{{ symbol.longestWinStreak }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Longest Loss</span>
-                                <span class="stat-value negative">{{ symbol.longestLoseStreak }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Total Trades</span>
-                                <span class="stat-value">{{ symbol.trades }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Strategy Streak Cards -->
-            <div v-if="strategyMetrics.length > 0" class="streak-section-mobile">
-                <h4>Strategy Streaks</h4>
-                <div class="streak-cards">
-                    <div v-for="strategy in topStrategyStreaks" :key="strategy.strategy" class="streak-card">
-                        <div class="card-header">
-                            <span class="card-title">{{ strategy.strategy }}</span>
-                            <span class="streak-badge" :class="strategy.currentStreakType">
-                                {{ strategy.currentStreak }} {{ strategy.currentStreakType === 'winning' ? '🔥' : '❄️'
-                                }}
-                            </span>
-                        </div>
-                        <div class="card-stats">
-                            <div class="stat-item">
-                                <span class="stat-label">Longest Win</span>
-                                <span class="stat-value positive">{{ strategy.longestWinStreak }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Longest Loss</span>
-                                <span class="stat-value negative">{{ strategy.longestLoseStreak }}</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Total Trades</span>
-                                <span class="stat-value">{{ strategy.trades }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div class="metric-card">
+        <div class="metric-icon">📊</div>
+        <div class="metric-content">
+          <div class="metric-label">Avg Win Streak</div>
+          <div class="metric-value">{{ formatNumber(globalMetrics.averageWinStreak, 1) }}</div>
+          <div class="metric-sublabel">trades</div>
         </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon">📉</div>
+        <div class="metric-content">
+          <div class="metric-label">Avg Lose Streak</div>
+          <div class="metric-value">{{ formatNumber(globalMetrics.averageLoseStreak, 1) }}</div>
+          <div class="metric-sublabel">trades</div>
+        </div>
+      </div>
     </div>
+
+    <!-- Symbol Streaks -->
+    <div v-if="symbolMetrics.length > 0" class="streak-section">
+      <h4>Symbol Streaks</h4>
+      <div class="streak-table-container">
+        <table class="streak-table">
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Current Streak</th>
+              <th>Longest Win</th>
+              <th>Longest Loss</th>
+              <th>Total Trades</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="symbol in topSymbolStreaks" :key="symbol.symbol">
+              <td class="symbol-name">{{ symbol.symbol }}</td>
+              <td>
+                <span class="streak-badge" :class="symbol.currentStreakType">
+                  {{ symbol.currentStreak }} {{ symbol.currentStreakType === 'winning' ? '🔥' : '❄️'
+                  }}
+                </span>
+              </td>
+              <td class="positive">{{ symbol.longestWinStreak }}</td>
+              <td class="negative">{{ symbol.longestLoseStreak }}</td>
+              <td>{{ symbol.trades }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Strategy Streaks -->
+    <div v-if="strategyMetrics.length > 0" class="streak-section">
+      <h4>Strategy Streaks</h4>
+      <div class="streak-table-container">
+        <table class="streak-table">
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Current Streak</th>
+              <th>Longest Win</th>
+              <th>Longest Loss</th>
+              <th>Total Trades</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="strategy in topStrategyStreaks" :key="strategy.strategy">
+              <td class="strategy-name">{{ strategy.strategy }}</td>
+              <td>
+                <span class="streak-badge" :class="strategy.currentStreakType">
+                  {{ strategy.currentStreak }} {{ strategy.currentStreakType === 'winning' ? '🔥' :
+                    '❄️' }}
+                </span>
+              </td>
+              <td class="positive">{{ strategy.longestWinStreak }}</td>
+              <td class="negative">{{ strategy.longestLoseStreak }}</td>
+              <td>{{ strategy.trades }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Mobile Cards View -->
+    <div class="mobile-only">
+      <!-- Symbol Streak Cards -->
+      <div v-if="symbolMetrics.length > 0" class="streak-section-mobile">
+        <h4>Symbol Streaks</h4>
+        <div class="streak-cards">
+          <div v-for="symbol in topSymbolStreaks" :key="symbol.symbol" class="streak-card">
+            <div class="card-header">
+              <span class="card-title">{{ symbol.symbol }}</span>
+              <span class="streak-badge" :class="symbol.currentStreakType">
+                {{ symbol.currentStreak }} {{ symbol.currentStreakType === 'winning' ? '🔥' : '❄️' }}
+              </span>
+            </div>
+            <div class="card-stats">
+              <div class="stat-item">
+                <span class="stat-label">Longest Win</span>
+                <span class="stat-value positive">{{ symbol.longestWinStreak }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Longest Loss</span>
+                <span class="stat-value negative">{{ symbol.longestLoseStreak }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Total Trades</span>
+                <span class="stat-value">{{ symbol.trades }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Streak Cards -->
+      <div v-if="strategyMetrics.length > 0" class="streak-section-mobile">
+        <h4>Strategy Streaks</h4>
+        <div class="streak-cards">
+          <div v-for="strategy in topStrategyStreaks" :key="strategy.strategy" class="streak-card">
+            <div class="card-header">
+              <span class="card-title">{{ strategy.strategy }}</span>
+              <span class="streak-badge" :class="strategy.currentStreakType">
+                {{ strategy.currentStreak }} {{ strategy.currentStreakType === 'winning' ? '🔥' : '❄️'
+                }}
+              </span>
+            </div>
+            <div class="card-stats">
+              <div class="stat-item">
+                <span class="stat-label">Longest Win</span>
+                <span class="stat-value positive">{{ strategy.longestWinStreak }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Longest Loss</span>
+                <span class="stat-value negative">{{ strategy.longestLoseStreak }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Total Trades</span>
+                <span class="stat-value">{{ strategy.trades }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>

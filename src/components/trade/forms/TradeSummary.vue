@@ -5,7 +5,7 @@
       <div class="summary-label">P&L Amount:</div>
       <div class="summary-value">
         <div class="input-with-prefix">
-          <span class="currency-prefix">₹</span>
+          <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             type="number"
             :value="Math.round(pnl.amount * 100) / 100"
@@ -28,6 +28,8 @@
 </template>
 
 <script setup>
+import { useProfiles } from '@/composables/useProfiles'
+
 const props = defineProps({
   pnl: {
     type: Object,
@@ -42,6 +44,8 @@ const props = defineProps({
     default: 0
   }
 })
+
+const { currencySymbol } = useProfiles()
 
 const emit = defineEmits(['update-pnl'])
 

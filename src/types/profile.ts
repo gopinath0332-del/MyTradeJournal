@@ -28,6 +28,7 @@ export interface ProfileSettings {
   // Environment
   broker?: string
   accountNumber?: string
+  currency?: string // Preferred currency symbol (e.g., $, ₹, €, £)
 
   // Display preferences
   showInDashboard?: boolean

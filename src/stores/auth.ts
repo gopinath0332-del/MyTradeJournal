@@ -87,12 +87,12 @@ export const useAuthStore = defineStore('auth', () => {
     authLoading,
     authError,
     loading,
-    
+
     // Getters
     user,
     isAuthenticated,
     userProfile,
-    
+
     // Actions
     initAuthListener,
     signInWithGoogle,

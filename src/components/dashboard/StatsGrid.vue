@@ -33,7 +33,7 @@
     <template v-else-if="!isLoading && !error && stats.tradingDays > 0">
       <div class="stat-card net-pnl" :class="{ 'net-pnl-positive': stats.netPnL > 0, 'net-pnl-negative': stats.netPnL < 0, 'net-pnl-neutral': stats.netPnL === 0 }">
         <div class="stat-title">Net P&L</div>
-        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">₹{{ stats.netPnL }}</div>
+        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.netPnL > 0, 'dashboard-text-negative': stats.netPnL < 0 }">{{ currencySymbol }}{{ stats.netPnL }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-title">Total Trading Days</div>
@@ -61,31 +61,31 @@
       </div>
       <div class="stat-card max-profit">
         <div class="stat-title">Max Profit in a Day</div>
-        <div class="stat-value">₹{{ stats.maxProfitDay }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.maxProfitDay }}</div>
       </div>
       <div class="stat-card max-loss">
         <div class="stat-title">Max Loss in a Day</div>
-        <div class="stat-value">₹{{ stats.maxLossDay }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.maxLossDay }}</div>
       </div>
       <div class="stat-card avg-profit">
         <div class="stat-title">Avg Profit per Day</div>
-        <div class="stat-value">₹{{ stats.avgProfitDay }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.avgProfitDay }}</div>
       </div>
       <div class="stat-card avg-loss">
         <div class="stat-title">Avg Loss per Day</div>
-        <div class="stat-value">₹{{ stats.avgLossDay }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.avgLossDay }}</div>
       </div>
       <div class="stat-card total-profit">
         <div class="stat-title">Total Profit</div>
-        <div class="stat-value">₹{{ stats.totalProfit }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.totalProfit }}</div>
       </div>
       <div class="stat-card total-loss">
         <div class="stat-title">Total Loss</div>
-        <div class="stat-value">₹{{ stats.totalLoss }}</div>
+        <div class="stat-value">{{ currencySymbol }}{{ stats.totalLoss }}</div>
       </div>
       <div class="stat-card avg-daily-pnl">
         <div class="stat-title">Avg Daily P&L</div>
-        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.avgDailyPnL > 0, 'dashboard-text-negative': stats.avgDailyPnL < 0 }">₹{{ stats.avgDailyPnL }}</div>
+        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.avgDailyPnL > 0, 'dashboard-text-negative': stats.avgDailyPnL < 0 }">{{ currencySymbol }}{{ stats.avgDailyPnL }}</div>
       </div>
     </template>
   </div>
@@ -95,6 +95,9 @@
 import '../../styles/dashboard.css'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 const _props = defineProps({
   stats: {

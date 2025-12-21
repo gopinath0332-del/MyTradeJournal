@@ -266,6 +266,17 @@ import { ref, computed, onMounted } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
 import { splitTradeCohorts, compareCohorts } from '@/types/cohort'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+const currencyMap = {
+  '$': 'USD',
+  '₹': 'INR',
+  '€': 'EUR',
+  '£': 'GBP',
+  '¥': 'JPY'
+}
+const currencyCode = computed(() => currencyMap[currencySymbol.value] || 'INR')
 
 const isLoading = ref(true)
 const trades = ref([])
@@ -283,7 +294,7 @@ const comparison = computed(() => {
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: currencyCode.value,
     minimumFractionDigits: 0
   }).format(amount)
 }
@@ -298,7 +309,7 @@ const formatDate = (dateStr) => {
 }
 
 const formatMetricValue = (value, unit) => {
-  if (unit === '₹') {
+  if (unit === '₹' || unit === 'currency') {
     return formatCurrency(value)
   } else if (unit === '%') {
     return `${value.toFixed(1)}%`

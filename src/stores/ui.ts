@@ -16,7 +16,7 @@ export const useUIStore = defineStore('ui', () => {
   const showUserMenu = ref<boolean>(false)
   const isSidebarCollapsed = ref<boolean>(false)
   const editingTrade = ref<Trade | null>(null)
-  
+
   let toastId = 0
 
   // Actions
@@ -73,7 +73,7 @@ export const useUIStore = defineStore('ui', () => {
     showUserMenu,
     isSidebarCollapsed,
     editingTrade,
-    
+
     // Actions
     showToast,
     removeToast,

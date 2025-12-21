@@ -30,11 +30,11 @@
         </div>
         <div class="detail-row">
           <span class="label">Entry Price:</span>
-          <span class="value">{{ formatCurrency(trade.entryPrice) }}</span>
+          <span class="value">{{ formatVal(trade.entryPrice) }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Exit Price:</span>
-          <span class="value">{{ formatCurrency(trade.exitPrice) }}</span>
+          <span class="value">{{ formatVal(trade.exitPrice) }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Size:</span>
@@ -42,7 +42,7 @@
         </div>
         <div class="detail-row">
           <span class="label">Capital Used:</span>
-          <span class="value">{{ formatCurrency(trade.capitalUsed) }}</span>
+          <span class="value">{{ formatVal(trade.capitalUsed) }}</span>
         </div>
         <div class="detail-row">
           <span class="label">P&L:</span>
@@ -50,7 +50,7 @@
             class="value"
             :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
           >
-            {{ formatCurrency(trade.pnlAmount) }}
+            {{ formatVal(trade.pnlAmount) }}
           </span>
         </div>
         <div class="detail-row">
@@ -117,6 +117,10 @@
 <script setup lang="ts">
 import { formatDate, formatCurrency } from './tradeHistoryUtils'
 import { getFailureModeById } from '@/types/failureMode'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
 interface Trade {
   id: string

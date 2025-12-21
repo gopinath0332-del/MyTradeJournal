@@ -73,7 +73,7 @@ defineEmits<{
   .tabs-container {
     margin-bottom: 2rem;
   }
-  
+
   .tab-button {
     padding: 14px 20px;
     font-size: 15px;

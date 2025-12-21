@@ -99,7 +99,7 @@
             'neutral-text': tooltip.data.pnl === 0
           }"
         >
-          {{ tooltip.data.pnl >= 0 ? '+' : '' }}₹{{ formatCurrency(tooltip.data.pnl) }}
+          {{ tooltip.data.pnl >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(tooltip.data.pnl) }}
         </div>
         <div class="tooltip-trades">{{ tooltip.data.tradeCount }} trade{{ tooltip.data.tradeCount !== 1 ? 's' : '' }}</div>
       </div>
@@ -115,6 +115,9 @@
 import { ref, computed } from 'vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 // Props
 const props = defineProps({

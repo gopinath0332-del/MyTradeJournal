@@ -85,7 +85,7 @@
               'neutral': totalPnL === 0
             }"
           >
-            {{ totalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(totalPnL)) }}
+            {{ totalPnL >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(totalPnL)) }}
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@
                     'neutral': item.pnl === 0
                   }"
                 >
-                  {{ item.pnl >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(item.pnl)) }}
+                  {{ item.pnl >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(item.pnl)) }}
                 </span>
                 <span class="legend-percentage">({{ item.percentage.toFixed(1) }}%)</span>
               </div>
@@ -130,6 +130,9 @@
 
 <script setup>
 import { computed, ref, watchEffect } from 'vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 const props = defineProps({
   trades: {
@@ -220,7 +223,7 @@ watchEffect(() => {
     const monthsBeforeCurrent = availableMonths.value
       .filter(month => month.value < currentMonth)
       .sort((a, b) => b.value - a.value) // Sort descending (most recent first)
-    
+
     if (monthsBeforeCurrent.length > 0) {
       // Select the most recent month before current month
       const mostRecentMonth = monthsBeforeCurrent[0].value

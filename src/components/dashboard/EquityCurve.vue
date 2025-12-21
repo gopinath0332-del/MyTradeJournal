@@ -143,6 +143,18 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+
+const currencyMap = {
+  '$': 'USD',
+  '₹': 'INR',
+  '€': 'EUR',
+  '£': 'GBP',
+  '¥': 'JPY'
+}
+const currencyCode = computed(() => currencyMap[currencySymbol.value] || 'INR')
 
 const props = defineProps({
   equityData: {
@@ -313,7 +325,7 @@ const xAxisLabels = computed(() => {
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: currencyCode.value,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount)
@@ -321,11 +333,11 @@ const formatCurrency = (amount) => {
 
 const formatAxisCurrency = (amount) => {
   if (Math.abs(amount) >= 100000) {
-    return `₹${(amount / 100000).toFixed(1)}L`
+    return `${currencySymbol.value}${(amount / 100000).toFixed(1)}L`
   } else if (Math.abs(amount) >= 1000) {
-    return `₹${(amount / 1000).toFixed(1)}K`
+    return `${currencySymbol.value}${(amount / 1000).toFixed(1)}K`
   }
-  return `₹${amount.toFixed(0)}`
+  return `${currencySymbol.value}${amount.toFixed(0)}`
 }
 
 // Tooltip functions

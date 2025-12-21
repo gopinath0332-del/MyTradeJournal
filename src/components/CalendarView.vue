@@ -25,7 +25,7 @@
             'neutral': monthlyTotalPnL === 0
           }"
         >
-          {{ monthlyTotalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(monthlyTotalPnL)) }}
+          {{ monthlyTotalPnL >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(monthlyTotalPnL)) }}
         </div>
         <div class="monthly-stats">
           <span class="stat-item">{{ totalTradingDays }} trading days</span>
@@ -80,7 +80,7 @@
                 'neutral': day.totalPnL === 0
               }"
             >
-              {{ day.totalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(day.totalPnL)) }}
+              {{ day.totalPnL >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(day.totalPnL)) }}
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
                   'neutral': selectedDay.totalPnL === 0
                 }"
               >
-                {{ selectedDay.totalPnL >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(selectedDay.totalPnL)) }}
+                {{ selectedDay.totalPnL >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(selectedDay.totalPnL)) }}
               </span>
             </div>
           </div>
@@ -131,11 +131,11 @@
                 <span class="trade-type" :class="trade.type.toLowerCase()">{{ trade.type }}</span>
               </div>
               <div class="trade-prices">
-                <span>Entry: ₹{{ formatCurrency(trade.entryPrice) }}</span>
-                <span>Exit: ₹{{ formatCurrency(trade.exitPrice) }}</span>
+                <span>Entry: {{ currencySymbol }}{{ formatCurrency(trade.entryPrice) }}</span>
+                <span>Exit: {{ currencySymbol }}{{ formatCurrency(trade.exitPrice) }}</span>
               </div>
               <div class="trade-pnl">
-                {{ trade.pnlAmount >= 0 ? '+' : '' }}₹{{ formatCurrency(Math.abs(trade.pnlAmount)) }}
+                {{ trade.pnlAmount >= 0 ? '+' : '' }}{{ currencySymbol }}{{ formatCurrency(Math.abs(trade.pnlAmount)) }}
               </div>
             </div>
           </div>
@@ -148,6 +148,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useCalendar } from '@/composables/useCalendar'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
 
 const {
   // State

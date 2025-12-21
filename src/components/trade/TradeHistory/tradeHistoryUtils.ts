@@ -16,11 +16,22 @@ export const formatDate = (dateStr: string): string => {
 /**
  * Format currency in INR
  */
-export const formatCurrency = (amount: number | null | undefined): string => {
+export const formatCurrency = (amount: number | null | undefined, symbol: string = '₹'): string => {
   if (amount === null || amount === undefined) return ''
+  
+  const currencyMap: Record<string, string> = {
+    '₹': 'INR',
+    '$': 'USD',
+    '€': 'EUR',
+    '£': 'GBP',
+    '¥': 'JPY'
+  }
+  
+  const currency = currencyMap[symbol] || 'INR'
+  
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount)

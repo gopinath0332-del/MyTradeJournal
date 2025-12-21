@@ -7,11 +7,11 @@
           <label for="bin-size">Bin Size:</label>
           <select id="bin-size" v-model="selectedBinSize" @change="updateHistogram">
             <option value="auto">Auto</option>
-            <option value="1000">₹1,000</option>
-            <option value="2500">₹2,500</option>
-            <option value="5000">₹5,000</option>
-            <option value="10000">₹10,000</option>
-            <option value="25000">₹25,000</option>
+            <option value="1000">{{ currencySymbol }}1,000</option>
+            <option value="2500">{{ currencySymbol }}2,500</option>
+            <option value="5000">{{ currencySymbol }}5,000</option>
+            <option value="10000">{{ currencySymbol }}10,000</option>
+            <option value="25000">{{ currencySymbol }}25,000</option>
           </select>
         </div>
         <div class="view-toggle">
@@ -113,7 +113,7 @@
               </div>
             </div>
             <div class="x-axis">
-              <div class="x-axis-label">P&L Range (₹)</div>
+              <div class="x-axis-label">P&L Range ({{ currencySymbol }})</div>
             </div>
           </div>
         </div>
@@ -172,6 +172,17 @@
 <script setup>
 import { ref, computed, inject, onMounted } from 'vue'
 import EmptyState from '../ui/EmptyState.vue'
+import { useProfiles } from '@/composables/useProfiles'
+
+const { currencySymbol } = useProfiles()
+const currencyMap = {
+  '$': 'USD',
+  '₹': 'INR',
+  '€': 'EUR',
+  '£': 'GBP',
+  '¥': 'JPY'
+}
+const currencyCode = computed(() => currencyMap[currencySymbol.value] || 'INR')
 
 const props = defineProps({
   trades: {
@@ -192,7 +203,7 @@ const tooltip = ref(null)
 const formatCurrency = inject('formatCurrency', (amount) => {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR',
+    currency: currencyCode.value,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount)
@@ -428,9 +439,9 @@ const getBinClass = (bin) => {
 const formatBinLabel = (bin) => {
   const formatShort = (amount) => {
     const abs = Math.abs(amount)
-    if (abs >= 100000) return `₹${(amount / 100000).toFixed(0)}L`
-    if (abs >= 1000) return `₹${(amount / 1000).toFixed(0)}K`
-    return `₹${amount}`
+    if (abs >= 100000) return `${currencySymbol.value}${(amount / 100000).toFixed(0)}L`
+    if (abs >= 1000) return `${currencySymbol.value}${(amount / 1000).toFixed(0)}K`
+    return `${currencySymbol.value}${amount}`
   }
 
   if (bin.start >= 0 && bin.end > 0) {

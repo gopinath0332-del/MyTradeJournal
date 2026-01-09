@@ -45,6 +45,7 @@
           <option value="Double dip">Double dip</option>
           <option value="Weekly momentum">Weekly momentum</option>
           <option value="CCI-EMA">CCI-EMA</option>
+          <option value="RSI+Supertrend">RSI+Supertrend</option>
         </select>
       </div>
     </div>

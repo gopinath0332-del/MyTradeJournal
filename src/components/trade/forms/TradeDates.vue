@@ -41,6 +41,7 @@
           @change="updateTrade({ strategy: $event.target.value })"
         >
           <option value="Donchian">Donchian</option>
+          <option value="Swing-01">Swing-01</option>
           <option value="RSI-Long">RSI-Long</option>
           <option value="Double dip">Double dip</option>
           <option value="Weekly momentum">Weekly momentum</option>

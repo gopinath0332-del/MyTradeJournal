@@ -43,6 +43,7 @@
           <option value="Donchian">Donchian</option>
           <option value="Swing-01">Swing-01</option>
           <option value="RSI-Long">RSI-Long</option>
+          <option value="52-Low">52-Low</option>
           <option value="Double dip">Double dip</option>
           <option value="Weekly momentum">Weekly momentum</option>
           <option value="CCI-EMA">CCI-EMA</option>

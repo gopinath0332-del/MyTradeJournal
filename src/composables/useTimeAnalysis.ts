@@ -2,9 +2,9 @@ import { computed } from 'vue'
 import type { Trade } from '@/types'
 
 export function useTimeAnalysis(trades: any) {
-  // Day of week performance (weekdays only)
+  // Day of week performance (all days including weekends)
   const dayOfWeekPerformance = computed(() => {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     const allDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     const dayStats: Record<string, { trades: number; totalPnL: number }> = {}
 
@@ -14,7 +14,7 @@ export function useTimeAnalysis(trades: any) {
 
     trades.value.forEach((trade: Trade) => {
       const dayOfWeek = allDays[new Date(trade.entryDate).getDay()]
-      // Only process weekday trades (skip Sunday and Saturday)
+      // Process all day trades including weekends
       if (dayOfWeek && days.includes(dayOfWeek) && dayStats[dayOfWeek]) {
         dayStats[dayOfWeek].trades++
         dayStats[dayOfWeek].totalPnL += (trade.pnlAmount || 0)

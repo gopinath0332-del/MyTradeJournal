@@ -39,7 +39,10 @@
       <TradeSummary
         :pnl="pnl"
         :capital-used="trade.capitalUsed"
+        :funding-charge="trade.fundingCharge"
+        :trading-charge="trade.tradingCharge"
         @update-pnl="updatePnLFromAmount"
+        @update-charges="updateCharges"
       />
 
       <!-- Failure Mode Analysis (show only for losing trades with exit date) -->
@@ -116,6 +119,8 @@ const trade = ref({
   lots: 2,
   daysHeld: 0,
   capitalUsed: null,
+  fundingCharge: null,
+  tradingCharge: null,
   strategy: '',
   notes: '',
   remarks: '',
@@ -173,6 +178,8 @@ const calculatePnL = () => {
     }
 
     pnl.value.amount = totalPnL
+      - (trade.value.fundingCharge || 0)
+      - (trade.value.tradingCharge || 0)
     updateReturnFromPnL()
   } else if (!editingTrade.value?.pnlAmount) {
     pnl.value.amount = 0
@@ -190,6 +197,11 @@ const updateReturnFromPnL = () => {
 
 const updatePnLFromAmount = (newPnL) => {
   pnl.value = newPnL
+}
+
+const updateCharges = ({ field, value }) => {
+  trade.value[field] = value
+  calculatePnL()
 }
 
 // File upload handler
@@ -293,6 +305,8 @@ const resetForm = () => {
     lots: 2,
     daysHeld: 0,
     capitalUsed: null,
+    fundingCharge: null,
+    tradingCharge: null,
     strategy: 'Supertrend', // Default to first option since it's required
     notes: '',
     remarks: '',

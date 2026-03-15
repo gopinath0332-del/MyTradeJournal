@@ -10,7 +10,7 @@
             type="number"
             :value="modelValue.entryPrice"
             required
-            step="0.01"
+            step="0.00001"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handlePriceChange('entryPrice', $event)"
@@ -25,7 +25,7 @@
             id="exitPrice"
             type="number"
             :value="modelValue.exitPrice"
-            step="0.01"
+            step="0.00001"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handlePriceChange('exitPrice', $event)"
@@ -58,7 +58,7 @@
             type="number"
             :value="modelValue.capitalUsed"
             required
-            step="0.01"
+            step="0.00001"
             min="0"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
@@ -86,7 +86,7 @@
                 id="pe-price"
                 v-model.number="newPartialExit.price"
                 type="number"
-                step="0.01"
+                step="0.00001"
               >
             </div>
           </div>

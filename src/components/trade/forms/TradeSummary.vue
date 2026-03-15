@@ -8,8 +8,8 @@
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             type="number"
-            :value="Math.round(pnl.amount * 100) / 100"
-            step="0.01"
+            :value="Math.round(pnl.amount * 100000) / 100000"
+            step="0.00001"
             :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"

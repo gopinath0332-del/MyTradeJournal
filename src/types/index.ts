@@ -68,6 +68,8 @@ export interface MonthlyData {
   winRate: number
   avgPnL: number
   riskRewardRatio: number
+  totalFunding: number
+  totalTradingFees: number
   remarksBreakdown: Record<string, number>
   trades: Trade[]
 }

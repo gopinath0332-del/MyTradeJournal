@@ -387,6 +387,8 @@ export function useDashboardStats() {
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
         riskRewardRatio,
+        totalFunding: Math.round(trades.reduce((sum, t) => sum + (t.fundingCharge || 0), 0)),
+        totalTradingFees: Math.round(trades.reduce((sum, t) => sum + (t.tradingCharge || 0), 0)),
         remarksCount
       }
     }).sort((a, b) => b.monthNumber - a.monthNumber)

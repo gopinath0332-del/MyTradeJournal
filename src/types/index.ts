@@ -53,6 +53,8 @@ export interface DashboardStats {
   totalLoss: number
   netPnL: number
   avgDailyPnL: number
+  totalFunding: number
+  totalTradingFees: number
 }
 
 // Monthly breakdown types

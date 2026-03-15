@@ -85,6 +85,8 @@ export interface WeeklyData {
   winRate: number
   avgPnL: number
   riskRewardRatio: number
+  totalFunding: number
+  totalTradingFees: number
 }
 
 // Equity curve types

@@ -458,7 +458,9 @@ export function useDashboardStats() {
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
-        riskRewardRatio
+        riskRewardRatio,
+        totalFunding: Math.round(trades.reduce((sum: number, t: Trade) => sum + (t.fundingCharge || 0), 0)),
+        totalTradingFees: Math.round(trades.reduce((sum: number, t: Trade) => sum + (t.tradingCharge || 0), 0))
       }
     }).sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())
   })

@@ -19,6 +19,40 @@
       </div>
     </div>
     <div class="summary-row">
+      <div class="summary-label">Funding Charge:</div>
+      <div class="summary-value">
+        <div class="input-with-prefix">
+          <span class="currency-prefix">{{ currencySymbol }}</span>
+          <input
+            type="number"
+            :value="fundingCharge ?? ''"
+            step="0.00001"
+            min="0"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            @input="handleChargeChange('fundingCharge', $event)"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="summary-row">
+      <div class="summary-label">Trading Charge:</div>
+      <div class="summary-value">
+        <div class="input-with-prefix">
+          <span class="currency-prefix">{{ currencySymbol }}</span>
+          <input
+            type="number"
+            :value="tradingCharge ?? ''"
+            step="0.00001"
+            min="0"
+            inputmode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
+            @input="handleChargeChange('tradingCharge', $event)"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="summary-row">
       <div class="summary-label">Return %:</div>
       <div class="summary-value" :class="{ 'profit': pnl.percentage > 0, 'loss': pnl.percentage < 0 }">
         {{ pnl.percentage.toFixed(2) }}%
@@ -42,12 +76,25 @@ const props = defineProps({
   capitalUsed: {
     type: Number,
     default: 0
+  },
+  fundingCharge: {
+    type: Number,
+    default: null
+  },
+  tradingCharge: {
+    type: Number,
+    default: null
   }
 })
 
 const { currencySymbol } = useProfiles()
 
-const emit = defineEmits(['update-pnl'])
+const emit = defineEmits(['update-pnl', 'update-charges'])
+
+const handleChargeChange = (field, event) => {
+  const value = parseFloat(event.target.value) || null
+  emit('update-charges', { field, value })
+}
 
 const handlePnLAmountChange = (event) => {
   const amount = parseFloat(event.target.value) || 0

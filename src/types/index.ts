@@ -20,6 +20,8 @@ export interface Trade {
   pnl?: number
   pnlPercentage?: number
   pnlAmount?: number
+  fundingCharge?: number
+  tradingCharge?: number
   profileId?: string // Associate trade with a profile
   userId?: string // Associate trade with a user (for authentication)
   failureModes?: string[] // Array of failure mode IDs for losing trades

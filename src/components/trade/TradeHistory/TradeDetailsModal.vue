@@ -63,6 +63,21 @@
           </span>
         </div>
         <div class="detail-row">
+          <span class="label">Funding:</span>
+          <span
+            class="value"
+            :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }"
+          >
+            {{ formatVal(trade.fundingCharge) }}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Trading Fees:</span>
+          <span class="value loss">
+            {{ formatVal(trade.tradingCharge) }}
+          </span>
+        </div>
+        <div class="detail-row">
           <span class="label">Days Held:</span>
           <span class="value">{{ trade.daysHeld }}</span>
         </div>
@@ -135,6 +150,8 @@ interface Trade {
   capitalUsed: number
   pnlAmount: number
   pnlPercentage: number
+  fundingCharge?: number
+  tradingCharge?: number
   daysHeld: number
   strategy?: string
   remarks?: string

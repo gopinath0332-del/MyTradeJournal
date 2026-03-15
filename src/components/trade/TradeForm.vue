@@ -178,7 +178,7 @@ const calculatePnL = () => {
     }
 
     pnl.value.amount = totalPnL
-      - (trade.value.fundingCharge || 0)
+      + (trade.value.fundingCharge || 0)
       - (trade.value.tradingCharge || 0)
     updateReturnFromPnL()
   } else if (!editingTrade.value?.pnlAmount) {

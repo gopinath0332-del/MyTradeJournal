@@ -30,9 +30,13 @@
             Exit Price
             <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
           </th>
-          <th :class="{ active: sortKey === 'pnlAmount' }" @click="$emit('sort', 'pnlAmount')">
-            P&L
-            <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
+          <th :class="{ active: sortKey === 'pnlPercentage' }" @click="$emit('sort', 'pnlPercentage')">
+            Return %
+            <span class="sort-arrow">{{ getSortArrow('pnlPercentage') }}</span>
+          </th>
+          <th :class="{ active: sortKey === 'fundingCharge' }" @click="$emit('sort', 'fundingCharge')">
+            Funding
+            <span class="sort-arrow">{{ getSortArrow('fundingCharge') }}</span>
           </th>
           <th v-if="activeTab === 'open'" :class="{ active: sortKey === 'capitalUsed' }" @click="$emit('sort', 'capitalUsed')">
             Capital Used
@@ -59,8 +63,11 @@
           </td>
           <td>{{ formatVal(trade.entryPrice) }}</td>
           <td>{{ formatVal(trade.exitPrice) }}</td>
-          <td :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }">
-            {{ formatVal(trade.pnlAmount) }}
+          <td :class="{ 'profit': (trade.pnlPercentage || 0) > 0, 'loss': (trade.pnlPercentage || 0) < 0 }">
+            {{ (trade.pnlPercentage || 0).toFixed(2) }}%
+          </td>
+          <td :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }">
+            {{ formatVal(trade.fundingCharge) }}
           </td>
           <td v-if="activeTab === 'open'">
             {{ formatVal(trade.capitalUsed) }}
@@ -84,7 +91,7 @@
           </td>
         </tr>
         <tr v-if="!isLoading && trades.length === 0">
-          <td :colspan="activeTab === 'open' ? 8 : 7" class="empty-state-cell">
+          <td :colspan="activeTab === 'open' ? 9 : 8" class="empty-state-cell">
             <EmptyState
               icon="📈"
               :title="`No ${activeTab} trades found`"
@@ -116,6 +123,8 @@ interface Trade {
   entryPrice: number
   exitPrice: number
   pnlAmount: number
+  pnlPercentage?: number
+  fundingCharge?: number
   capitalUsed: number
   remarks?: string
   failureModes?: string[]

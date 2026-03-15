@@ -87,6 +87,14 @@
         <div class="stat-title">Avg Daily P&L</div>
         <div class="stat-value" :class="{ 'dashboard-text-positive': stats.avgDailyPnL > 0, 'dashboard-text-negative': stats.avgDailyPnL < 0 }">{{ currencySymbol }}{{ stats.avgDailyPnL }}</div>
       </div>
+      <div class="stat-card total-funding">
+        <div class="stat-title">Total Funding</div>
+        <div class="stat-value" :class="{ 'dashboard-text-positive': stats.totalFunding > 0, 'dashboard-text-negative': stats.totalFunding < 0 }">{{ currencySymbol }}{{ stats.totalFunding }}</div>
+      </div>
+      <div class="stat-card total-fees">
+        <div class="stat-title">Total Trading Fees</div>
+        <div class="stat-value dashboard-text-negative">{{ currencySymbol }}{{ stats.totalTradingFees }}</div>
+      </div>
     </template>
   </div>
 </template>
@@ -117,7 +125,9 @@ const _props = defineProps({
       totalProfit: 0,
       totalLoss: 0,
       netPnL: 0,
-      avgDailyPnL: 0
+      avgDailyPnL: 0,
+      totalFunding: 0,
+      totalTradingFees: 0
     })
   },
   isLoading: {
@@ -284,6 +294,14 @@ const _props = defineProps({
 
 .stat-card.avg-daily-pnl {
   border-left: 4px solid #0D47A1;
+}
+
+.stat-card.total-funding {
+  border-left: 4px solid #9C27B0;
+}
+
+.stat-card.total-fees {
+  border-left: 4px solid #607D8B;
 }
 
 /* Empty state styles */

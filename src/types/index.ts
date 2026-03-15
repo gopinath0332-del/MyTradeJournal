@@ -53,6 +53,8 @@ export interface DashboardStats {
   totalLoss: number
   netPnL: number
   avgDailyPnL: number
+  totalFunding: number
+  totalTradingFees: number
 }
 
 // Monthly breakdown types
@@ -66,6 +68,8 @@ export interface MonthlyData {
   winRate: number
   avgPnL: number
   riskRewardRatio: number
+  totalFunding: number
+  totalTradingFees: number
   remarksBreakdown: Record<string, number>
   trades: Trade[]
 }
@@ -81,6 +85,8 @@ export interface WeeklyData {
   winRate: number
   avgPnL: number
   riskRewardRatio: number
+  totalFunding: number
+  totalTradingFees: number
 }
 
 // Equity curve types

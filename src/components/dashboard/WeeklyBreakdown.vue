@@ -77,6 +77,18 @@
               {{ week.riskRewardRatio > 0 ? week.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>
           </div>
+          <div class="weekly-stat">
+            <span class="stat-label">Funding:</span>
+            <span class="stat-value" :class="{ 'positive': week.totalFunding > 0, 'negative': week.totalFunding < 0 }">
+              {{ currencySymbol }}{{ week.totalFunding.toLocaleString() }}
+            </span>
+          </div>
+          <div class="weekly-stat">
+            <span class="stat-label">Trading Fees:</span>
+            <span class="stat-value negative">
+              {{ currencySymbol }}{{ week.totalTradingFees.toLocaleString() }}
+            </span>
+          </div>
           <div class="win-loss-breakdown">
             <span class="wins">{{ week.winningTrades }}W</span>
             <span class="losses">{{ week.losingTrades }}L</span>

@@ -64,6 +64,18 @@
               {{ month.riskRewardRatio > 0 ? month.riskRewardRatio.toFixed(2) : 'N/A' }}
             </span>
           </div>
+          <div class="monthly-stat">
+            <span class="stat-label">Funding:</span>
+            <span class="stat-value" :class="{ 'positive': month.totalFunding > 0, 'negative': month.totalFunding < 0 }">
+              {{ currencySymbol }}{{ month.totalFunding.toLocaleString() }}
+            </span>
+          </div>
+          <div class="monthly-stat">
+            <span class="stat-label">Trading Fees:</span>
+            <span class="stat-value negative">
+              {{ currencySymbol }}{{ month.totalTradingFees.toLocaleString() }}
+            </span>
+          </div>
 
           <!-- Remarks breakdown section -->
           <div v-if="Object.keys(month.remarksCount || {}).length > 0" class="remarks-section">

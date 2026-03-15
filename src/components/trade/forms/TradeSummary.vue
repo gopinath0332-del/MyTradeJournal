@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="summary-row">
-      <div class="summary-label">Funding Charge:</div>
+      <div class="summary-label">Funding:</div>
       <div class="summary-value">
         <div class="input-with-prefix">
           <span class="currency-prefix">{{ currencySymbol }}</span>
@@ -27,7 +27,6 @@
             type="number"
             :value="fundingCharge ?? ''"
             step="0.00001"
-            min="0"
             inputmode="decimal"
             pattern="[0-9]*\.?[0-9]*"
             @input="handleChargeChange('fundingCharge', $event)"

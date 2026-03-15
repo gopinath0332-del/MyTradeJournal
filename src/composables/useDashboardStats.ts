@@ -87,7 +87,9 @@ export function useDashboardStats() {
         totalProfit: 0,
         totalLoss: 0,
         netPnL: 0,
-        avgDailyPnL: 0
+        avgDailyPnL: 0,
+        totalFunding: 0,
+        totalTradingFees: 0
       }
     }
 
@@ -141,7 +143,9 @@ export function useDashboardStats() {
       totalProfit: Math.round(totalProfit),
       totalLoss: Math.round(totalLoss),
       netPnL: Math.round(netPnL),
-      avgDailyPnL: Math.round(avgDailyPnL)
+      avgDailyPnL: Math.round(avgDailyPnL),
+      totalFunding: Math.round(currentYearTrades.value.reduce((sum, t) => sum + (t.fundingCharge || 0), 0)),
+      totalTradingFees: Math.round(currentYearTrades.value.reduce((sum, t) => sum + (t.tradingCharge || 0), 0))
     }
   })
 
@@ -383,6 +387,8 @@ export function useDashboardStats() {
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
         riskRewardRatio,
+        totalFunding: Math.round(trades.reduce((sum, t) => sum + (t.fundingCharge || 0), 0)),
+        totalTradingFees: Math.round(trades.reduce((sum, t) => sum + (t.tradingCharge || 0), 0)),
         remarksCount
       }
     }).sort((a, b) => b.monthNumber - a.monthNumber)
@@ -452,7 +458,9 @@ export function useDashboardStats() {
         totalPnL,
         winRate: trades.length > 0 ? Math.round((winningTrades / trades.length) * 100) : 0,
         avgPnL: Math.round(totalPnL / trades.length),
-        riskRewardRatio
+        riskRewardRatio,
+        totalFunding: Math.round(trades.reduce((sum: number, t: Trade) => sum + (t.fundingCharge || 0), 0)),
+        totalTradingFees: Math.round(trades.reduce((sum: number, t: Trade) => sum + (t.tradingCharge || 0), 0))
       }
     }).sort((a, b) => b.weekStart.getTime() - a.weekStart.getTime())
   })

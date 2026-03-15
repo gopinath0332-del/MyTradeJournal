@@ -16,7 +16,8 @@
           <option value="type">Type</option>
           <option value="entryPrice">Entry Price</option>
           <option value="exitPrice">Exit Price</option>
-          <option value="pnlAmount">P&L</option>
+          <option value="pnlPercentage">Return %</option>
+          <option value="fundingCharge">Funding</option>
           <option v-if="activeTab === 'open'" value="capitalUsed">Capital Used</option>
         </select>
         <button class="sort-direction-btn" @click="$emit('toggleSort')">
@@ -55,12 +56,18 @@
               <span class="trade-value">{{ formatVal(trade.exitPrice) }}</span>
             </div>
             <div class="trade-row">
-              <span class="trade-label">P&L:</span>
+              <span class="trade-label">Return %:</span>
               <span
-                class="trade-value pnl-value"
-                :class="{ 'profit': trade.pnlAmount > 0, 'loss': trade.pnlAmount < 0 }"
+                class="trade-value"
+                :class="{ 'profit': (trade.pnlPercentage || 0) > 0, 'loss': (trade.pnlPercentage || 0) < 0 }"
               >
-                {{ formatVal(trade.pnlAmount) }}
+                {{ (trade.pnlPercentage || 0).toFixed(2) }}%
+              </span>
+            </div>
+            <div class="trade-row">
+              <span class="trade-label">Funding:</span>
+              <span class="trade-value" :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }">
+                {{ formatVal(trade.fundingCharge) }}
               </span>
             </div>
             <div v-if="activeTab === 'open'" class="trade-row">
@@ -116,6 +123,8 @@ interface Trade {
   entryPrice: number
   exitPrice: number
   pnlAmount: number
+  pnlPercentage?: number
+  fundingCharge?: number
   capitalUsed: number
   remarks?: string
 }

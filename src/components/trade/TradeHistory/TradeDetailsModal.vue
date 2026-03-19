@@ -98,6 +98,27 @@
           <p class="value">{{ trade.lessonsLearned }}</p>
         </div>
 
+        <!-- Partial Exits -->
+        <div v-if="trade.partialExits && trade.partialExits.length > 0" class="detail-partial-exits">
+          <span class="label">Partial Exits:</span>
+          <div class="partial-exits-table">
+            <div class="partial-exit-header">
+              <span>Date</span>
+              <span>Price</span>
+              <span>Lots</span>
+            </div>
+            <div
+              v-for="(exit, index) in trade.partialExits"
+              :key="index"
+              class="partial-exit-row"
+            >
+              <span>{{ formatDate(exit.date) }}</span>
+              <span>{{ formatVal(exit.price) }}</span>
+              <span>{{ exit.lots }}</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Failure Mode Analysis (for losing trades) -->
         <div v-if="trade.failureModes && trade.failureModes.length > 0" class="detail-failure-modes">
           <span class="label">Failure Analysis:</span>
@@ -152,6 +173,7 @@ interface Trade {
   pnlPercentage: number
   fundingCharge?: number
   tradingCharge?: number
+  partialExits?: { date: string; price: number; lots: number }[]
   daysHeld: number
   strategy?: string
   remarks?: string
@@ -263,6 +285,51 @@ const getFailureModeColor = (modeId: string): string => {
   padding: 15px;
   border-radius: 4px;
   font-weight: normal;
+}
+
+/* Partial Exits Styles */
+.detail-partial-exits {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.detail-partial-exits > .label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.partial-exits-table {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.partial-exit-header,
+.partial-exit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  font-size: 0.875rem;
+}
+
+.partial-exit-header {
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.partial-exit-row {
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  color: #374151;
 }
 
 /* Failure Mode Styles */

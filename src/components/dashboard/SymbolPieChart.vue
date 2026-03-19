@@ -129,7 +129,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useProfiles } from '@/composables/useProfiles'
 
 const { currencySymbol } = useProfiles()
@@ -204,42 +204,32 @@ const orderedAvailableMonths = computed(() => {
   return months
 })
 
-// Auto-adjust selected month based on available data
-watchEffect(() => {
-  if (availableMonths.value.length === 0) {
-    return // Keep current selection or default
-  }
+// Auto-adjust selected month only when trades data or year changes (not when user manually picks a month)
+watch(
+  [() => props.trades, () => props.selectedYear],
+  () => {
+    if (availableMonths.value.length === 0) return
 
-  const currentMonth = new Date().getMonth() // Current month (e.g., November 2025 = 10)
-  const hasCurrentMonthData = availableMonths.value.some(month => month.value === currentMonth)
+    const currentMonth = new Date().getMonth()
+    const hasCurrentMonthData = availableMonths.value.some(month => month.value === currentMonth)
 
-  // If current month has data, select it
-  if (hasCurrentMonthData) {
-    if (selectedMonth.value !== currentMonth) {
+    if (hasCurrentMonthData) {
       selectedMonth.value = currentMonth
-    }
-  } else {
-    // Current month has no data, find the most recent month with data (before current month)
-    const monthsBeforeCurrent = availableMonths.value
-      .filter(month => month.value < currentMonth)
-      .sort((a, b) => b.value - a.value) // Sort descending (most recent first)
-
-    if (monthsBeforeCurrent.length > 0) {
-      // Select the most recent month before current month
-      const mostRecentMonth = monthsBeforeCurrent[0].value
-      if (selectedMonth.value !== mostRecentMonth) {
-        selectedMonth.value = mostRecentMonth
-      }
     } else {
-      // No months before current month, select the latest available month
-      const latestMonth = availableMonths.value
-        .sort((a, b) => b.value - a.value)[0]
-      if (latestMonth && selectedMonth.value !== latestMonth.value) {
-        selectedMonth.value = latestMonth.value
+      const monthsBeforeCurrent = availableMonths.value
+        .filter(month => month.value < currentMonth)
+        .sort((a, b) => b.value - a.value)
+
+      if (monthsBeforeCurrent.length > 0) {
+        selectedMonth.value = monthsBeforeCurrent[0].value
+      } else {
+        const latestMonth = [...availableMonths.value].sort((a, b) => b.value - a.value)[0]
+        if (latestMonth) selectedMonth.value = latestMonth.value
       }
     }
-  }
-})
+  },
+  { immediate: true }
+)
 
 // Filter trades based on selected month
 const filteredTrades = computed(() => {

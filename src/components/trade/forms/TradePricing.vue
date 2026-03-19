@@ -69,10 +69,13 @@
     </div>
 
     <!-- Partial Exits Section -->
-    <div v-if="!modelValue.exitDate" class="partial-exits-section">
+    <div
+      v-if="!modelValue.exitDate || (modelValue.partialExits && modelValue.partialExits.length > 0)"
+      class="partial-exits-section"
+    >
       <h3>Partial Exits</h3>
 
-      <div class="partial-exit-form">
+      <div v-if="!modelValue.exitDate" class="partial-exit-form">
         <div class="form-row compact">
           <div class="form-group">
             <label for="pe-date">Date</label>

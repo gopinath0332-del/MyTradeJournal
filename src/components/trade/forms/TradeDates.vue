@@ -26,7 +26,7 @@
         <label for="daysHeld">Days Held</label>
         <input
           id="daysHeld"
-          type="number"
+          type="text"
           :value="modelValue.daysHeld"
           disabled
           class="calculated-field"

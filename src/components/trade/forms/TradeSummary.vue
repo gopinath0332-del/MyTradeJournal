@@ -7,7 +7,7 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
-            type="number"
+            type="text"
             :value="Math.round(pnl.amount * 100000) / 100000"
             step="0.00001"
             :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
@@ -24,7 +24,7 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
-            type="number"
+            type="text"
             :value="fundingCharge ?? ''"
             step="0.00001"
             inputmode="decimal"
@@ -40,7 +40,7 @@
         <div class="input-with-prefix">
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
-            type="number"
+            type="text"
             :value="tradingCharge ?? ''"
             step="0.00001"
             min="0"
@@ -91,18 +91,14 @@ const { currencySymbol } = useProfiles()
 const emit = defineEmits(['update-pnl', 'update-charges'])
 
 const handleChargeChange = (field, event) => {
-  const value = parseFloat(event.target.value) || null
-  emit('update-charges', { field, value })
+  emit('update-charges', { field, value: event.target.value })
 }
 
 const handlePnLAmountChange = (event) => {
-  const amount = parseFloat(event.target.value) || 0
-  const percentage = props.capitalUsed ? (amount / props.capitalUsed) * 100 : 0
-
-  emit('update-pnl', {
-    amount,
-    percentage
-  })
+  const rawValue = event.target.value
+  const amount = rawValue === '' ? 0 : parseFloat(rawValue)
+  const percentage = props.capitalUsed && !isNaN(amount) ? (amount / props.capitalUsed) * 100 : 0
+  emit('update-pnl', { amount: rawValue, percentage })
 }
 </script>
 

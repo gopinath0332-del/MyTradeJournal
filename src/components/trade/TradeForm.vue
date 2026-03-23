@@ -125,10 +125,6 @@ const trade = ref({
   notes: '',
   remarks: '',
   confidence: 3,
-  executionQuality: 3,
-  lessonsLearned: '',
-  failureModes: [],
-  failureNotes: '',
   failureConfidence: 3
 })
 
@@ -152,35 +148,43 @@ const showToast = (variant, title, message) => {
 // P&L calculations
 const calculatePnL = () => {
   if (trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
-    let totalPnL = 0
-    let remainingLots = trade.value.lots
+    const entryPrice = parseFloat(trade.value.entryPrice.toString())
+    const capitalUsed = parseFloat(trade.value.capitalUsed.toString())
+    const lots = parseFloat(trade.value.lots.toString())
 
-    const multiplier = trade.value.type === 'SELL' ? -1 : 1
+    if (!isNaN(entryPrice) && !isNaN(lots) && !isNaN(capitalUsed)) {
+      let totalPnL = 0
+      let remainingLots = lots
+      const multiplier = trade.value.type === 'SELL' ? -1 : 1
 
-    // Calculate P&L from partial exits
-    if (trade.value.partialExits && trade.value.partialExits.length > 0) {
-      trade.value.partialExits.forEach((exit) => {
-        if (exit.price && exit.lots) {
-          const partialPnL =
-            (exit.price - trade.value.entryPrice) * exit.lots * multiplier
-          totalPnL += partialPnL
-          remainingLots -= exit.lots
-        }
-      })
+      // Calculate P&L from partial exits
+      if (trade.value.partialExits && trade.value.partialExits.length > 0) {
+        trade.value.partialExits.forEach((exit) => {
+          const exitPrice = parseFloat((exit.price || '').toString())
+          const exitLots = parseFloat((exit.lots || '').toString())
+
+          if (!isNaN(exitPrice) && !isNaN(exitLots)) {
+            const partialPnL = (exitPrice - entryPrice) * exitLots * multiplier
+            totalPnL += partialPnL
+            remainingLots -= exitLots
+          }
+        })
+      }
+
+      // Calculate P&L for remaining lots
+      if (remainingLots > 0) {
+        const exitPriceString = trade.value.exitPrice ? trade.value.exitPrice.toString() : ''
+        const exitPrice = exitPriceString ? parseFloat(exitPriceString) : entryPrice
+        const remainingPnL = (exitPrice - entryPrice) * remainingLots * multiplier
+        totalPnL += remainingPnL
+      }
+
+      const fundingCharge = parseFloat((trade.value.fundingCharge || 0).toString())
+      const tradingCharge = parseFloat((trade.value.tradingCharge || 0).toString())
+
+      pnl.value.amount = totalPnL + fundingCharge - tradingCharge
+      updateReturnFromPnL()
     }
-
-    // Calculate P&L for remaining lots
-    if (remainingLots > 0) {
-      const exitPrice = trade.value.exitPrice || trade.value.entryPrice
-      const remainingPnL =
-        (exitPrice - trade.value.entryPrice) * remainingLots * multiplier
-      totalPnL += remainingPnL
-    }
-
-    pnl.value.amount = totalPnL
-      + (trade.value.fundingCharge || 0)
-      - (trade.value.tradingCharge || 0)
-    updateReturnFromPnL()
   } else if (!editingTrade.value?.pnlAmount) {
     pnl.value.amount = 0
     pnl.value.percentage = 0
@@ -188,8 +192,11 @@ const calculatePnL = () => {
 }
 
 const updateReturnFromPnL = () => {
-  if (trade.value.capitalUsed && pnl.value.amount) {
-    pnl.value.percentage = (pnl.value.amount / trade.value.capitalUsed) * 100
+  const pnlAmount = parseFloat((pnl.value.amount || 0).toString())
+  const capitalUsed = parseFloat((trade.value.capitalUsed || 0).toString())
+
+  if (capitalUsed && !isNaN(pnlAmount)) {
+    pnl.value.percentage = (pnlAmount / capitalUsed) * 100
   } else {
     pnl.value.percentage = 0
   }
@@ -208,6 +215,40 @@ const updateCharges = ({ field, value }) => {
 const handleScreenshotUpload = (files) => {
   // Handle screenshot upload logic here
   logger.info('Screenshots uploaded:', files)
+}
+
+// Helper to ensure numeric fields are actually numbers before saving
+const cleanNumericFields = (data) => {
+  const cleanedData = { ...data }
+  const numericFields = [
+    'entryPrice',
+    'exitPrice',
+    'lots',
+    'capitalUsed',
+    'fundingCharge',
+    'tradingCharge',
+    'pnlAmount',
+    'pnlPercentage'
+  ]
+
+  numericFields.forEach((field) => {
+    if (cleanedData[field] !== undefined && cleanedData[field] !== null && cleanedData[field] !== '') {
+      cleanedData[field] = parseFloat(cleanedData[field].toString())
+    } else if (cleanedData[field] === '') {
+      cleanedData[field] = null
+    }
+  })
+
+  // Clean partial exits
+  if (cleanedData.partialExits && Array.isArray(cleanedData.partialExits)) {
+    cleanedData.partialExits = cleanedData.partialExits.map((exit) => ({
+      ...exit,
+      price: exit.price !== '' ? parseFloat((exit.price || 0).toString()) : null,
+      lots: exit.lots !== '' ? parseFloat((exit.lots || 0).toString()) : null
+    }))
+  }
+
+  return cleanedData
 }
 
 // Helper function to trim string fields
@@ -236,12 +277,12 @@ const trimTradeData = (data) => {
 const handleSubmit = async() => {
   isSubmitting.value = true
   try {
-    const tradeData = trimTradeData({
+    const tradeData = cleanNumericFields(trimTradeData({
       ...trade.value,
       pnlAmount: pnl.value.amount,
       pnlPercentage: pnl.value.percentage,
       status: trade.value.exitDate ? 'CLOSED' : 'OPEN'
-    })
+    }))
 
     if (trade.value.id) {
       await tradeService.updateTrade(trade.value.id, tradeData)
@@ -311,8 +352,6 @@ const resetForm = () => {
     notes: '',
     remarks: '',
     confidence: 3,
-    executionQuality: 3,
-    lessonsLearned: '',
     executionQuality: 3,
     lessonsLearned: '',
     partialExits: [], // Array of { date, price, lots }

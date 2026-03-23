@@ -7,7 +7,7 @@
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="entryPrice"
-            type="number"
+            type="text"
             :value="modelValue.entryPrice"
             required
             step="0.00001"
@@ -23,7 +23,7 @@
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="exitPrice"
-            type="number"
+            type="text"
             :value="modelValue.exitPrice"
             step="0.00001"
             inputmode="decimal"
@@ -39,7 +39,7 @@
         <label for="lots">Size</label>
         <input
           id="lots"
-          type="number"
+          type="text"
           :value="modelValue.lots"
           required
           min="1"
@@ -55,7 +55,7 @@
           <span class="currency-prefix">{{ currencySymbol }}</span>
           <input
             id="capitalUsed"
-            type="number"
+            type="text"
             :value="modelValue.capitalUsed"
             required
             step="0.00001"
@@ -87,9 +87,10 @@
               <span class="currency-prefix">{{ currencySymbol }}</span>
               <input
                 id="pe-price"
-                v-model.number="newPartialExit.price"
-                type="number"
+                :value="newPartialExit.price"
+                type="text"
                 step="0.00001"
+                @input="handlePartialExitChange('price', $event)"
               >
             </div>
           </div>
@@ -97,9 +98,10 @@
             <label for="pe-lots">Lots</label>
             <input
               id="pe-lots"
-              v-model.number="newPartialExit.lots"
-              type="number"
+              :value="newPartialExit.lots"
+              type="text"
               step="1"
+              @input="handlePartialExitChange('lots', $event)"
             >
           </div>
           <div class="form-group button-group">
@@ -204,6 +206,11 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString()
 }
 
+const handlePartialExitChange = (field, event) => {
+  const rawValue = event.target.value
+  newPartialExit.value[field] = rawValue
+}
+
 const updateField = (field, value) => {
   emit('update:modelValue', {
     ...props.modelValue,
@@ -212,14 +219,12 @@ const updateField = (field, value) => {
 }
 
 const handlePriceChange = (field, event) => {
-  const value = parseFloat(event.target.value) || null
-  updateField(field, value)
+  updateField(field, event.target.value)
   emit('calculate-pnl')
 }
 
 const handleNumberChange = (field, event) => {
-  const value = parseInt(event.target.value) || null
-  updateField(field, value)
+  updateField(field, event.target.value)
   emit('calculate-pnl')
 }
 </script>

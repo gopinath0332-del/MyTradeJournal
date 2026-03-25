@@ -106,6 +106,10 @@ const toastTitle = ref('')
 const toastMessage = ref('')
 const showToastOverlay = ref(false)
 
+// P&L calculation state
+const isPnlManuallyEdited = ref(false)
+const lastCalculatedPnl = ref(0)
+
 // Trade data
 const trade = ref({
   tradeId: uuidv4(),
@@ -117,6 +121,7 @@ const trade = ref({
   entryDate: new Date().toISOString().slice(0, 10), // Set today as default
   exitDate: '',
   lots: 2,
+  lotMultiplier: 1,
   daysHeld: 0,
   capitalUsed: null,
   fundingCharge: null,
@@ -147,10 +152,16 @@ const showToast = (variant, title, message) => {
 
 // P&L calculations
 const calculatePnL = () => {
+  if (isPnlManuallyEdited.value) {
+    updateReturnFromPnL()
+    return
+  }
+
   if (trade.value.entryPrice && trade.value.lots && trade.value.capitalUsed) {
     const entryPrice = parseFloat(trade.value.entryPrice.toString())
     const capitalUsed = parseFloat(trade.value.capitalUsed.toString())
     const lots = parseFloat(trade.value.lots.toString())
+    const lotMultiplier = parseFloat((trade.value.lotMultiplier || 1).toString())
 
     if (!isNaN(entryPrice) && !isNaN(lots) && !isNaN(capitalUsed)) {
       let totalPnL = 0
@@ -164,7 +175,7 @@ const calculatePnL = () => {
           const exitLots = parseFloat((exit.lots || '').toString())
 
           if (!isNaN(exitPrice) && !isNaN(exitLots)) {
-            const partialPnL = (exitPrice - entryPrice) * exitLots * multiplier
+            const partialPnL = (exitPrice - entryPrice) * exitLots * multiplier * lotMultiplier
             totalPnL += partialPnL
             remainingLots -= exitLots
           }
@@ -175,7 +186,7 @@ const calculatePnL = () => {
       if (remainingLots > 0) {
         const exitPriceString = trade.value.exitPrice ? trade.value.exitPrice.toString() : ''
         const exitPrice = exitPriceString ? parseFloat(exitPriceString) : entryPrice
-        const remainingPnL = (exitPrice - entryPrice) * remainingLots * multiplier
+        const remainingPnL = (exitPrice - entryPrice) * remainingLots * multiplier * lotMultiplier
         totalPnL += remainingPnL
       }
 
@@ -183,11 +194,13 @@ const calculatePnL = () => {
       const tradingCharge = parseFloat((trade.value.tradingCharge || 0).toString())
 
       pnl.value.amount = totalPnL + fundingCharge - tradingCharge
+      lastCalculatedPnl.value = pnl.value.amount
       updateReturnFromPnL()
     }
   } else if (!editingTrade.value?.pnlAmount) {
     pnl.value.amount = 0
     pnl.value.percentage = 0
+    lastCalculatedPnl.value = 0
   }
 }
 
@@ -204,6 +217,10 @@ const updateReturnFromPnL = () => {
 
 const updatePnLFromAmount = (newPnL) => {
   pnl.value = newPnL
+  // If the user manually changed the amount, mark it so it's not overwritten
+  if (Math.abs(newPnL.amount - lastCalculatedPnl.value) > 0.00001) {
+    isPnlManuallyEdited.value = true
+  }
 }
 
 const updateCharges = ({ field, value }) => {
@@ -224,6 +241,7 @@ const cleanNumericFields = (data) => {
     'entryPrice',
     'exitPrice',
     'lots',
+    'lotMultiplier',
     'capitalUsed',
     'fundingCharge',
     'tradingCharge',
@@ -344,6 +362,7 @@ const resetForm = () => {
     entryDate: today, // Set today as default entry date
     exitDate: '',
     lots: 2,
+    lotMultiplier: 1,
     daysHeld: 0,
     capitalUsed: null,
     fundingCharge: null,
@@ -364,12 +383,14 @@ const resetForm = () => {
     amount: 0,
     percentage: 0
   }
+  isPnlManuallyEdited.value = false
+  lastCalculatedPnl.value = 0
 }
 
-// Watchers
 watch(editingTrade, (newTrade) => {
   if (newTrade) {
     trade.value = { ...newTrade }
+    isPnlManuallyEdited.value = false
   }
 })
 

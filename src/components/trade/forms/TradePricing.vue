@@ -50,6 +50,23 @@
         >
       </div>
       <div class="form-group">
+        <label for="lotMultiplier">Lot Multiplier</label>
+        <input
+          id="lotMultiplier"
+          type="text"
+          :value="modelValue.lotMultiplier"
+          required
+          min="1"
+          step="1"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          @input="handleNumberChange('lotMultiplier', $event)"
+        >
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
         <label for="capitalUsed">Capital Used</label>
         <div class="input-with-prefix">
           <span class="currency-prefix">{{ currencySymbol }}</span>

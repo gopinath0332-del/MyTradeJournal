@@ -12,7 +12,7 @@
             step="0.00001"
             :class="{ 'profit': pnl.amount > 0, 'loss': pnl.amount < 0 }"
             inputmode="decimal"
-            pattern="[0-9]*\.?[0-9]*"
+            pattern="^-?[0-9]*\.?[0-9]*$"
             @input="handlePnLAmountChange"
           >
         </div>

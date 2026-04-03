@@ -36,32 +36,34 @@
     </div>
 
     <!-- Reset Confirmation Modal -->
-    <Transition name="modal">
-      <div v-if="showResetConfirm" class="reset-overlay" @click.self="showResetConfirm = false">
-        <div class="reset-modal">
-          <div class="reset-modal-header">
-            <h4>↻ Reset Trade Counter</h4>
-          </div>
-          <div class="reset-modal-body">
-            <p>Reset your trade counter back to:</p>
-            <div class="reset-input-group">
-              <input
-                v-model.number="resetValue"
-                type="number"
-                min="1"
-                max="999"
-                class="reset-input"
-              >
-              <span class="reset-input-label">trades</span>
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showResetConfirm" class="reset-overlay" @click.self="showResetConfirm = false">
+          <div class="reset-modal">
+            <div class="reset-modal-header">
+              <h4>↻ Reset Trade Counter</h4>
+            </div>
+            <div class="reset-modal-body">
+              <p>Reset your trade counter back to:</p>
+              <div class="reset-input-group">
+                <input
+                  v-model.number="resetValue"
+                  type="number"
+                  min="1"
+                  max="999"
+                  class="reset-input"
+                >
+                <span class="reset-input-label">trades</span>
+              </div>
+            </div>
+            <div class="reset-modal-footer">
+              <button class="btn-cancel" @click="showResetConfirm = false">Cancel</button>
+              <button class="btn-reset" @click="handleReset">Reset Counter</button>
             </div>
           </div>
-          <div class="reset-modal-footer">
-            <button class="btn-cancel" @click="showResetConfirm = false">Cancel</button>
-            <button class="btn-reset" @click="handleReset">Reset Counter</button>
-          </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 

@@ -10,6 +10,9 @@
       />
     </div>
 
+    <!-- Trade Counter (Crypto profiles only) -->
+    <TradeCounter ref="tradeCounterRef" />
+
     <StatsGrid
       :stats="stats"
       :is-loading="isLoadingStats"
@@ -49,13 +52,16 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import StatsGrid from './StatsGrid.vue'
 import EquityCurve from './EquityCurve.vue'
 import MonthlyBreakdown from './MonthlyBreakdown.vue'
 import YearSelector from './YearSelector.vue'
 import SymbolPieChart from './SymbolPieChart.vue'
+import TradeCounter from './TradeCounter.vue'
 import { useDashboardStats } from '../../composables/useDashboardStats.ts'
+
+const tradeCounterRef = ref(null)
 
 const {
   // State

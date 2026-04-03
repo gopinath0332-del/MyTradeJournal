@@ -78,6 +78,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { useRouter, useRoute } from 'vue-router'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '../../utils/logger'
+import { useProfiles } from '@/composables/useProfiles'
 
 // Import sub-components
 import TradeBasicInfo from './forms/TradeBasicInfo.vue'
@@ -99,6 +100,33 @@ const isSubmitting = ref(false)
 // Injected dependencies
 const editingTrade = inject('editingTrade')
 const refreshDashboard = inject('refreshDashboard')
+
+// Profile-based trade counter
+const { activeProfile, updateProfile } = useProfiles()
+
+// Decrement trade counter for crypto profiles
+const decrementTradeCounter = async() => {
+  const profile = activeProfile.value
+  if (!profile?.id || !profile.name?.toLowerCase().includes('crypto')) return
+
+  const max = profile.settings?.tradeCounterMax || 100
+  const current = profile.settings?.tradeCounter !== undefined && profile.settings?.tradeCounter !== null
+    ? profile.settings.tradeCounter
+    : max
+  const newCount = Math.max(0, current - 1)
+
+  try {
+    await updateProfile(profile.id, {
+      settings: {
+        ...profile.settings,
+        tradeCounter: newCount,
+        tradeCounterMax: max
+      }
+    })
+  } catch (err) {
+    logger.error('Error decrementing trade counter', err)
+  }
+}
 
 // Toast state
 const toastVariant = ref('success')
@@ -311,6 +339,7 @@ const handleSubmit = async() => {
       )
     } else {
       await tradeService.addTrade(tradeData)
+      await decrementTradeCounter()
       showToast(
         'success',
         'Trade Added',

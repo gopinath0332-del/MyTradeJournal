@@ -86,7 +86,8 @@ const displayToast = (type, title, message) => {
 }
 
 const selectedTrade = ref(null)
-const trades = ref([])
+const trades = ref([])          // Filtered trades (for closed tab)
+const allOpenTrades = ref([])   // All open trades regardless of date
 const uniqueSymbols = ref([])
 const sortKey = ref('entryDate')
 const sortDir = ref('desc')
@@ -105,7 +106,7 @@ const filters = ref({
 const loadTrades = async() => {
   isLoadingTrades.value = true
   try {
-    // Build filter object for API call
+    // Build filter object for API call (date-filtered, for closed trades)
     const filterParams = {
       dateRange: filters.value.dateRange,
       startDate: filters.value.startDate,
@@ -115,10 +116,30 @@ const loadTrades = async() => {
       profitability: filters.value.profitability
     }
 
-    trades.value = await tradeService.getFilteredTrades(filterParams)
+    // Always load ALL trades without date filter for open trades display
+    const openParams = {
+      dateRange: 'all',
+      startDate: '',
+      endDate: '',
+      symbol: filters.value.symbol,
+      type: filters.value.type,
+      profitability: 'all' // open trades don't have pnl, profitability filter not relevant
+    }
+
+    const [filteredTrades, allTrades] = await Promise.all([
+      tradeService.getFilteredTrades(filterParams),
+      tradeService.getFilteredTrades(openParams)
+    ])
+
+    trades.value = filteredTrades
+    // Extract open trades from all trades (no date restriction)
+    allOpenTrades.value = allTrades.filter(
+      trade => !trade.exitPrice || trade.exitPrice === null || trade.exitPrice === 0
+    )
   } catch (error) {
     logger.error('Error loading trades', 'TradeHistory', error)
     trades.value = []
+    allOpenTrades.value = []
 
     // Show more helpful error messages
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -183,11 +204,25 @@ const toggleSortOrder = () => {
   sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
 }
 
-// Separate open and closed trades
+// Open trades: always show all, regardless of date filter
 const openTrades = computed(() => {
-  return sortedTrades.value.filter(trade => !trade.exitPrice || trade.exitPrice === null || trade.exitPrice === 0)
+  const sorted = [...allOpenTrades.value]
+  sorted.sort((a, b) => {
+    let aVal = a[sortKey.value]
+    let bVal = b[sortKey.value]
+    if (sortKey.value.includes('Date')) {
+      aVal = new Date(aVal)
+      bVal = new Date(bVal)
+    }
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortDir.value === 'asc' ? aVal - bVal : bVal - aVal
+    }
+    return sortDir.value === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1)
+  })
+  return sorted
 })
 
+// Closed trades: respect the date filter
 const closedTrades = computed(() => {
   return sortedTrades.value.filter(trade => trade.exitPrice && trade.exitPrice !== null && trade.exitPrice !== 0)
 })

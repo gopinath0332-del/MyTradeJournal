@@ -399,7 +399,7 @@ const resetForm = () => {
     capitalUsed: null,
     fundingCharge: null,
     tradingCharge: null,
-    strategy: 'Supertrend', // Default to first option since it's required
+    strategy: 'Donchian', // Default to first option since it's required
     notes: '',
     remarks: '',
     confidence: 3,

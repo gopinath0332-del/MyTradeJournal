@@ -710,7 +710,7 @@ async function switchToProfile(profileId: string) {
   color: #374151;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -722,7 +722,7 @@ async function switchToProfile(profileId: string) {
   font-size: 1rem;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;

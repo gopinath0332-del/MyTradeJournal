@@ -113,11 +113,9 @@ const decrementTradeCounter = async() => {
   const isCounterEnabled = profile?.settings?.showTradeCounter === true
   if (!profile?.id || !isCounterEnabled) return
 
-  const current = profile.settings?.tradeCounter
-  // Skip if counter has never been explicitly set
-  if (current === undefined || current === null) return
-
   const max = profile.settings?.tradeCounterMax || 100
+  // If tradeCounter was never explicitly set, treat it as maxTrades (matches what the UI displays)
+  const current = profile.settings?.tradeCounter ?? max
   const newCount = Math.max(0, current - 1)
 
   try {

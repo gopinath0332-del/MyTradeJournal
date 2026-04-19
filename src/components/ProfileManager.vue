@@ -130,6 +130,15 @@
               />
             </div>
 
+            <div class="form-group">
+              <label for="currency">Currency</label>
+              <select id="currency" v-model="formData.settings.currency">
+                <option v-for="c in currencies" :key="c.symbol" :value="c.symbol">
+                  {{ c.flag }} {{ c.code }} ({{ c.symbol }})
+                </option>
+              </select>
+            </div>
+
             <div class="form-group checkbox">
               <label>
                 <input v-model="formData.isActive" type="checkbox">
@@ -207,16 +216,7 @@
                 >
               </div>
 
-              <div class="form-group">
-                <label for="currency">Currency</label>
-                <select id="currency" v-model="formData.settings.currency">
-                  <option value="₹">INR (₹)</option>
-                  <option value="$">USD ($)</option>
-                  <option value="€">EUR (€)</option>
-                  <option value="£">GBP (£)</option>
-                  <option value="¥">JPY (¥)</option>
-                </select>
-              </div>
+
             </details>
           </div>
 
@@ -284,6 +284,18 @@ const editingProfileId = ref<string | null>(null)
 const profileToDelete = ref<Profile | null>(null)
 
 const iconSuggestions = ['🔴', '📝', '🎯', '⚡', '💼', '🚀', '💰', '📊', '⚙️', '🌟']
+
+const currencies = [
+  { code: 'INR', symbol: '₹', flag: '🇮🇳' },
+  { code: 'USD', symbol: '$', flag: '🇺🇸' },
+  { code: 'EUR', symbol: '€', flag: '🇪🇺' },
+  { code: 'GBP', symbol: '£', flag: '🇬🇧' },
+  { code: 'JPY', symbol: '¥', flag: '🇯🇵' },
+  { code: 'AUD', symbol: 'A$', flag: '🇦🇺' },
+  { code: 'CAD', symbol: 'C$', flag: '🇨🇦' },
+  { code: 'SGD', symbol: 'S$', flag: '🇸🇬' },
+  { code: 'USDT', symbol: '₮', flag: '🪙' },
+]
 
 const defaultFormData = {
   name: '',
@@ -710,7 +722,7 @@ async function switchToProfile(profileId: string) {
   color: #374151;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -722,7 +734,7 @@ async function switchToProfile(profileId: string) {
   font-size: 1rem;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
@@ -788,6 +800,63 @@ async function switchToProfile(profileId: string) {
   font-weight: 500;
   color: #4CAF50;
   margin-bottom: 1rem;
+}
+
+.currency-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.currency-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 999px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  min-height: unset;
+}
+
+.currency-pill:hover {
+  border-color: #4CAF50;
+  background: #f0fdf4;
+  color: #166534;
+  transform: translateY(-1px);
+}
+
+.currency-pill.selected {
+  border-color: #4CAF50;
+  background: #4CAF50;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.35);
+}
+
+.currency-flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.currency-code {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.currency-symbol {
+  opacity: 0.75;
+  font-size: 0.8rem;
+}
+
+.currency-pill.selected .currency-symbol {
+  opacity: 0.9;
 }
 
 .modal-footer {

@@ -160,6 +160,29 @@
               </label>
             </div>
 
+            <div class="form-group checkbox">
+              <label>
+                <input v-model="formData.settings.showTradeCounter" type="checkbox">
+                <span>Enable Trade Counter</span>
+              </label>
+            </div>
+
+            <div v-if="formData.settings.showTradeCounter" class="form-group trade-counter-config">
+              <label for="trade-counter-max">Starting Trade Count</label>
+              <div class="trade-counter-input-row">
+                <input
+                  id="trade-counter-max"
+                  v-model.number="formData.settings.tradeCounterMax"
+                  type="number"
+                  min="1"
+                  max="9999"
+                  placeholder="e.g. 100"
+                >
+                <span class="trade-counter-hint">trades allowed for this profile</span>
+              </div>
+              <p class="trade-counter-info">📊 The trade counter widget will appear on the dashboard and automatically decrement each time a trade is added.</p>
+            </div>
+
             <!-- Advanced Settings -->
             <details class="advanced-settings">
               <summary>Advanced Settings</summary>
@@ -306,6 +329,8 @@ const defaultFormData = {
   settings: {
     showInDashboard: true,
     includeInGlobalStats: true,
+    showTradeCounter: false,
+    tradeCounterMax: 100,
     defaultRiskPerTrade: undefined,
     defaultPositionSize: undefined,
     maxOpenPositions: undefined,
@@ -345,7 +370,9 @@ function openEditModal(profile: Profile) {
     isActive: profile.isActive,
     settings: {
       ...profile.settings,
-      currency: profile.settings.currency || '₹'
+      currency: profile.settings.currency || '₹',
+      showTradeCounter: profile.settings.showTradeCounter ?? false,
+      tradeCounterMax: profile.settings.tradeCounterMax ?? 100
     }
   })
   showModal.value = true
@@ -785,6 +812,44 @@ async function switchToProfile(profileId: string) {
 .icon-btn:hover {
   background: #f3f4f6;
   border-color: #4CAF50;
+}
+
+.trade-counter-config {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.trade-counter-config label {
+  color: #166534;
+  font-weight: 600;
+}
+
+.trade-counter-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.trade-counter-hint {
+  font-size: 0.875rem;
+  color: #16a34a;
+}
+
+.trade-counter-info {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: #15803d;
+  line-height: 1.5;
 }
 
 .advanced-settings {

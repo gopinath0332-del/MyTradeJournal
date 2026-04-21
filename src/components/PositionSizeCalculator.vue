@@ -30,7 +30,7 @@ const effectiveSl = computed(() => slDistance.value + slippageBuffer.value)
 const riskAmount = computed(() => capital.value * (baseRisk.value / 100))
 
 const lotsByRisk = computed(() => {
-  if (effectiveSl.value > 0) {
+  if (slDistance.value > 0 && effectiveSl.value > 0) {
     return riskAmount.value / effectiveSl.value
   }
   return 0
@@ -46,7 +46,8 @@ const lotsByMargin = computed(() => {
 })
 
 const finalLots = computed(() => {
-  if (lotsByRisk.value > 0 && lotsByMargin.value > 0) {
+  // Only calculate final lots if we have a valid stoploss distance
+  if (slDistance.value > 0 && lotsByRisk.value > 0 && lotsByMargin.value > 0) {
     return Math.floor(Math.min(lotsByRisk.value, lotsByMargin.value))
   }
   return 0
@@ -182,7 +183,7 @@ const scaledLots = computed(() => {
           </div>
           <div class="stat-box">
             <span class="stat-label">Lots by Risk</span>
-            <span class="stat-value">{{ lotsByRisk.toFixed(2) }}</span>
+            <span class="stat-value">{{ slDistance > 0 ? lotsByRisk.toFixed(2) : '—' }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-label">Lots by Margin (70%)</span>

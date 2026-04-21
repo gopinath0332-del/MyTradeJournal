@@ -58,6 +58,28 @@ const actualRiskPct = computed(() => (actualRisk.value / capital.value) * 100)
 
 const isMarginBound = computed(() => lotsByMargin.value < lotsByRisk.value && lotsByMargin.value > 0)
 
+const constraintType = computed(() => {
+  if (finalLots.value === 0) return 'None'
+  return isMarginBound.value ? 'Margin' : 'Risk'
+})
+
+const constraintLabel = computed(() => {
+  if (constraintType.value === 'None') return 'Waiting for Inputs'
+  if (constraintType.value === 'Margin') return 'Margin (Capital Utilization)'
+  return 'Risk (Risk Limit)'
+})
+
+const constraintDescription = computed(() => {
+  if (constraintType.value === 'None') return 'Please enter entry and stoploss prices.'
+  if (constraintType.value === 'Margin') return 'You have reached the 70% capital utilization cap. Margin requirements are limiting your size.'
+  return 'Your position size is capped by your maximum allowed loss per trade (Base Risk %).'
+})
+
+const constraintClass = computed(() => {
+  if (constraintType.value === 'None') return 'neutral'
+  return constraintType.value === 'Margin' ? 'info' : 'success'
+})
+
 // Scaling recommendations
 const scaleRecommendationText = computed(() => {
   if (volatilityRatio.value === 0) return '-'
@@ -168,10 +190,9 @@ const scaledLots = computed(() => {
           </div>
         </div>
 
-        <div class="constraint-alert" :class="isMarginBound ? 'info' : 'success'">
-          <strong>Binding Constraint:</strong> 
-          {{ isMarginBound ? 'Margin' : 'Risk' }} 
-          ({{ isMarginBound ? 'Capital utilization limits size' : 'Risk limit caps size' }})
+        <div class="constraint-alert" :class="constraintClass">
+          <strong>Binding Constraint:</strong> {{ constraintLabel }}
+          <div class="constraint-desc">{{ constraintDescription }}</div>
         </div>
       </div>
 
@@ -356,6 +377,18 @@ const scaledLots = computed(() => {
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
+}
+
+.constraint-alert.neutral {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.constraint-desc {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  opacity: 0.9;
 }
 
 .result-card {

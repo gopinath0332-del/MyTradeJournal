@@ -27,6 +27,13 @@ const volatilityRatio = computed(() => {
 
 const effectiveSl = computed(() => slDistance.value + slippageBuffer.value)
 
+const suggestedRiskPct = computed(() => {
+  if (volatilityRatio.value > 0 && volatilityRatio.value < 0.5) {
+    return baseRisk.value * 0.5 // Suggest halving risk for very tight stops
+  }
+  return baseRisk.value
+})
+
 const riskAmount = computed(() => capital.value * (baseRisk.value / 100))
 
 const lotsByRisk = computed(() => {
@@ -176,6 +183,10 @@ const scaledLots = computed(() => {
           <div class="stat-box" :class="{'warning': volatilityRatio > 0 && volatilityRatio < 0.5, 'good': volatilityRatio >= 0.5}">
             <span class="stat-label">Volatility Ratio</span>
             <span class="stat-value">{{ volatilityRatio.toFixed(2) }}</span>
+          </div>
+          <div class="stat-box" :class="{'warning': suggestedRiskPct < baseRisk}">
+            <span class="stat-label">Suggested Risk %</span>
+            <span class="stat-value">{{ slDistance > 0 ? suggestedRiskPct.toFixed(2) + '%' : '—' }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-label">Risk Amount</span>

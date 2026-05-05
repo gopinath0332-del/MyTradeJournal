@@ -1,19 +1,37 @@
 <template>
   <div class="equity-curve">
     <div class="equity-curve-header">
-      <h3>{{ selectedMonthName }} P&L Curve</h3>
-      <div class="month-selector">
-        <label for="equityMonth">Month:</label>
-        <select id="equityMonth" :value="selectedEquityMonth" @change="onMonthChange">
-          <option v-for="month in availableMonths" :key="month.value" :value="month.value">
-            {{ month.label }}
-          </option>
-        </select>
+      <h3>{{ title }}</h3>
+      <div class="equity-controls">
+        <div class="scope-selector" aria-label="Equity curve scope">
+          <button
+            type="button"
+            :class="['scope-button', { active: selectedEquityScope === 'profile' }]"
+            @click="onScopeChange('profile')"
+          >
+            Profile
+          </button>
+          <button
+            type="button"
+            :class="['scope-button', { active: selectedEquityScope === 'month' }]"
+            @click="onScopeChange('month')"
+          >
+            Month
+          </button>
+        </div>
+        <div v-if="selectedEquityScope === 'month'" class="month-selector">
+          <label for="equityMonth">Month:</label>
+          <select id="equityMonth" :value="selectedEquityMonth" @change="onMonthChange">
+            <option v-for="month in availableMonths" :key="month.value" :value="month.value">
+              {{ month.label }}
+            </option>
+          </select>
+        </div>
       </div>
       <div class="equity-summary">
         <span class="starting-equity">Starting P&L: {{ formatCurrency(0) }}</span>
         <span class="current-equity" :class="{ 'profit': currentPnL > 0, 'loss': currentPnL < 0 }">
-          Current P&L: {{ formatCurrency(currentPnL) }}
+          {{ currentPnLLabel }}: {{ formatCurrency(currentPnL) }}
         </span>
         <span class="monthly-change" :class="{ 'profit': currentPnL > 0, 'loss': currentPnL < 0 }">
           {{ currentPnL >= 0 ? '+' : '' }}{{ formatCurrency(currentPnL) }}
@@ -133,7 +151,7 @@
       v-else
       icon="📈"
       title="No equity data"
-      message="No trading data available for the selected month"
+      :message="emptyMessage"
       :full-height="true"
     />
   </div>
@@ -165,6 +183,11 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  selectedEquityScope: {
+    type: String,
+    default: 'profile',
+    validator: value => ['profile', 'month'].includes(value)
+  },
   selectedEquityMonth: {
     type: Number,
     required: true
@@ -176,10 +199,18 @@ const props = defineProps({
   selectedYear: {
     type: Number,
     required: true
+  },
+  title: {
+    type: String,
+    default: 'Active Profile P&L Curve'
+  },
+  emptyMessage: {
+    type: String,
+    default: 'No closed P&L data available'
   }
 })
 
-const emit = defineEmits(['month-change'])
+const emit = defineEmits(['month-change', 'scope-change'])
 
 // Chart dimensions
 const chartWidth = 800
@@ -205,6 +236,12 @@ const monthNames = [
 // Computed values
 const selectedMonthName = computed(() => {
   return monthNames[props.selectedEquityMonth] || 'Current Month'
+})
+
+const currentPnLLabel = computed(() => {
+  return props.selectedEquityScope === 'profile'
+    ? `${props.selectedYear} P&L`
+    : `${selectedMonthName.value} P&L`
 })
 
 const currentPnL = computed(() => {
@@ -368,6 +405,10 @@ const onMonthChange = (event) => {
   emit('month-change', newMonth)
 }
 
+const onScopeChange = (scope) => {
+  emit('scope-change', scope)
+}
+
 // Handle window resize
 const handleResize = () => {
   // Chart is responsive via viewBox, no action needed
@@ -411,6 +452,46 @@ onUnmounted(() => {
   margin: 0;
   font-size: 1.25rem;
   color: #333;
+}
+
+.equity-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.scope-selector {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.scope-button {
+  min-width: 5.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: transparent;
+  color: #4b5563;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scope-button + .scope-button {
+  border-left: 1px solid #d1d5db;
+}
+
+.scope-button.active {
+  background: #2563eb;
+  color: white;
+}
+
+.scope-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
 }
 
 .month-selector {
@@ -593,6 +674,19 @@ onUnmounted(() => {
 
   .equity-summary {
     font-size: 0.8rem;
+  }
+
+  .equity-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .scope-selector {
+    width: 100%;
+  }
+
+  .scope-button {
+    flex: 1;
   }
 }
 </style>

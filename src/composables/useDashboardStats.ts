@@ -1,7 +1,9 @@
 import { ref, computed, watch } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
 import { logger } from '@/utils/logger'
-import type { Trade } from '@/types'
+import type { EquityPoint, Trade } from '@/types'
+
+type EquityScope = 'profile' | 'month'
 
 export function useDashboardStats() {
   // Loading states
@@ -24,6 +26,7 @@ export function useDashboardStats() {
 
   // Selected month for equity curve (separate from main dashboard month selection)
   const selectedEquityMonth = ref(new Date().getMonth())
+  const selectedEquityScope = ref<EquityScope>('profile')
 
   // Starting equity for the current month (configurable)
   // const _startingEquity = ref(100000) // Default starting equity
@@ -149,38 +152,26 @@ export function useDashboardStats() {
     }
   })
 
-  // Computed equity curve data for selected month
-  const currentMonthEquityData = computed(() => {
-    if (!currentYearTrades.value.length) return []
-
-    // const _currentDate = new Date()
-    const currentYear = selectedYear.value
-
-    // Filter trades for selected equity month
-    const selectedMonthTrades = currentYearTrades.value.filter((trade: Trade) => {
-      const tradeDate = new Date(trade.entryDate)
-      return tradeDate.getMonth() === selectedEquityMonth.value && tradeDate.getFullYear() === currentYear
-    })
-
-    if (!selectedMonthTrades.length) return []
-
-    // Group trades by date and calculate daily P&L
+  const buildEquityData = (trades: Trade[]): EquityPoint[] => {
     const dailyPnLMap: Record<string, number> = {}
 
-    selectedMonthTrades.forEach((trade: Trade) => {
-      const dateStr = new Date(trade.entryDate).toISOString().split('T')[0] as string
-      if (!dailyPnLMap[dateStr]) {
-        dailyPnLMap[dateStr] = 0
-      }
-      dailyPnLMap[dateStr] += (trade.pnlAmount || 0)
-    })
+    trades
+      .filter((trade: Trade) => trade.pnlAmount !== undefined && trade.pnlAmount !== null)
+      .forEach((trade: Trade) => {
+        const pnlDate = trade.exitDate || trade.entryDate
+        const dateStr = new Date(pnlDate).toISOString().split('T')[0] as string
 
-    // Convert to array and sort by date
+        if (!dailyPnLMap[dateStr]) {
+          dailyPnLMap[dateStr] = 0
+        }
+
+        dailyPnLMap[dateStr] += trade.pnlAmount || 0
+      })
+
     const dailyPnLArray = Object.entries(dailyPnLMap)
       .map(([date, pnl]) => ({ date, dailyPnL: pnl }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
-    // Calculate cumulative P&L (starting from 0)
     let cumulativePnL = 0
 
     return dailyPnLArray.map(dayData => {
@@ -191,15 +182,56 @@ export function useDashboardStats() {
         cumulativePnL
       }
     })
+  }
+
+  // Computed equity curve data for the active profile across the selected year
+  const profileEquityData = computed(() => {
+    if (!currentYearTrades.value.length) return []
+
+    return buildEquityData(currentYearTrades.value)
+  })
+
+  // Computed equity curve data for selected month
+  const currentMonthEquityData = computed(() => {
+    if (!currentYearTrades.value.length) return []
+
+    const currentYear = selectedYear.value
+
+    const selectedMonthTrades = currentYearTrades.value.filter((trade: Trade) => {
+      const pnlDate = new Date(trade.exitDate || trade.entryDate)
+      return pnlDate.getMonth() === selectedEquityMonth.value && pnlDate.getFullYear() === currentYear
+    })
+
+    return buildEquityData(selectedMonthTrades)
+  })
+
+  const displayedEquityData = computed(() => {
+    return selectedEquityScope.value === 'profile'
+      ? profileEquityData.value
+      : currentMonthEquityData.value
+  })
+
+  const equityCurveEmptyMessage = computed(() => {
+    return selectedEquityScope.value === 'profile'
+      ? 'No closed P&L data available for the active profile in the selected year'
+      : 'No closed P&L data available for the selected month'
+  })
+
+  const equityCurveTitle = computed(() => {
+    return selectedEquityScope.value === 'profile'
+      ? 'Active Profile P&L Curve'
+      : `${monthNames[selectedEquityMonth.value]} P&L Curve`
   })
 
   // Available months for equity curve
   const availableEquityMonths = computed(() => {
     if (!currentYearTrades.value.length) return []
 
-    const monthsWithData = [...new Set(currentYearTrades.value.map((trade: Trade) =>
-      new Date(trade.entryDate).getMonth()
-    ))].sort((a: number, b: number) => a - b)
+    const monthsWithData = [...new Set(currentYearTrades.value
+      .filter((trade: Trade) => trade.pnlAmount !== undefined && trade.pnlAmount !== null)
+      .map((trade: Trade) =>
+        new Date(trade.exitDate || trade.entryDate).getMonth()
+      ))].sort((a: number, b: number) => a - b)
 
     return monthsWithData.map(month => ({
       value: month,
@@ -624,6 +656,10 @@ export function useDashboardStats() {
     // Equity curve data will automatically update via computed property
   }
 
+  const onEquityScopeChange = (newScope: EquityScope) => {
+    selectedEquityScope.value = newScope
+  }
+
   // Initialize all data
   const initializeDashboard = async() => {
     try {
@@ -671,9 +707,14 @@ export function useDashboardStats() {
     currentYearTrades,
 
     // Equity curve
+    profileEquityData,
     currentMonthEquityData,
+    displayedEquityData,
+    selectedEquityScope,
     selectedEquityMonth,
     availableEquityMonths,
+    equityCurveEmptyMessage,
+    equityCurveTitle,
 
     // Heatmap
     heatmapData,
@@ -697,6 +738,7 @@ export function useDashboardStats() {
     onYearChange,
     onMonthChange,
     onEquityMonthChange,
+    onEquityScopeChange,
     calculateStats,
     calculateMonthlyBreakdown,
     calculateWeeklyBreakdown,

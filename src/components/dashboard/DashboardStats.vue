@@ -21,11 +21,15 @@
     />
 
     <EquityCurve
-      :equity-data="currentMonthEquityData"
+      :equity-data="displayedEquityData"
       :is-loading="isLoadingEquityCurve"
+      :selected-equity-scope="selectedEquityScope"
       :selected-equity-month="selectedEquityMonth"
       :available-months="availableEquityMonths"
       :selected-year="selectedYear"
+      :title="equityCurveTitle"
+      :empty-message="equityCurveEmptyMessage"
+      @scope-change="onEquityScopeChange"
       @month-change="onEquityMonthChange"
     />
 
@@ -72,9 +76,12 @@ const {
   currentYearTrades,
 
   // Equity curve
-  currentMonthEquityData,
+  displayedEquityData,
+  selectedEquityScope,
   selectedEquityMonth,
   availableEquityMonths,
+  equityCurveEmptyMessage,
+  equityCurveTitle,
 
   // Loading states
   isLoadingStats,
@@ -89,6 +96,7 @@ const {
   initializeDashboard,
   onYearChange,
   onEquityMonthChange,
+  onEquityScopeChange,
   retryStats,
   retryMonthly
 } = useDashboardStats()

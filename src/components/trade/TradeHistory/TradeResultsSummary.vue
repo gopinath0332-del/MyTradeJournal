@@ -5,17 +5,17 @@
         Showing {{ totalCount }} {{ activeTab }} trade{{ totalCount !== 1 ? 's' : '' }}
       </div>
       <div class="trades-summary">
-        <div class="summary-stats">
-          <span class="stats-item profit-count">
-            Profitable: {{ profitableCount }}
-          </span>
-          <span class="stats-item loss-count">
-            Loss: {{ lossCount }}
-          </span>
-          <span class="stats-item breakeven-count">
-            Breakeven: {{ breakevenCount }}
-          </span>
-        </div>
+      <div v-if="activeTab !== 'open'" class="summary-stats">
+        <span class="stats-item profit-count">
+          Profitable: {{ profitableCount }}
+        </span>
+        <span class="stats-item loss-count">
+          Loss: {{ lossCount }}
+        </span>
+        <span class="stats-item breakeven-count">
+          Breakeven: {{ breakevenCount }}
+        </span>
+      </div>
         <div class="metrics">
           <div
             v-if="activeTab !== 'open'"

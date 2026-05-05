@@ -13,6 +13,8 @@
     <TradeFilters
       v-model:filters="filters"
       :unique-symbols="uniqueSymbols"
+      :hide-date-filter="activeTab === 'open'"
+      :hide-profitability-filter="activeTab === 'open'"
     />
 
     <!-- Results Summary Component -->

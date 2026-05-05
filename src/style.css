@@ -45,7 +45,7 @@ label {
   color: var(--text-muted);
 }
 
-input,
+input:not([type="checkbox"]),
 select,
 textarea {
   padding: 0.75rem;
@@ -57,6 +57,13 @@ textarea {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #4CAF50;
 }
 
 button {

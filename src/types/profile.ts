@@ -35,6 +35,7 @@ export interface ProfileSettings {
   includeInGlobalStats?: boolean
 
   // Trade counter (for tracking remaining trades in a challenge/plan)
+  showTradeCounter?: boolean // Whether to display the trade counter widget
   tradeCounter?: number // Remaining trades count
   tradeCounterMax?: number // Max trade count (default 100, used for reset)
 }

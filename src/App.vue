@@ -163,6 +163,17 @@ provide('navigateTo', navigateTo)
           </li>
           <li class="nav-item">
             <RouterLink
+              to="/calculator"
+              class="nav-link"
+              active-class="active"
+              @click="isMobileMenuOpen = false"
+            >
+              <span class="nav-icon">🧮</span>
+              <span class="nav-text">Position Size Calculator</span>
+            </RouterLink>
+          </li>
+          <li class="nav-item">
+            <RouterLink
               to="/history"
               class="nav-link"
               active-class="active"

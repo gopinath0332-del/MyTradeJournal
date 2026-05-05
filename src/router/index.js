@@ -11,6 +11,7 @@ const LessonsLibrary = () => import('../components/LessonsLibrary.vue')
 const ProfileManager = () => import('../components/ProfileManager.vue')
 const ProfileMigrationTool = () => import('../components/ProfileMigrationTool.vue')
 const FirebaseDebug = () => import('../components/debug/FirebaseDebug.vue')
+const PositionSizeCalculator = () => import('../components/PositionSizeCalculator.vue')
 
 const routes = [
   {
@@ -105,11 +106,19 @@ const routes = [
       title: 'Edit Trade'
     },
     props: true
+  },
+  {
+    path: '/calculator',
+    name: 'PositionSizeCalculator',
+    component: PositionSizeCalculator,
+    meta: {
+      title: 'Position Size Calculator'
+    }
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory('/MyTradeJournal/'),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
 

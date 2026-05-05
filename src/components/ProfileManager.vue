@@ -130,6 +130,15 @@
               />
             </div>
 
+            <div class="form-group">
+              <label for="currency">Currency</label>
+              <select id="currency" v-model="formData.settings.currency">
+                <option v-for="c in currencies" :key="c.symbol" :value="c.symbol">
+                  {{ c.flag }} {{ c.code }} ({{ c.symbol }})
+                </option>
+              </select>
+            </div>
+
             <div class="form-group checkbox">
               <label>
                 <input v-model="formData.isActive" type="checkbox">
@@ -149,6 +158,29 @@
                 <input v-model="formData.settings.includeInGlobalStats" type="checkbox">
                 <span>Include in Global Statistics</span>
               </label>
+            </div>
+
+            <div class="form-group checkbox">
+              <label>
+                <input v-model="formData.settings.showTradeCounter" type="checkbox">
+                <span>Enable Trade Counter</span>
+              </label>
+            </div>
+
+            <div v-if="formData.settings.showTradeCounter" class="form-group trade-counter-config">
+              <label for="trade-counter-max">Starting Trade Count</label>
+              <div class="trade-counter-input-row">
+                <input
+                  id="trade-counter-max"
+                  v-model.number="formData.settings.tradeCounterMax"
+                  type="number"
+                  min="1"
+                  max="9999"
+                  placeholder="e.g. 100"
+                >
+                <span class="trade-counter-hint">trades allowed for this profile</span>
+              </div>
+              <p class="trade-counter-info">📊 The trade counter widget will appear on the dashboard and automatically decrement each time a trade is added.</p>
             </div>
 
             <!-- Advanced Settings -->
@@ -207,16 +239,7 @@
                 >
               </div>
 
-              <div class="form-group">
-                <label for="currency">Currency</label>
-                <select id="currency" v-model="formData.settings.currency">
-                  <option value="₹">INR (₹)</option>
-                  <option value="$">USD ($)</option>
-                  <option value="€">EUR (€)</option>
-                  <option value="£">GBP (£)</option>
-                  <option value="¥">JPY (¥)</option>
-                </select>
-              </div>
+
             </details>
           </div>
 
@@ -285,6 +308,18 @@ const profileToDelete = ref<Profile | null>(null)
 
 const iconSuggestions = ['🔴', '📝', '🎯', '⚡', '💼', '🚀', '💰', '📊', '⚙️', '🌟']
 
+const currencies = [
+  { code: 'INR', symbol: '₹', flag: '🇮🇳' },
+  { code: 'USD', symbol: '$', flag: '🇺🇸' },
+  { code: 'EUR', symbol: '€', flag: '🇪🇺' },
+  { code: 'GBP', symbol: '£', flag: '🇬🇧' },
+  { code: 'JPY', symbol: '¥', flag: '🇯🇵' },
+  { code: 'AUD', symbol: 'A$', flag: '🇦🇺' },
+  { code: 'CAD', symbol: 'C$', flag: '🇨🇦' },
+  { code: 'SGD', symbol: 'S$', flag: '🇸🇬' },
+  { code: 'USDT', symbol: '₮', flag: '🪙' },
+]
+
 const defaultFormData = {
   name: '',
   type: 'live' as ProfileType,
@@ -294,6 +329,8 @@ const defaultFormData = {
   settings: {
     showInDashboard: true,
     includeInGlobalStats: true,
+    showTradeCounter: false,
+    tradeCounterMax: 100,
     defaultRiskPerTrade: undefined,
     defaultPositionSize: undefined,
     maxOpenPositions: undefined,
@@ -333,7 +370,9 @@ function openEditModal(profile: Profile) {
     isActive: profile.isActive,
     settings: {
       ...profile.settings,
-      currency: profile.settings.currency || '₹'
+      currency: profile.settings.currency || '₹',
+      showTradeCounter: profile.settings.showTradeCounter ?? false,
+      tradeCounterMax: profile.settings.tradeCounterMax ?? 100
     }
   })
   showModal.value = true
@@ -710,7 +749,7 @@ async function switchToProfile(profileId: string) {
   color: #374151;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -722,7 +761,7 @@ async function switchToProfile(profileId: string) {
   font-size: 1rem;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
@@ -775,6 +814,44 @@ async function switchToProfile(profileId: string) {
   border-color: #4CAF50;
 }
 
+.trade-counter-config {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.trade-counter-config label {
+  color: #166534;
+  font-weight: 600;
+}
+
+.trade-counter-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.trade-counter-hint {
+  font-size: 0.875rem;
+  color: #16a34a;
+}
+
+.trade-counter-info {
+  margin: 0.75rem 0 0;
+  font-size: 0.82rem;
+  color: #15803d;
+  line-height: 1.5;
+}
+
 .advanced-settings {
   margin-top: 1.5rem;
   padding: 1rem;
@@ -788,6 +865,63 @@ async function switchToProfile(profileId: string) {
   font-weight: 500;
   color: #4CAF50;
   margin-bottom: 1rem;
+}
+
+.currency-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.currency-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 999px;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  min-height: unset;
+}
+
+.currency-pill:hover {
+  border-color: #4CAF50;
+  background: #f0fdf4;
+  color: #166534;
+  transform: translateY(-1px);
+}
+
+.currency-pill.selected {
+  border-color: #4CAF50;
+  background: #4CAF50;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.35);
+}
+
+.currency-flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.currency-code {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.currency-symbol {
+  opacity: 0.75;
+  font-size: 0.8rem;
+}
+
+.currency-pill.selected .currency-symbol {
+  opacity: 0.9;
 }
 
 .modal-footer {

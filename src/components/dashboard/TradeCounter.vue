@@ -76,9 +76,9 @@ const { activeProfile, updateProfile } = useProfiles()
 const showResetConfirm = ref(false)
 const resetValue = ref(100)
 
-// Check if current profile is a crypto profile
+// Show trade counter only when explicitly enabled via the profile setting flag
 const isCryptoProfile = computed(() => {
-  return activeProfile.value?.name?.toLowerCase().includes('crypto')
+  return activeProfile.value?.settings?.showTradeCounter === true
 })
 
 const maxTrades = computed(() => {

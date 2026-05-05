@@ -104,18 +104,18 @@ const refreshDashboard = inject('refreshDashboard')
 // Profile-based trade counter
 const { activeProfile, updateProfile } = useProfiles()
 
-// Decrement trade counter for crypto profiles
+// Decrement trade counter for profiles that have it enabled.
 // Only decrements if the counter has been explicitly set (e.g. via Reset button).
 // If tradeCounter is undefined/null (never initialized), decrement is skipped.
 const decrementTradeCounter = async() => {
   const profile = activeProfile.value
-  if (!profile?.id || !profile.name?.toLowerCase().includes('crypto')) return
-
-  const current = profile.settings?.tradeCounter
-  // Skip if counter has never been explicitly set
-  if (current === undefined || current === null) return
+  // Check explicit flag only — no legacy name fallback
+  const isCounterEnabled = profile?.settings?.showTradeCounter === true
+  if (!profile?.id || !isCounterEnabled) return
 
   const max = profile.settings?.tradeCounterMax || 100
+  // If tradeCounter was never explicitly set, treat it as maxTrades (matches what the UI displays)
+  const current = profile.settings?.tradeCounter ?? max
   const newCount = Math.max(0, current - 1)
 
   try {

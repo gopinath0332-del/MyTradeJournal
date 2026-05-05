@@ -1,7 +1,13 @@
 <!-- TradeForm.vue - Modular component with sub-components -->
 <template>
   <div class="trade-form" :class="{ 'form-submitting': isSubmitting }">
-    <h2>{{ trade.id ? "Edit Trade" : "Log New Trade" }}</h2>
+    <div class="form-header">
+      <h2>{{ trade.id ? "Edit Trade" : "Log New Trade" }}</h2>
+      <button v-if="!trade.id" class="btn-import" @click="importModal.open()">📥 Import Orders</button>
+    </div>
+
+    <!-- Order Import Modal -->
+    <OrderImportModal ref="importModal" />
 
     <!-- Loading overlay for form submission -->
     <div v-if="isSubmitting" class="form-loading-overlay">
@@ -89,6 +95,10 @@ import TradeMetadata from './forms/TradeMetadata.vue'
 import TradeActions from './forms/TradeActions.vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
 import FailureModeSelector from './FailureModeSelector.vue'
+import OrderImportModal from './OrderImportModal.vue'
+
+// Refs
+const importModal = ref(null)
 
 // Router setup
 const router = useRouter()
@@ -575,6 +585,33 @@ h2 {
   .trade-form {
     padding: 2rem;
   }
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-import {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background: #42b883;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-import:hover {
+  background: #369870;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 184, 131, 0.2);
 }
 
 /* Dark mode support for loading overlay */

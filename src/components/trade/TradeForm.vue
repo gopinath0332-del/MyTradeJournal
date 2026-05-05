@@ -426,6 +426,27 @@ watch(editingTrade, (newTrade) => {
   }
 })
 
+// Auto-calculate capital used based on profile settings
+watch(
+  [
+    () => trade.value.entryPrice,
+    () => trade.value.lots,
+    () => trade.value.lotMultiplier
+  ],
+  () => {
+    if (activeProfile.value?.settings?.autoCalculateCapital) {
+      const ep = parseFloat(trade.value.entryPrice || 0)
+      const l = parseFloat(trade.value.lots || 0)
+      const lm = parseFloat(trade.value.lotMultiplier || 1)
+
+      if (!isNaN(ep) && !isNaN(l) && !isNaN(lm)) {
+        trade.value.capitalUsed = (ep * l * lm).toFixed(2)
+        calculatePnL()
+      }
+    }
+  }
+)
+
 watch(
   () => route.name,
   (newRouteName) => {

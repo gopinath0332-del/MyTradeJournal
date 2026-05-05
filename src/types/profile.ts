@@ -34,6 +34,9 @@ export interface ProfileSettings {
   showInDashboard?: boolean
   includeInGlobalStats?: boolean
 
+  // Auto-calculate Capital Used
+  autoCalculateCapital?: boolean
+
   // Trade counter (for tracking remaining trades in a challenge/plan)
   showTradeCounter?: boolean // Whether to display the trade counter widget
   tradeCounter?: number // Remaining trades count

@@ -162,6 +162,13 @@
 
             <div class="form-group checkbox">
               <label>
+                <input v-model="formData.settings.autoCalculateCapital" type="checkbox">
+                <span>Auto-calculate Capital Used</span>
+              </label>
+            </div>
+
+            <div class="form-group checkbox">
+              <label>
                 <input v-model="formData.settings.showTradeCounter" type="checkbox">
                 <span>Enable Trade Counter</span>
               </label>
@@ -336,7 +343,8 @@ const defaultFormData = {
     maxOpenPositions: undefined,
     broker: '',
     accountNumber: '',
-    currency: '₹'
+    currency: '₹',
+    autoCalculateCapital: false
   }
 }
 
@@ -372,7 +380,8 @@ function openEditModal(profile: Profile) {
       ...profile.settings,
       currency: profile.settings.currency || '₹',
       showTradeCounter: profile.settings.showTradeCounter ?? false,
-      tradeCounterMax: profile.settings.tradeCounterMax ?? 100
+      tradeCounterMax: profile.settings.tradeCounterMax ?? 100,
+      autoCalculateCapital: profile.settings.autoCalculateCapital ?? false
     }
   })
   showModal.value = true

@@ -10,6 +10,7 @@ Experience the full application with all features including:
 
 - Dashboard with real-time analytics
 - Advanced statistics and performance analysis
+- **Zerodha Kite Order Import** with Smart Exit Matching
 - Mobile-optimized interface
 - Trade management and history
 - Interactive charts and visualizations
@@ -236,6 +237,8 @@ _MyTradeJournal - Track, Analyze, Improve your Trading Performance_ 📈
 - **Intuitive Trade Entry**: Streamlined form with real-time P&L calculations
 - **Bulk Operations**: Import/export trades, batch editing
 - **Trade History**: Advanced filtering, sorting, and search capabilities
+- **Zerodha Kite Import**: Seamlessly import orders from Zerodha Kite CSV exports
+- **Smart Exit Matching**: Automatically detects and closes existing open positions during import
 - **Automated Calculations**: Automatic P&L, fees, and performance calculations
 
 ### 🔧 **Developer Experience**
@@ -719,5 +722,3 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 **Built with ❤️ using Vue 3, TypeScript, and Firebase**
 
 _MyTradeJournal - Track, Analyze, Improve your Trading Performance_ 📈
-
-Test

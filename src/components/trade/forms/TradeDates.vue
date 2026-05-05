@@ -40,6 +40,7 @@
           required
           @change="updateTrade({ strategy: $event.target.value })"
         >
+          <option value="Bharat Market Outperformers">Bharat Market Outperformers</option>
           <option value="Donchian">Donchian</option>
           <option value="Bollinger Bands">Bollinger Bands</option>
           <option value="Swing-02">Swing-02</option>

@@ -70,7 +70,10 @@
                 <tr v-for="(trade, index) in parsedTrades" :key="index">
                   <td>
                     <div class="symbol-info">
-                      <strong>{{ trade.symbol }}</strong>
+                      <div class="symbol-header">
+                        <strong>{{ trade.symbol }}</strong>
+                        <span v-if="trade.isClosure" class="closure-badge">CLOSURE</span>
+                      </div>
                       <span class="trade-date">{{ trade.entryDate }}</span>
                     </div>
                   </td>
@@ -122,6 +125,7 @@ import { v4 as uuidv4 } from 'uuid'
 const isOpen = ref(false)
 const isSaving = ref(false)
 const parsedTrades = ref([])
+const openPositions = ref([])
 const defaultStrategy = ref('Donchian')
 const { currencySymbol, activeProfile, updateProfile } = useProfiles()
 
@@ -152,8 +156,18 @@ const stats = computed(() => {
   }, { buyCount: 0, sellCount: 0, totalCapital: 0 })
 })
 
-const open = () => {
+const open = async() => {
   isOpen.value = true
+  await fetchOpenPositions()
+}
+
+const fetchOpenPositions = async() => {
+  try {
+    const trades = await tradeService.getFilteredTrades({ status: 'OPEN' })
+    openPositions.value = trades || []
+  } catch (err) {
+    logger.error('Failed to fetch open positions', 'OrderImport', err)
+  }
 }
 
 const close = () => {
@@ -171,6 +185,27 @@ const applyStrategyToAll = () => {
   parsedTrades.value.forEach(t => {
     t.strategy = defaultStrategy.value
   })
+}
+
+const calculateTradePnL = (trade) => {
+  if (!trade.exitPrice) return { amount: 0, percentage: 0 }
+  
+  const multiplier = trade.type === 'SELL' ? -1 : 1
+  const pnlAmount = (trade.exitPrice - trade.entryPrice) * trade.lots * (trade.lotMultiplier || 1) * multiplier
+  const pnlPercentage = trade.capitalUsed > 0 ? (pnlAmount / trade.capitalUsed) * 100 : 0
+  
+  return {
+    amount: parseFloat(pnlAmount.toFixed(2)),
+    percentage: parseFloat(pnlPercentage.toFixed(2))
+  }
+}
+
+const calculateHoldingDays = (entryDate, exitDate) => {
+  if (!entryDate || !exitDate) return 0
+  const entry = new Date(entryDate)
+  const exit = new Date(exitDate)
+  const diffTime = Math.abs(exit - entry)
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 }
 
 const handleFileSelect = (event) => {
@@ -239,7 +274,13 @@ const consolidateOrders = (orders) => {
     if (totalBuyQty > 0 && totalSellQty === 0) {
       trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, null, buys[0].time))
     } else if (totalSellQty > 0 && totalBuyQty === 0) {
-      trades.push(createTradeObj(symbol, 'SELL', totalSellQty, avgSellPrice, null, sells[0].time))
+      const openMatch = openPositions.value.find(p => p.symbol === symbol && p.status === 'OPEN')
+      
+      if (openMatch) {
+        trades.push(createClosureObj(openMatch, avgSellPrice, sells[0].time))
+      } else {
+        trades.push(createTradeObj(symbol, 'SELL', totalSellQty, avgSellPrice, null, sells[0].time))
+      }
     } else if (totalBuyQty === totalSellQty) {
       trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, avgSellPrice, buys[0].time, sells[0].time))
     } else {
@@ -252,7 +293,8 @@ const consolidateOrders = (orders) => {
 }
 
 const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, exitTime) => {
-  return {
+  const capitalUsed = parseFloat((entryPrice * lots).toFixed(2))
+  const trade = {
     tradeId: uuidv4(),
     symbol,
     type,
@@ -262,11 +304,41 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     exitPrice: exitPrice ? parseFloat(exitPrice.toFixed(4)) : null,
     entryDate: entryTime ? entryTime.split(' ')[0] : new Date().toISOString().split('T')[0],
     exitDate: exitTime ? exitTime.split(' ')[0] : '',
-    capitalUsed: parseFloat((entryPrice * lots).toFixed(2)),
+    capitalUsed,
     status: exitPrice ? 'CLOSED' : 'OPEN',
     strategy: defaultStrategy.value,
-    notes: 'Imported from Zerodha Kite'
+    notes: 'Imported from Zerodha Kite',
+    isNew: true
   }
+
+  if (trade.status === 'CLOSED') {
+    const pnl = calculateTradePnL(trade)
+    trade.pnlAmount = pnl.amount
+    trade.pnlPercentage = pnl.percentage
+    trade.daysHeld = calculateHoldingDays(trade.entryDate, trade.exitDate)
+  }
+
+  return trade
+}
+
+const createClosureObj = (existingTrade, exitPrice, exitTime) => {
+  const exitDate = exitTime ? exitTime.split(' ')[0] : new Date().toISOString().split('T')[0]
+  
+  const trade = {
+    ...existingTrade,
+    exitPrice: parseFloat(exitPrice.toFixed(4)),
+    exitDate,
+    status: 'CLOSED',
+    isClosure: true,
+    notes: (existingTrade.notes || '') + '\n[Imported exit from Zerodha]'
+  }
+
+  const pnl = calculateTradePnL(trade)
+  trade.pnlAmount = pnl.amount
+  trade.pnlPercentage = pnl.percentage
+  trade.daysHeld = calculateHoldingDays(trade.entryDate, trade.exitDate)
+
+  return trade
 }
 
 const decrementTradeCounter = async() => {
@@ -299,12 +371,16 @@ const saveAllTrades = async() => {
   
   try {
     for (const trade of parsedTrades.value) {
-      await tradeService.addTrade(trade)
-      await decrementTradeCounter()
+      if (trade.isClosure && trade.id) {
+        await tradeService.updateTrade(trade.id, trade)
+      } else {
+        await tradeService.addTrade(trade)
+        await decrementTradeCounter()
+      }
       savedCount++
     }
     
-    showToast('success', 'Import Successful', `Successfully saved ${savedCount} trades to your journal.`)
+    showToast('success', 'Import Successful', `Successfully processed ${savedCount} trades.`)
     refreshDashboard()
     close()
   } catch (error) {
@@ -496,6 +572,22 @@ td {
 .symbol-info {
   display: flex;
   flex-direction: column;
+}
+
+.symbol-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.closure-badge {
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 700;
+  border: 1px solid #ddd6fe;
 }
 
 .trade-date {

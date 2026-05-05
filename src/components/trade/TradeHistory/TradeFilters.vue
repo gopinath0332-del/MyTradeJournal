@@ -1,6 +1,6 @@
 <template>
   <div class="filters">
-    <div class="filter-group date-filter">
+    <div v-if="!hideDateFilter" class="filter-group date-filter">
       <label for="dateRange">Date Range</label>
       <select id="dateRange" v-model="localFilters.dateRange" @change="emitFilters">
         <option value="7">Last 7 days</option>
@@ -51,7 +51,7 @@
         <option value="SELL">Sell</option>
       </select>
     </div>
-    <div class="filter-group">
+    <div v-if="!hideProfitabilityFilter" class="filter-group">
       <label for="profitability">Profitability</label>
       <select id="profitability" v-model="localFilters.profitability" @change="emitFilters">
         <option value="all">All Trades</option>
@@ -77,6 +77,8 @@ interface Filters {
 const props = defineProps<{
   filters: Filters
   uniqueSymbols: string[]
+  hideDateFilter?: boolean
+  hideProfitabilityFilter?: boolean
 }>()
 
 const emit = defineEmits<{

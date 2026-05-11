@@ -174,6 +174,13 @@
               </label>
             </div>
 
+            <div class="form-group checkbox">
+              <label>
+                <input v-model="formData.settings.fetchLiveData" type="checkbox">
+                <span>Fetch Live Data</span>
+              </label>
+            </div>
+
             <div v-if="formData.settings.showTradeCounter" class="form-group trade-counter-config">
               <label for="trade-counter-max">Starting Trade Count</label>
               <div class="trade-counter-input-row">
@@ -344,7 +351,8 @@ const defaultFormData = {
     broker: '',
     accountNumber: '',
     currency: '₹',
-    autoCalculateCapital: false
+    autoCalculateCapital: false,
+    fetchLiveData: false
   }
 }
 
@@ -381,7 +389,8 @@ function openEditModal(profile: Profile) {
       currency: profile.settings.currency || '₹',
       showTradeCounter: profile.settings.showTradeCounter ?? false,
       tradeCounterMax: profile.settings.tradeCounterMax ?? 100,
-      autoCalculateCapital: profile.settings.autoCalculateCapital ?? false
+      autoCalculateCapital: profile.settings.autoCalculateCapital ?? false,
+      fetchLiveData: profile.settings.fetchLiveData ?? false
     }
   })
   showModal.value = true

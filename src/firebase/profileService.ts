@@ -232,7 +232,8 @@ export const profileService = {
           isActive: true,
           settings: {
             showInDashboard: true,
-            includeInGlobalStats: true
+            includeInGlobalStats: true,
+            fetchLiveData: false
           }
         })
 

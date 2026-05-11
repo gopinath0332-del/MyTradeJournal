@@ -37,6 +37,9 @@ export interface ProfileSettings {
   // Auto-calculate Capital Used
   autoCalculateCapital?: boolean
 
+  // Fetch live data for trades
+  fetchLiveData?: boolean
+
   // Trade counter (for tracking remaining trades in a challenge/plan)
   showTradeCounter?: boolean // Whether to display the trade counter widget
   tradeCounter?: number // Remaining trades count

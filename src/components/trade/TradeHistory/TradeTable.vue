@@ -27,14 +27,18 @@
             <span class="sort-arrow">{{ getSortArrow('entryPrice') }}</span>
           </th>
           <th :class="{ active: sortKey === 'exitPrice' }" @click="$emit('sort', 'exitPrice')">
-            Exit Price
+            {{ activeTab === 'open' ? 'LTP' : 'Exit Price' }}
             <span class="sort-arrow">{{ getSortArrow('exitPrice') }}</span>
           </th>
           <th :class="{ active: sortKey === 'pnlPercentage' }" @click="$emit('sort', 'pnlPercentage')">
             Return %
             <span class="sort-arrow">{{ getSortArrow('pnlPercentage') }}</span>
           </th>
-          <th :class="{ active: sortKey === 'fundingCharge' }" @click="$emit('sort', 'fundingCharge')">
+          <th v-if="activeTab === 'open'" :class="{ active: sortKey === 'pnlAmount' }" @click="$emit('sort', 'pnlAmount')">
+            PnL Amount
+            <span class="sort-arrow">{{ getSortArrow('pnlAmount') }}</span>
+          </th>
+          <th v-if="activeTab !== 'open'" :class="{ active: sortKey === 'fundingCharge' }" @click="$emit('sort', 'fundingCharge')">
             Funding
             <span class="sort-arrow">{{ getSortArrow('fundingCharge') }}</span>
           </th>
@@ -62,11 +66,17 @@
             {{ trade.type }}
           </td>
           <td>{{ formatVal(trade.entryPrice) }}</td>
-          <td>{{ formatVal(trade.exitPrice) }}</td>
+          <td>
+            {{ formatVal(trade.exitPrice) }}
+            <span v-if="trade.isLive" class="live-badge">LIVE</span>
+          </td>
           <td :class="{ 'profit': (trade.pnlPercentage || 0) > 0, 'loss': (trade.pnlPercentage || 0) < 0 }">
             {{ (trade.pnlPercentage || 0).toFixed(2) }}%
           </td>
-          <td :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }">
+          <td v-if="activeTab === 'open'" :class="{ 'profit': (trade.pnlAmount || 0) > 0, 'loss': (trade.pnlAmount || 0) < 0 }">
+            {{ formatVal(trade.pnlAmount) }}
+          </td>
+          <td v-if="activeTab !== 'open'" :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }">
             {{ formatVal(trade.fundingCharge) }}
           </td>
           <td v-if="activeTab === 'open'">
@@ -128,6 +138,7 @@ interface Trade {
   capitalUsed: number
   remarks?: string
   failureModes?: string[]
+  isLive?: boolean
 }
 
 const props = defineProps<{
@@ -356,5 +367,24 @@ td.loss {
 .empty-state-cell {
   border: none !important;
   padding: 0 !important;
+}
+
+.live-badge {
+  display: inline-block;
+  padding: 2px 4px;
+  background-color: #dc2626;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  border-radius: 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 </style>

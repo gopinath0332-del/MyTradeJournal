@@ -18,10 +18,17 @@
     />
 
     <!-- Results Summary Component -->
-    <TradeResultsSummary
-      :trades="currentTabTrades"
-      :active-tab="activeTab"
-    />
+    <div class="results-header">
+      <TradeResultsSummary
+        :trades="currentTabTrades"
+        :active-tab="activeTab"
+      />
+      <div v-if="activeTab === 'open' && activeProfile?.settings?.fetchLiveData" class="live-status">
+        <span v-if="isLiveDataLoading" class="loading-text">🔄 Fetching live prices...</span>
+        <span v-else-if="lastUpdated" class="updated-text">✅ Prices updated at {{ formatTime(lastUpdated) }}</span>
+        <span v-else class="error-text">❌ Failed to fetch live prices</span>
+      </div>
+    </div>
 
     <!-- Desktop Table Component -->
     <TradeTable
@@ -62,6 +69,9 @@
 import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '@/utils/logger'
+import { useLiveDataStore } from '@/stores'
+import { storeToRefs } from 'pinia'
+import { useProfiles } from '@/composables/useProfiles'
 import TradeTabs from './TradeHistory/TradeTabs.vue'
 import TradeFilters from './TradeHistory/TradeFilters.vue'
 import TradeResultsSummary from './TradeHistory/TradeResultsSummary.vue'
@@ -103,6 +113,15 @@ const filters = ref({
   type: 'all',
   profitability: 'all'
 })
+
+const { activeProfile } = useProfiles()
+const liveDataStore = useLiveDataStore()
+const { prices, isLoading: isLiveDataLoading, lastUpdated } = storeToRefs(liveDataStore)
+
+const formatTime = (isoString) => {
+  if (!isoString) return ''
+  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
 
 // Load trades with current filters
 const loadTrades = async() => {
@@ -177,7 +196,8 @@ watch(filters, () => {
 onMounted(async() => {
   await Promise.all([
     loadTrades(),
-    loadUniqueSymbols()
+    loadUniqueSymbols(),
+    liveDataStore.refreshPrices()
   ])
 })
 
@@ -208,7 +228,27 @@ const toggleSortOrder = () => {
 
 // Open trades: always show all, regardless of date filter
 const openTrades = computed(() => {
-  const sorted = [...allOpenTrades.value]
+  const isLiveDataEnabled = activeProfile.value?.settings?.fetchLiveData
+
+  const mapped = allOpenTrades.value.map(trade => {
+    // If live data is enabled and we have a price for this symbol
+    if (isLiveDataEnabled && prices.value[trade.symbol]) {
+      const livePrice = prices.value[trade.symbol].price
+      const pnlAmount = (livePrice - trade.entryPrice) * trade.quantity
+      const pnlPercentage = ((livePrice - trade.entryPrice) / trade.entryPrice) * 100
+
+      return {
+        ...trade,
+        exitPrice: livePrice, // Use live price as exit price for calculation
+        pnlAmount,
+        pnlPercentage,
+        isLive: true
+      }
+    }
+    return trade
+  })
+
+  const sorted = [...mapped]
   sorted.sort((a, b) => {
     let aVal = a[sortKey.value]
     let bVal = b[sortKey.value]
@@ -300,6 +340,31 @@ const deleteTrade = async(trade) => {
 <style scoped>
 .trade-history {
   padding: 1rem;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.live-status {
+  font-size: 0.8rem;
+  padding-bottom: 0.5rem;
+}
+
+.loading-text { color: #3b82f6; }
+.updated-text { color: #10b981; }
+.error-text { color: #ef4444; }
+
+@media (max-width: 768px) {
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 }
 
 @media (min-width: 768px) {

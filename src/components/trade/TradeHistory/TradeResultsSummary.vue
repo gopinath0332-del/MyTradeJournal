@@ -6,13 +6,13 @@
       </div>
       <div class="trades-summary">
       <div class="summary-stats">
-        <span class="stats-item profit-count">
+        <span v-if="profitableCount > 0" class="stats-item profit-count">
           Profitable: {{ profitableCount }}
         </span>
-        <span class="stats-item loss-count">
+        <span v-if="lossCount > 0" class="stats-item loss-count">
           Loss: {{ lossCount }}
         </span>
-        <span class="stats-item breakeven-count">
+        <span v-if="breakevenCount > 0" class="stats-item breakeven-count">
           Breakeven: {{ breakevenCount }}
         </span>
       </div>

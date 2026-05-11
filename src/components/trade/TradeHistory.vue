@@ -234,12 +234,16 @@ const openTrades = computed(() => {
     // If live data is enabled and we have a price for this symbol
     if (isLiveDataEnabled && prices.value[trade.symbol]) {
       const livePrice = prices.value[trade.symbol].price
-      const pnlAmount = (livePrice - trade.entryPrice) * trade.quantity
-      const pnlPercentage = ((livePrice - trade.entryPrice) / trade.entryPrice) * 100
+      const multiplier = trade.type === 'SELL' ? -1 : 1
+      const quantity = trade.lots || trade.quantity || 0
+      const lotMultiplier = trade.lotMultiplier || 1
+      
+      const pnlAmount = (livePrice - trade.entryPrice) * quantity * lotMultiplier * multiplier
+      const pnlPercentage = ((livePrice - trade.entryPrice) / trade.entryPrice) * 100 * multiplier
 
       return {
         ...trade,
-        exitPrice: livePrice, // Use live price as exit price for calculation
+        exitPrice: livePrice,
         pnlAmount,
         pnlPercentage,
         isLive: true

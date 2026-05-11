@@ -18,17 +18,12 @@
     />
 
     <!-- Results Summary Component -->
-    <div class="results-header">
-      <TradeResultsSummary
-        :trades="currentTabTrades"
-        :active-tab="activeTab"
-      />
-      <div v-if="activeTab === 'open' && activeProfile?.settings?.fetchLiveData" class="live-status">
-        <span v-if="isLiveDataLoading" class="loading-text">🔄 Fetching live prices...</span>
-        <span v-else-if="lastUpdated" class="updated-text">✅ Prices updated at {{ formatTime(lastUpdated) }}</span>
-        <span v-else class="error-text">❌ Failed to fetch live prices</span>
-      </div>
-    </div>
+    <TradeResultsSummary
+      :trades="currentTabTrades"
+      :active-tab="activeTab"
+      :is-live-data-loading="isLiveDataLoading"
+      :last-updated="lastUpdated"
+    />
 
     <!-- Desktop Table Component -->
     <TradeTable
@@ -62,6 +57,15 @@
       :trade="selectedTrade"
       @close="selectedTrade = null"
     />
+
+    <!-- Live Status Footer -->
+    <div v-if="activeTab === 'open' && activeProfile?.settings?.fetchLiveData" class="history-footer">
+      <div class="live-status-footer">
+        <span v-if="isLiveDataLoading" class="loading-text">🔄 Fetching live prices...</span>
+        <span v-else-if="lastUpdated" class="updated-text">✅ Live prices updated at {{ formatTime(lastUpdated) }}</span>
+        <span v-else class="error-text">❌ Failed to fetch live prices</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -346,30 +350,24 @@ const deleteTrade = async(trade) => {
   padding: 1rem;
 }
 
-.results-header {
+.history-footer {
+  margin-top: 1.5rem;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  justify-content: flex-end;
 }
 
-.live-status {
-  font-size: 0.8rem;
-  padding-bottom: 0.5rem;
+.live-status-footer {
+  font-size: 0.85rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .loading-text { color: #3b82f6; }
 .updated-text { color: #10b981; }
 .error-text { color: #ef4444; }
-
-@media (max-width: 768px) {
-  .results-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-}
 
 @media (min-width: 768px) {
   .trade-history {

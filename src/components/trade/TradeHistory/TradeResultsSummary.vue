@@ -5,7 +5,7 @@
         Showing {{ totalCount }} {{ activeTab }} trade{{ totalCount !== 1 ? 's' : '' }}
       </div>
       <div class="trades-summary">
-      <div v-if="activeTab !== 'open'" class="summary-stats">
+      <div class="summary-stats">
         <span class="stats-item profit-count">
           Profitable: {{ profitableCount }}
         </span>
@@ -18,7 +18,6 @@
       </div>
         <div class="metrics">
           <div
-            v-if="activeTab !== 'open'"
             class="metric-item net-profit"
             :class="{
               'profit': netProfit > 0,
@@ -51,6 +50,8 @@ interface Trade {
 const props = defineProps<{
   trades: Trade[]
   activeTab: string
+  isLiveDataLoading?: boolean
+  lastUpdated?: string | null
 }>()
 
 const totalCount = computed(() => props.trades.length)
@@ -76,6 +77,11 @@ const totalCapitalUsed = computed(() =>
 )
 
 const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
+
+const formatTime = (isoString: string | null | undefined) => {
+  if (!isoString) return ''
+  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 </script>
 
 <style scoped>

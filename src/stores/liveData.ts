@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch } from 'vue'
 import { yahooFinanceService, type StockQuote } from '@/services/yahooFinanceService'
 import { useProfilesStore } from './profiles'
 import { tradeService } from '@/firebase/tradeService'
@@ -9,7 +9,7 @@ export const useLiveDataStore = defineStore('liveData', () => {
   const prices = ref<Record<string, StockQuote>>({})
   const isLoading = ref(false)
   const lastUpdated = ref<string | null>(null)
-  let pollingInterval: number | null = null
+  // let pollingInterval: number | null = null
 
   const profilesStore = useProfilesStore()
 

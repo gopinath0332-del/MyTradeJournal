@@ -10,7 +10,7 @@ import type { Trade as TradeType } from '@/types'
 const router = useRouter()
 const authStore = useAuthStore()
 const uiStore = useUIStore()
-const liveDataStore = useLiveDataStore() // Initialize live data store
+useLiveDataStore() // Initialize live data store
 
 // Destructure store state with storeToRefs to maintain reactivity
 const { user, isAuthenticated } = storeToRefs(authStore)

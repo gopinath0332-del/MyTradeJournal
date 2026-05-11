@@ -78,10 +78,6 @@ const totalCapitalUsed = computed(() =>
 
 const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
-const formatTime = (isoString: string | null | undefined) => {
-  if (!isoString) return ''
-  return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
 </script>
 
 <style scoped>

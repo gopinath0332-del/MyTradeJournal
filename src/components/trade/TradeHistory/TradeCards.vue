@@ -140,6 +140,7 @@ interface Trade {
   fundingCharge?: number
   capitalUsed: number
   remarks?: string
+  isLive?: boolean
 }
 
 defineProps<{

@@ -2,7 +2,7 @@
   <div class="mobile-trades">
     <LoadingSpinner
       v-if="isLoading"
-      message="Loading trades..."
+      :message="loadingMessage || 'Loading trades...'"
       size="large"
       full-height
     />
@@ -148,6 +148,7 @@ defineProps<{
   sortKey: string
   sortOrder: string
   isLoading: boolean
+  loadingMessage?: string
   activeTab: string
 }>()
 

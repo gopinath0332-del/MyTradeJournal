@@ -2,7 +2,7 @@
   <div class="table-container desktop-table">
     <LoadingSpinner
       v-if="isLoading"
-      message="Loading trades..."
+      :message="loadingMessage || 'Loading trades...'"
       size="large"
       full-height
     />
@@ -146,6 +146,7 @@ const props = defineProps<{
   sortKey: string
   sortOrder: string
   isLoading: boolean
+  loadingMessage?: string
   activeTab: string
 }>()
 

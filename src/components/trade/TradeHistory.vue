@@ -30,7 +30,8 @@
       :trades="currentTabTrades"
       :sort-key="sortKey"
       :sort-order="sortDir"
-      :is-loading="isLoadingTrades"
+      :is-loading="isAnyLoading"
+      :loading-message="loadingMessage"
       :active-tab="activeTab"
       @sort="sortBy"
       @view="viewTradeDetails"
@@ -43,7 +44,8 @@
       :trades="currentTabTrades"
       :sort-key="sortKey"
       :sort-order="sortDir"
-      :is-loading="isLoadingTrades"
+      :is-loading="isAnyLoading"
+      :loading-message="loadingMessage"
       :active-tab="activeTab"
       @sort="sortBy"
       @toggle-sort="toggleSortOrder"
@@ -121,6 +123,21 @@ const filters = ref({
 const { activeProfile } = useProfiles()
 const liveDataStore = useLiveDataStore()
 const { prices, isLoading: isLiveDataLoading, lastUpdated } = storeToRefs(liveDataStore)
+
+const isAnyLoading = computed(() => {
+  if (isLoadingTrades.value) return true
+  // Only block for live data if we are in the open trades tab and live data is enabled
+  if (activeTab.value === 'open' && activeProfile.value?.settings?.fetchLiveData) {
+    return isLiveDataLoading.value
+  }
+  return false
+})
+
+const loadingMessage = computed(() => {
+  if (isLoadingTrades.value) return 'Loading trades...'
+  if (isLiveDataLoading.value) return 'Fetching live prices...'
+  return 'Loading...'
+})
 
 const formatTime = (isoString) => {
   if (!isoString) return ''

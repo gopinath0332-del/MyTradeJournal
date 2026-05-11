@@ -215,7 +215,13 @@ _MyTradeJournal - Track, Analyze, Improve your Trading Performance_ 📈
 - **Interactive Charts**: Equity curves, P&L distribution, drawdown analysis
 - **Multi-timeframe Analysis**: Daily, weekly, monthly, and yearly breakdowns
 - **Trading Heatmaps**: Calendar-based activity visualization
-- **Symbol Performance**: Detailed analysis per trading instrument
+### 📈 **Live Market Data Integration**
+
+- **Real-time LTP Fetching**: Automatically fetches Last Traded Price (LTP) for open trades from Yahoo Finance
+- **Dynamic Unrealized P&L**: Calculates profit/loss in real-time based on live market prices
+- **Per-Profile Configuration**: Enable or disable live data fetching on a per-profile basis to manage performance
+- **Smart Proxy System**: Built-in multi-proxy fallback and direct fetch support to bypass CORS restrictions
+- **Live Status Indicators**: Real-time visual feedback with "LIVE" badges and "Last Updated" timestamps
 
 ### 🎯 **Comprehensive Statistics**
 
@@ -235,6 +241,7 @@ _MyTradeJournal - Track, Analyze, Improve your Trading Performance_ 📈
 ### 🔄 **Trade Management**
 
 - **Intuitive Trade Entry**: Streamlined form with real-time P&L calculations
+- **Live Open Positions**: Dedicated "Open Trades" tab with live price tracking and unrealized P&L
 - **Bulk Operations**: Import/export trades, batch editing
 - **Trade History**: Advanced filtering, sorting, and search capabilities
 - **Zerodha Kite Import**: Seamlessly import orders from Zerodha Kite CSV exports

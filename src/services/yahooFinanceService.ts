@@ -8,57 +8,60 @@ export interface StockQuote {
   lastUpdated: string
 }
 
+const PROXIES = [
+  (url: string) => url, // Direct
+  (url: string) => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+]
+
 export const yahooFinanceService = {
-  /**
-   * Fetch live quotes for multiple symbols
-   * Note: This uses a public Yahoo Finance API. 
-   * Indian stocks usually need .NS (NSE) or .BO (BSE) suffix.
-   */
   async getQuotes(symbols: string[]): Promise<Record<string, StockQuote>> {
     if (!symbols.length) return {}
 
-    try {
-      // Append .NS to symbols that don't have a suffix (assuming Indian stocks for this journal)
-      // This is a heuristic, but common for Indian traders
-      const formattedSymbols = symbols.map(s => {
-        if (s.includes('.') || s.includes(':')) return s
-        return `${s}.NS`
-      })
-
-      const symbolsString = formattedSymbols.join(',')
-      // Using corsproxy.io which is generally more reliable for Yahoo Finance
-      const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsString}`
-      const url = `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`
+    const quotes: Record<string, StockQuote> = {}
+    
+    // We fetch symbols in parallel to improve speed
+    const fetchPromises = symbols.map(async (symbol) => {
+      const formattedSymbol = symbol.includes('.') || symbol.includes(':') ? symbol : `${symbol}.NS`
       
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error(`Proxy error: ${response.statusText}`)
-      }
+      // Using the v8/chart endpoint which is often more reliable
+      const yahooUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${formattedSymbol}?interval=1m&range=1d`
+      
+      for (const getProxyUrl of PROXIES) {
+        try {
+          const proxyUrl = getProxyUrl(yahooUrl)
+          const response = await fetch(proxyUrl)
+          
+          if (!response.ok) continue
 
-      const data = await response.json()
-      const quotes: Record<string, StockQuote> = {}
-
-      if (data.quoteResponse && data.quoteResponse.result) {
-        data.quoteResponse.result.forEach((result: any) => {
-          // Remove the .NS suffix when mapping back to original symbols
-          const originalSymbol = symbols.find(s => 
-            s === result.symbol || `${s}.NS` === result.symbol || `${s}.BO` === result.symbol
-          ) || result.symbol
-
-          quotes[originalSymbol] = {
-            symbol: originalSymbol,
-            price: result.regularMarketPrice,
-            change: result.regularMarketChange,
-            changePercent: result.regularMarketChangePercent,
-            lastUpdated: new Date().toISOString()
+          let data: any
+          if (proxyUrl.includes('allorigins')) {
+            const wrapper = await response.json()
+            data = JSON.parse(wrapper.contents)
+          } else {
+            data = await response.json()
           }
-        })
-      }
 
-      return quotes
-    } catch (error) {
-      logger.error('Error fetching Yahoo Finance quotes', 'yahooFinanceService', error)
-      return {}
-    }
+          const result = data?.chart?.result?.[0]
+          if (result && result.meta) {
+            const meta = result.meta
+            quotes[symbol] = {
+              symbol: symbol,
+              price: meta.regularMarketPrice,
+              change: meta.regularMarketPrice - meta.chartPreviousClose,
+              changePercent: ((meta.regularMarketPrice - meta.chartPreviousClose) / meta.chartPreviousClose) * 100,
+              lastUpdated: new Date().toISOString()
+            }
+            return // Success for this symbol
+          }
+        } catch (error) {
+          // Silent fallback to next proxy
+        }
+      }
+    })
+
+    await Promise.all(fetchPromises)
+    return quotes
   }
 }

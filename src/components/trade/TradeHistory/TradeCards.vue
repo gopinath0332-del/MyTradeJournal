@@ -15,9 +15,10 @@
           <option value="symbol">Symbol</option>
           <option value="type">Type</option>
           <option value="entryPrice">Entry Price</option>
-          <option value="exitPrice">Exit Price</option>
+          <option value="exitPrice">{{ activeTab === 'open' ? 'LTP' : 'Exit Price' }}</option>
           <option value="pnlPercentage">Return %</option>
-          <option value="fundingCharge">Funding</option>
+          <option v-if="activeTab === 'open'" value="pnlAmount">PnL Amount</option>
+          <option v-if="activeTab !== 'open'" value="fundingCharge">Funding</option>
           <option v-if="activeTab === 'open'" value="capitalUsed">Capital Used</option>
         </select>
         <button class="sort-direction-btn" @click="$emit('toggleSort')">
@@ -52,8 +53,11 @@
               <span class="trade-value">{{ formatVal(trade.entryPrice) }}</span>
             </div>
             <div class="trade-row">
-              <span class="trade-label">Exit:</span>
-              <span class="trade-value">{{ formatVal(trade.exitPrice) }}</span>
+              <span class="trade-label">{{ activeTab === 'open' ? 'LTP:' : 'Exit:' }}</span>
+              <span class="trade-value">
+                {{ formatVal(trade.exitPrice) }}
+                <span v-if="trade.isLive" class="live-badge">LIVE</span>
+              </span>
             </div>
             <div class="trade-row">
               <span class="trade-label">Return %:</span>
@@ -64,7 +68,16 @@
                 {{ (trade.pnlPercentage || 0).toFixed(2) }}%
               </span>
             </div>
-            <div class="trade-row">
+            <div v-if="activeTab === 'open'" class="trade-row">
+              <span class="trade-label">PnL Amount:</span>
+              <span
+                class="trade-value"
+                :class="{ 'profit': (trade.pnlAmount || 0) > 0, 'loss': (trade.pnlAmount || 0) < 0 }"
+              >
+                {{ formatVal(trade.pnlAmount) }}
+              </span>
+            </div>
+            <div v-if="activeTab !== 'open'" class="trade-row">
               <span class="trade-label">Funding:</span>
               <span class="trade-value" :class="{ 'profit': (trade.fundingCharge || 0) > 0, 'loss': (trade.fundingCharge || 0) < 0 }">
                 {{ formatVal(trade.fundingCharge) }}
@@ -354,5 +367,24 @@ const handleSortChange = (event: any) => {
 
 .empty-state-mobile {
   width: 100%;
+}
+
+.live-badge {
+  display: inline-block;
+  padding: 1px 3px;
+  background-color: #dc2626;
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 800;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
 }
 </style>

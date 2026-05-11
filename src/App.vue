@@ -3,13 +3,14 @@ import { provide, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import AuthGuard from './components/auth/AuthGuard.vue'
-import { useAuthStore, useUIStore } from './stores'
+import { useAuthStore, useUIStore, useLiveDataStore } from './stores'
 import ProfileSelector from './components/ProfileSelector.vue'
 import type { Trade as TradeType } from '@/types'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const uiStore = useUIStore()
+const liveDataStore = useLiveDataStore() // Initialize live data store
 
 // Destructure store state with storeToRefs to maintain reactivity
 const { user, isAuthenticated } = storeToRefs(authStore)

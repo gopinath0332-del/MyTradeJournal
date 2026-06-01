@@ -219,8 +219,6 @@ const winRate = computed(() => {
 
 // Calendar days with trade data
 const calendarDays = computed(() => {
-  if (!calendarData.value.length) return []
-
   const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
   const startDate = new Date(firstDay)

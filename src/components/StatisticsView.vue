@@ -236,6 +236,13 @@
         <div v-if="activeTab === 'notes'" class="tab-panel">
           <TradeNotesNLP />
         </div>
+
+        <!-- Monthly Returns Heatmap Tab -->
+        <div v-if="activeTab === 'returns'" class="tab-panel">
+          <section class="stats-section">
+            <MonthlyReturnHeatmap :trades="trades" />
+          </section>
+        </div>
       </div>
     </div>
 
@@ -270,6 +277,7 @@ import TradeSequenceAnalytics from './analytics/TradeSequenceAnalytics.vue'
 import CohortAnalytics from './analytics/CohortAnalytics.vue'
 import EquityDriftAnalytics from './analytics/EquityDriftAnalytics.vue'
 import TradeNotesNLP from './analytics/TradeNotesNLP.vue'
+import MonthlyReturnHeatmap from './charts/MonthlyReturnHeatmap.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
@@ -284,10 +292,11 @@ const error = ref(null)
 const trades = ref([])
 const selectedYear = ref(new Date().getFullYear())
 const availableYears = ref([])
-const activeTab = ref('symbols')
+const activeTab = ref('returns')
 
 // Tab configuration
 const tabs = [
+  { id: 'returns', label: 'Returns', icon: '🗓️' },
   { id: 'symbols', label: 'Symbols', icon: '🎯' },
   { id: 'streaks', label: 'Streaks', icon: '🔥' },
   { id: 'time', label: 'Time Analysis', icon: '📅' },

@@ -20,6 +20,37 @@
             {{ trade.type }}
           </span>
         </div>
+        <div v-if="trade.fundingType" class="detail-row">
+          <span class="label">Funding Type:</span>
+          <span class="value funding-type">
+            {{ formatFundingType(trade.fundingType) }}
+          </span>
+        </div>
+
+        <!-- MTF Details Section -->
+        <div v-if="trade.fundingType === 'MTF' && (trade.mtfLeverage || trade.investedAmount)" class="mtf-details-section">
+          <div class="section-header">💰 MTF Leverage Details</div>
+          
+          <div v-if="trade.mtfLeverage" class="detail-row">
+            <span class="label">Leverage:</span>
+            <span class="value">{{ trade.mtfLeverage }}x</span>
+          </div>
+          
+          <div v-if="trade.investedAmount" class="detail-row">
+            <span class="label">Your Investment:</span>
+            <span class="value highlight-blue">{{ formatVal(trade.investedAmount) }}</span>
+          </div>
+          
+          <div v-if="trade.borrowedAmount || (trade.capitalUsed && trade.investedAmount)" class="detail-row">
+            <span class="label">Borrowed from Zerodha:</span>
+            <span class="value highlight-orange">{{ formatVal(trade.borrowedAmount || (trade.capitalUsed - (trade.investedAmount || 0))) }}</span>
+          </div>
+          
+          <div v-if="trade.interestPaid" class="detail-row">
+            <span class="label">Interest Paid:</span>
+            <span class="value highlight-red">{{ formatVal(trade.interestPaid) }}</span>
+          </div>
+        </div>
         <div class="detail-row">
           <span class="label">Entry Date:</span>
           <span class="value">{{ formatDate(trade.entryDate) }}</span>
@@ -158,6 +189,16 @@ import { useProfiles } from '@/composables/useProfiles'
 const { currencySymbol } = useProfiles()
 const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
+const formatFundingType = (fundingType: string): string => {
+  const fundingMap: Record<string, string> = {
+    'MTF': 'MTF (Margin Trade Funding)',
+    'CASH': 'Cash',
+    'MARGIN': 'Margin',
+    'MARGIN_PLUS': 'Margin+'
+  }
+  return fundingMap[fundingType] || fundingType
+}
+
 interface Trade {
   id: string
   symbol: string
@@ -173,6 +214,11 @@ interface Trade {
   pnlPercentage: number
   fundingCharge?: number
   tradingCharge?: number
+  fundingType?: string
+  mtfLeverage?: number
+  investedAmount?: number
+  borrowedAmount?: number
+  interestPaid?: number
   partialExits?: { date: string; price: number; lots: number }[]
   daysHeld: number
   strategy?: string
@@ -498,5 +544,50 @@ const getFailureModeColor = (modeId: string): string => {
   .close-btn:hover {
     background-color: #2563eb;
   }
+}
+
+/* MTF Details Section Styles */
+.mtf-details-section {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.mtf-details-section .detail-row {
+  border-bottom-color: #fde68a;
+}
+
+.value.highlight-blue {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.value.highlight-orange {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.value.highlight-red {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.value.funding-type {
+  background: #fef3c7;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #92400e;
 }
 </style>

@@ -43,12 +43,21 @@
             </div>
           </div>
 
-          <!-- Global Strategy Selector -->
+          <!-- Global Settings -->
           <div class="global-settings">
             <div class="form-group">
               <label for="global-strategy">Set Strategy for All Trades</label>
               <select id="global-strategy" v-model="defaultStrategy" @change="applyStrategyToAll">
                 <option v-for="s in strategies" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="global-funding">Set Funding Type for All Trades</label>
+              <select id="global-funding" v-model="defaultFundingType" @change="applyFundingTypeToAll">
+                <option value="CASH">Cash</option>
+                <option value="MTF">MTF (Margin Trade Funding)</option>
+                <option value="MARGIN">Margin</option>
+                <option value="MARGIN_PLUS">Margin+</option>
               </select>
             </div>
           </div>
@@ -121,12 +130,14 @@ import { useProfiles } from '@/composables/useProfiles'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '../../utils/logger'
 import { v4 as uuidv4 } from 'uuid'
+import { loadMTFData, getLeverageBySymbol } from '@/utils/mtfLeverageData'
 
 const isOpen = ref(false)
 const isSaving = ref(false)
 const parsedTrades = ref([])
 const openPositions = ref([])
 const defaultStrategy = ref('Donchian')
+const defaultFundingType = ref('MTF')
 const { currencySymbol, activeProfile, updateProfile } = useProfiles()
 
 const startEditingTrade = inject('startEditingTrade')
@@ -158,7 +169,10 @@ const stats = computed(() => {
 
 const open = async() => {
   isOpen.value = true
-  await fetchOpenPositions()
+  await Promise.all([
+    fetchOpenPositions(),
+    loadMTFData()
+  ])
 }
 
 const fetchOpenPositions = async() => {
@@ -187,13 +201,20 @@ const applyStrategyToAll = () => {
   })
 }
 
+const applyFundingTypeToAll = () => {
+  parsedTrades.value.forEach(t => {
+    t.fundingType = defaultFundingType.value
+    updateTradeFunding(t)
+  })
+}
+
 const calculateTradePnL = (trade) => {
   if (!trade.exitPrice) return { amount: 0, percentage: 0 }
-  
+
   const multiplier = trade.type === 'SELL' ? -1 : 1
   const pnlAmount = (trade.exitPrice - trade.entryPrice) * trade.lots * (trade.lotMultiplier || 1) * multiplier
   const pnlPercentage = trade.capitalUsed > 0 ? (pnlAmount / trade.capitalUsed) * 100 : 0
-  
+
   return {
     amount: parseFloat(pnlAmount.toFixed(2)),
     percentage: parseFloat(pnlPercentage.toFixed(2))
@@ -263,19 +284,19 @@ const consolidateOrders = (orders) => {
     const totalBuyQty = buys.reduce((sum, o) => sum + o.qty, 0)
     const totalSellQty = sells.reduce((sum, o) => sum + o.qty, 0)
 
-    const avgBuyPrice = totalBuyQty > 0 
-      ? buys.reduce((sum, o) => sum + (o.avgPrice * o.qty), 0) / totalBuyQty 
+    const avgBuyPrice = totalBuyQty > 0
+      ? buys.reduce((sum, o) => sum + (o.avgPrice * o.qty), 0) / totalBuyQty
       : 0
-    
-    const avgSellPrice = totalSellQty > 0 
-      ? sells.reduce((sum, o) => sum + (o.avgPrice * o.qty), 0) / totalSellQty 
+
+    const avgSellPrice = totalSellQty > 0
+      ? sells.reduce((sum, o) => sum + (o.avgPrice * o.qty), 0) / totalSellQty
       : 0
 
     if (totalBuyQty > 0 && totalSellQty === 0) {
       trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, null, buys[0].time))
     } else if (totalSellQty > 0 && totalBuyQty === 0) {
       const openMatch = openPositions.value.find(p => p.symbol === symbol && p.status === 'OPEN')
-      
+
       if (openMatch) {
         trades.push(createClosureObj(openMatch, avgSellPrice, sells[0].time))
       } else {
@@ -292,8 +313,33 @@ const consolidateOrders = (orders) => {
   parsedTrades.value = trades
 }
 
+const calculateMTFDetails = (trade) => {
+  if (trade.fundingType !== 'MTF') {
+    delete trade.mtfLeverage
+    delete trade.investedAmount
+    delete trade.interestPaid
+    return
+  }
+
+  const leverage = getLeverageBySymbol(trade.symbol)
+  if (leverage) {
+    trade.mtfLeverage = leverage
+    const investedAmount = trade.capitalUsed / leverage
+    trade.investedAmount = parseFloat(investedAmount.toFixed(2))
+
+    if (trade.status === 'CLOSED') {
+      const daysHeld = calculateHoldingDays(trade.entryDate, trade.exitDate)
+      const borrowedAmount = trade.capitalUsed - trade.investedAmount
+      const dailyRate = 0.0004
+      const interestPaid = borrowedAmount * dailyRate * daysHeld
+      trade.interestPaid = parseFloat(interestPaid.toFixed(2))
+    }
+  }
+}
+
 const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, exitTime) => {
   const capitalUsed = parseFloat((entryPrice * lots).toFixed(2))
+  const fundingType = defaultFundingType.value
   const trade = {
     tradeId: uuidv4(),
     symbol,
@@ -307,9 +353,12 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     capitalUsed,
     status: exitPrice ? 'CLOSED' : 'OPEN',
     strategy: defaultStrategy.value,
+    fundingType,
     notes: 'Imported from Zerodha Kite',
     isNew: true
   }
+
+  calculateMTFDetails(trade)
 
   if (trade.status === 'CLOSED') {
     const pnl = calculateTradePnL(trade)
@@ -323,7 +372,7 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
 
 const createClosureObj = (existingTrade, exitPrice, exitTime) => {
   const exitDate = exitTime ? exitTime.split(' ')[0] : new Date().toISOString().split('T')[0]
-  
+
   const trade = {
     ...existingTrade,
     exitPrice: parseFloat(exitPrice.toFixed(4)),
@@ -338,7 +387,13 @@ const createClosureObj = (existingTrade, exitPrice, exitTime) => {
   trade.pnlPercentage = pnl.percentage
   trade.daysHeld = calculateHoldingDays(trade.entryDate, trade.exitDate)
 
+  calculateMTFDetails(trade)
+
   return trade
+}
+
+const updateTradeFunding = (trade) => {
+  calculateMTFDetails(trade)
 }
 
 const decrementTradeCounter = async() => {
@@ -365,10 +420,10 @@ const decrementTradeCounter = async() => {
 
 const saveAllTrades = async() => {
   if (!confirm(`Are you sure you want to save all ${parsedTrades.value.length} trades?`)) return
-  
+
   isSaving.value = true
   let savedCount = 0
-  
+
   try {
     for (const trade of parsedTrades.value) {
       if (trade.isClosure && trade.id) {
@@ -379,7 +434,7 @@ const saveAllTrades = async() => {
       }
       savedCount++
     }
-    
+
     showToast('success', 'Import Successful', `Successfully processed ${savedCount} trades.`)
     refreshDashboard()
     close()
@@ -521,6 +576,15 @@ defineExpose({ open })
   border-radius: 8px;
   border: 1px solid #fbcfe8;
   margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .global-settings {
+    grid-template-columns: 1fr;
+  }
 }
 
 .global-settings .form-group {
@@ -672,4 +736,5 @@ td {
   background: #9ca3af;
   cursor: not-allowed;
 }
+
 </style>

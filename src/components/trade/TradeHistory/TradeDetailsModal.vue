@@ -20,6 +20,12 @@
             {{ trade.type }}
           </span>
         </div>
+        <div v-if="trade.fundingType" class="detail-row">
+          <span class="label">Funding Type:</span>
+          <span class="value funding-type">
+            {{ formatFundingType(trade.fundingType) }}
+          </span>
+        </div>
         <div class="detail-row">
           <span class="label">Entry Date:</span>
           <span class="value">{{ formatDate(trade.entryDate) }}</span>
@@ -158,6 +164,16 @@ import { useProfiles } from '@/composables/useProfiles'
 const { currencySymbol } = useProfiles()
 const formatVal = (val: number | null | undefined) => formatCurrency(val, currencySymbol.value)
 
+const formatFundingType = (fundingType: string): string => {
+  const fundingMap: Record<string, string> = {
+    'MTF': 'MTF (Margin Trade Funding)',
+    'CASH': 'Cash',
+    'MARGIN': 'Margin',
+    'MARGIN_PLUS': 'Margin+'
+  }
+  return fundingMap[fundingType] || fundingType
+}
+
 interface Trade {
   id: string
   symbol: string
@@ -173,6 +189,7 @@ interface Trade {
   pnlPercentage: number
   fundingCharge?: number
   tradingCharge?: number
+  fundingType?: string
   partialExits?: { date: string; price: number; lots: number }[]
   daysHeld: number
   strategy?: string

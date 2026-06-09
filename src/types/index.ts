@@ -22,6 +22,7 @@ export interface Trade {
   pnlAmount?: number
   fundingCharge?: number
   tradingCharge?: number
+  fundingType?: 'MTF' | 'CASH' | 'MARGIN' | 'MARGIN_PLUS' // Zerodha funding types
   profileId?: string // Associate trade with a profile
   userId?: string // Associate trade with a user (for authentication)
   failureModes?: string[] // Array of failure mode IDs for losing trades

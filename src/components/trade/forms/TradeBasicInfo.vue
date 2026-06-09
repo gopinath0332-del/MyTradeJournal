@@ -39,6 +39,20 @@
           <option value="SELL">Sell</option>
         </select>
       </div>
+      <div class="form-group">
+        <label for="fundingType">Funding Type</label>
+        <select
+          id="fundingType"
+          :value="modelValue.fundingType || ''"
+          @change="updateField('fundingType', $event.target.value || undefined)"
+        >
+          <option value="">Select funding type</option>
+          <option value="CASH">Cash</option>
+          <option value="MTF">MTF (Margin Trade Funding)</option>
+          <option value="MARGIN">Margin</option>
+          <option value="MARGIN_PLUS">Margin+</option>
+        </select>
+      </div>
     </div>
   </div>
 </template>
@@ -72,14 +86,14 @@ const handleContractInput = (event) => {
 <style scoped>
 .form-grid {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
+  grid-template-columns: 2fr 2fr 1fr 1.5fr;
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
 @media (max-width: 768px) {
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
   }
 }

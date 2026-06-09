@@ -43,12 +43,21 @@
             </div>
           </div>
 
-          <!-- Global Strategy Selector -->
+          <!-- Global Settings -->
           <div class="global-settings">
             <div class="form-group">
               <label for="global-strategy">Set Strategy for All Trades</label>
               <select id="global-strategy" v-model="defaultStrategy" @change="applyStrategyToAll">
                 <option v-for="s in strategies" :key="s" :value="s">{{ s }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="global-funding">Set Funding Type for All Trades</label>
+              <select id="global-funding" v-model="defaultFundingType" @change="applyFundingTypeToAll">
+                <option value="CASH">Cash</option>
+                <option value="MTF">MTF (Margin Trade Funding)</option>
+                <option value="MARGIN">Margin</option>
+                <option value="MARGIN_PLUS">Margin+</option>
               </select>
             </div>
           </div>
@@ -127,6 +136,7 @@ const isSaving = ref(false)
 const parsedTrades = ref([])
 const openPositions = ref([])
 const defaultStrategy = ref('Donchian')
+const defaultFundingType = ref('MTF')
 const { currencySymbol, activeProfile, updateProfile } = useProfiles()
 
 const startEditingTrade = inject('startEditingTrade')
@@ -184,6 +194,12 @@ const clear = () => {
 const applyStrategyToAll = () => {
   parsedTrades.value.forEach(t => {
     t.strategy = defaultStrategy.value
+  })
+}
+
+const applyFundingTypeToAll = () => {
+  parsedTrades.value.forEach(t => {
+    t.fundingType = defaultFundingType.value
   })
 }
 
@@ -307,6 +323,7 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     capitalUsed,
     status: exitPrice ? 'CLOSED' : 'OPEN',
     strategy: defaultStrategy.value,
+    fundingType: defaultFundingType.value,
     notes: 'Imported from Zerodha Kite',
     isNew: true
   }
@@ -521,6 +538,15 @@ defineExpose({ open })
   border-radius: 8px;
   border: 1px solid #fbcfe8;
   margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .global-settings {
+    grid-template-columns: 1fr;
+  }
 }
 
 .global-settings .form-group {

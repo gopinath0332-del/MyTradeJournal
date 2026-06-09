@@ -63,7 +63,7 @@ export const loadMTFData = async (): Promise<boolean> => {
   }
 
   try {
-    const response = await fetch('/Zerodha - Approved Securities for MTF.csv')
+    const response = await fetch(`${import.meta.env.BASE_URL}Zerodha - Approved Securities for MTF.csv`)
     if (!response.ok) {
       console.warn('MTF CSV file not found, leverage auto-population disabled')
       isLoaded = true

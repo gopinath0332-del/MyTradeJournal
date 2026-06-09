@@ -114,18 +114,29 @@
           <select
             id="mtfLeverage"
             :value="modelValue.mtfLeverage || ''"
-            @change="updateField('mtfLeverage', $event.target.value ? parseFloat($event.target.value) : undefined)"
+            @change="updateField('mtfLeverage', ($event.target as HTMLSelectElement).value ? parseFloat(($event.target as HTMLSelectElement).value) : undefined)"
             :class="{ 'auto-populated': modelValue.mtfLeverage && mtfSecurityInfo }"
           >
             <option value="">Select leverage</option>
-            <option value="2">2x (50% own, 50% borrowed)</option>
-            <option value="3">3x (33% own, 67% borrowed)</option>
-            <option value="4">4x (25% own, 75% borrowed)</option>
-            <option value="5">5x (20% own, 80% borrowed)</option>
+            <template v-if="mtfSecurityInfo">
+              <option :value="mtfSecurityInfo.leverage">{{ mtfSecurityInfo.leverage.toFixed(2) }}x (Exact from Zerodha)</option>
+              <optgroup label="Custom Values">
+                <option value="2">2x</option>
+                <option value="3">3x</option>
+                <option value="4">4x</option>
+                <option value="5">5x</option>
+              </optgroup>
+            </template>
+            <template v-else>
+              <option value="2">2x</option>
+              <option value="3">3x</option>
+              <option value="4">4x</option>
+              <option value="5">5x</option>
+            </template>
           </select>
           <small class="help-text">
             {{ modelValue.mtfLeverage && mtfSecurityInfo ? '✓ Auto-populated from Zerodha data • ' : '' }}
-            Recommended: {{ mtfSecurityInfo ? `Up to ${mtfSecurityInfo.leverage.toFixed(2)}x allowed` : 'Select stock first' }}
+            Allowed: {{ mtfSecurityInfo ? `Up to ${mtfSecurityInfo.leverage.toFixed(2)}x` : 'Select stock first' }}
           </small>
         </div>
       </div>
@@ -139,14 +150,11 @@
               id="investedAmount"
               type="text"
               :value="modelValue.investedAmount"
-              step="0.00001"
-              min="0"
-              inputmode="decimal"
-              pattern="[0-9]*\.?[0-9]*"
-              @input="handleMTFInvestedChange"
+              readonly
+              disabled
             >
           </div>
-          <small class="help-text">Your own capital invested</small>
+          <small class="help-text">Auto-calculated: Capital Used ÷ Leverage</small>
         </div>
 
         <div class="form-group">
@@ -156,7 +164,7 @@
             <input
               id="borrowedAmount"
               type="text"
-              :value="calculatedBorrowedAmount"
+              :value="calculatedBorrowedAmount.toFixed(2)"
               readonly
               disabled
             >
@@ -173,7 +181,7 @@
             <input
               id="interestPaid"
               type="text"
-              :value="modelValue.interestPaid || ''"
+              :value="(modelValue.interestPaid || calculatedInterestPaid).toFixed(2)"
               step="0.01"
               min="0"
               inputmode="decimal"
@@ -181,7 +189,7 @@
               @input="handlePriceChange('interestPaid', $event)"
             >
           </div>
-          <small class="help-text">Total interest/funding charges paid on borrowed amount</small>
+          <small class="help-text">Auto-calculated at 0.04% daily rate (Zerodha MTF fixed rate) • Can override with actual value</small>
         </div>
       </div>
 
@@ -200,7 +208,7 @@
         </div>
         <div class="summary-item">
           <span class="label">Interest Paid:</span>
-          <span class="value highlight-red">{{ currencySymbol }}{{ (modelValue.interestPaid || 0).toLocaleString('en-IN', {maximumFractionDigits: 2}) }}</span>
+          <span class="value highlight-red">{{ currencySymbol }}{{ (modelValue.interestPaid || calculatedInterestPaid).toLocaleString('en-IN', {maximumFractionDigits: 2}) }}</span>
         </div>
       </div>
     </div>
@@ -279,7 +287,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useProfiles } from '@/composables/useProfiles'
 import { loadMTFData, getLeverageBySymbol, getMTFSecurity } from '@/utils/mtfLeverageData'
@@ -301,7 +309,7 @@ onMounted(async () => {
 })
 
 // Partial Exit State
-const newPartialExit = ref({
+const newPartialExit = ref<{ date: string; price: string | null; lots: string | null }>({
   date: '',
   price: null,
   lots: null
@@ -322,9 +330,8 @@ watch(
     if (props.modelValue.fundingType === 'MTF' && !props.modelValue.mtfLeverage) {
       const leverage = getLeverageBySymbol(newSymbol)
       if (leverage) {
-        // Round leverage to nearest standard value (2x, 3x, 4x, 5x)
-        const roundedLeverage = Math.round(leverage)
-        updateField('mtfLeverage', Math.max(2, Math.min(5, roundedLeverage)))
+        // Use exact leverage value from Zerodha (no rounding)
+        updateField('mtfLeverage', leverage)
       }
     }
   }
@@ -338,8 +345,26 @@ watch(
     if (newFundingType === 'MTF' && props.modelValue.symbol && !props.modelValue.mtfLeverage) {
       const leverage = getLeverageBySymbol(props.modelValue.symbol)
       if (leverage) {
-        const roundedLeverage = Math.round(leverage)
-        updateField('mtfLeverage', Math.max(2, Math.min(5, roundedLeverage)))
+        // Use exact leverage value from Zerodha (no rounding)
+        updateField('mtfLeverage', leverage)
+      }
+    }
+  }
+)
+
+// Watch for capital used or leverage changes to auto-calculate invested amount
+watch(
+  [() => props.modelValue.capitalUsed, () => props.modelValue.mtfLeverage],
+  () => {
+    // Auto-calculate invested amount based on capital used and leverage
+    if (props.modelValue.fundingType === 'MTF' && props.modelValue.capitalUsed && props.modelValue.mtfLeverage) {
+      const capitalUsed = parseFloat(String(props.modelValue.capitalUsed)) || 0
+      const leverage = parseFloat(String(props.modelValue.mtfLeverage)) || 0
+      
+      if (capitalUsed > 0 && leverage > 0) {
+        // Calculate: Your Investment = Capital Used / Leverage
+        const investedAmount = capitalUsed / leverage
+        updateField('investedAmount', parseFloat(investedAmount.toFixed(2)))
       }
     }
   }
@@ -354,8 +379,10 @@ const mtfSecurityInfo = computed(() => {
 const isValidPartialExit = computed(() => {
   return (
     newPartialExit.value.date &&
-    newPartialExit.value.price > 0 &&
-    newPartialExit.value.lots > 0
+    newPartialExit.value.price != null &&
+    parseFloat(String(newPartialExit.value.price)) > 0 &&
+    newPartialExit.value.lots != null &&
+    parseFloat(String(newPartialExit.value.lots)) > 0
   )
 })
 
@@ -364,6 +391,26 @@ const calculatedBorrowedAmount = computed(() => {
   const capitalUsed = parseFloat(props.modelValue.capitalUsed) || 0
   const investedAmount = parseFloat(props.modelValue.investedAmount) || 0
   return Math.max(0, capitalUsed - investedAmount)
+})
+
+const calculatedInterestPaid = computed(() => {
+  // Zerodha MTF daily rate: 0.04% per day = 0.0004
+  const dailyRate = 0.0004
+  const borrowedAmount = calculatedBorrowedAmount.value
+  
+  if (!props.modelValue.entryDate || !props.modelValue.exitDate) {
+    return 0
+  }
+  
+  const entryDate = new Date(props.modelValue.entryDate)
+  const exitDate = new Date(props.modelValue.exitDate)
+  const daysHeld = Math.ceil((exitDate.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
+  
+  if (daysHeld <= 0) {
+    return 0
+  }
+  
+  return borrowedAmount * dailyRate * daysHeld
 })
 
 const addPartialExit = () => {
@@ -387,45 +434,44 @@ const addPartialExit = () => {
   emit('calculate-pnl')
 }
 
-const removePartialExit = (index) => {
+const removePartialExit = (index: number) => {
   const currentPartialExits = props.modelValue.partialExits || []
-  const updatedPartialExits = currentPartialExits.filter((_, i) => i !== index)
+  const updatedPartialExits = currentPartialExits.filter((_: any, i: number) => i !== index)
 
   updateField('partialExits', updatedPartialExits)
   emit('calculate-pnl')
 }
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string) => {
   if (!dateString) return ''
   return new Date(dateString).toLocaleDateString()
 }
 
-const handlePartialExitChange = (field, event) => {
-  const rawValue = event.target.value
-  newPartialExit.value[field] = rawValue
+const handlePartialExitChange = (field: string, event: Event) => {
+  const target = event.target as HTMLInputElement
+  const rawValue = target.value
+  Object.assign(newPartialExit.value, { [field]: rawValue })
 }
 
-const updateField = (field, value) => {
+const updateField = (field: string, value: any) => {
   emit('update:modelValue', {
     ...props.modelValue,
     [field]: value
   })
 }
 
-const handlePriceChange = (field, event) => {
-  updateField(field, event.target.value)
+const handlePriceChange = (field: string, event: Event) => {
+  const target = event.target as HTMLInputElement
+  updateField(field, target.value)
   emit('calculate-pnl')
 }
 
-const handleNumberChange = (field, event) => {
-  updateField(field, event.target.value)
+const handleNumberChange = (field: string, event: Event) => {
+  const target = event.target as HTMLInputElement
+  updateField(field, target.value)
   emit('calculate-pnl')
 }
 
-const handleMTFInvestedChange = (event) => {
-  const investedAmount = parseFloat(event.target.value) || 0
-  updateField('investedAmount', investedAmount > 0 ? investedAmount : undefined)
-}
 </script>
 
 <style scoped>

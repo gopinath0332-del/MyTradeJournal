@@ -110,71 +110,6 @@
       
       <div class="form-row">
         <div class="form-group">
-          <label for="mtfLeverage">Leverage to Use</label>
-          <select
-            id="mtfLeverage"
-            :value="modelValue.mtfLeverage || ''"
-            @change="updateField('mtfLeverage', ($event.target as HTMLSelectElement).value ? parseFloat(($event.target as HTMLSelectElement).value) : undefined)"
-            :class="{ 'auto-populated': modelValue.mtfLeverage && mtfSecurityInfo }"
-          >
-            <option value="">Select leverage</option>
-            <template v-if="mtfSecurityInfo">
-              <option :value="mtfSecurityInfo.leverage">{{ mtfSecurityInfo.leverage.toFixed(2) }}x (Exact from Zerodha)</option>
-              <optgroup label="Custom Values">
-                <option value="2">2x</option>
-                <option value="3">3x</option>
-                <option value="4">4x</option>
-                <option value="5">5x</option>
-              </optgroup>
-            </template>
-            <template v-else>
-              <option value="2">2x</option>
-              <option value="3">3x</option>
-              <option value="4">4x</option>
-              <option value="5">5x</option>
-            </template>
-          </select>
-          <small class="help-text">
-            {{ modelValue.mtfLeverage && mtfSecurityInfo ? '✓ Auto-populated from Zerodha data • ' : '' }}
-            Allowed: {{ mtfSecurityInfo ? `Up to ${mtfSecurityInfo.leverage.toFixed(2)}x` : 'Select stock first' }}
-          </small>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label for="investedAmount">Your Investment</label>
-          <div class="input-with-prefix">
-            <span class="currency-prefix">{{ currencySymbol }}</span>
-            <input
-              id="investedAmount"
-              type="text"
-              :value="modelValue.investedAmount"
-              readonly
-              disabled
-            >
-          </div>
-          <small class="help-text">Auto-calculated: Capital Used ÷ Leverage</small>
-        </div>
-
-        <div class="form-group">
-          <label for="borrowedAmount">Borrowed from Zerodha</label>
-          <div class="input-with-prefix">
-            <span class="currency-prefix">{{ currencySymbol }}</span>
-            <input
-              id="borrowedAmount"
-              type="text"
-              :value="calculatedBorrowedAmount.toFixed(2)"
-              readonly
-              disabled
-            >
-          </div>
-          <small class="help-text">Auto-calculated: Capital Used - Your Investment</small>
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
           <label for="interestPaid">Interest Paid</label>
           <div class="input-with-prefix">
             <span class="currency-prefix">{{ currencySymbol }}</span>
@@ -365,6 +300,20 @@ watch(
         // Calculate: Your Investment = Capital Used / Leverage
         const investedAmount = capitalUsed / leverage
         updateField('investedAmount', parseFloat(investedAmount.toFixed(2)))
+      }
+    }
+  }
+)
+
+// Watch for exit date or entry date changes to auto-calculate interest paid
+watch(
+  [() => props.modelValue.exitDate, () => props.modelValue.entryDate],
+  () => {
+    if (props.modelValue.fundingType === 'MTF' && !props.modelValue.interestPaid) {
+      // Auto-calculate and set interest paid
+      const interest = calculatedInterestPaid.value
+      if (interest > 0) {
+        updateField('interestPaid', parseFloat(interest.toFixed(2)))
       }
     }
   }

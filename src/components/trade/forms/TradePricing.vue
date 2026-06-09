@@ -104,11 +104,28 @@
           <span class="info-value highlight">{{ mtfSecurityInfo.leverage.toFixed(2) }}x</span>
         </div>
       </div>
-      <div v-else-if="modelValue.symbol && modelValue.fundingType === 'MTF'" class="security-warning">
+      <div v-else-if="modelValue.symbol && modelValue.fundingType === 'MTF' && !props.modelValue.mtfLeverage" class="security-warning">
         ⚠️ Symbol not found in MTF list. <a href="https://zerodha.com/mtf-approved-securities/" target="_blank">Check Zerodha MTF securities</a>
       </div>
-      
+
       <div class="form-row">
+        <div class="form-group">
+          <label for="mtfLeverage">Leverage Used</label>
+          <div class="input-with-prefix">
+            <input
+              id="mtfLeverage"
+              type="text"
+              :value="modelValue.mtfLeverage"
+              placeholder="e.g. 3.5"
+              step="0.01"
+              inputmode="decimal"
+              class="has-suffix"
+              @input="handlePriceChange('mtfLeverage', $event)"
+            >
+            <span class="unit-suffix">x</span>
+          </div>
+          <small class="help-text">Enter the leverage used for this trade (auto-populated if symbol found)</small>
+        </div>
         <div class="form-group">
           <label for="interestPaid">Interest Paid</label>
           <div class="input-with-prefix">
@@ -492,8 +509,20 @@ input:focus {
   z-index: 1;
 }
 
+.unit-suffix {
+  position: absolute;
+  right: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  z-index: 1;
+}
+
 .input-with-prefix input {
   padding-left: 2.5rem;
+}
+
+.input-with-prefix input.has-suffix {
+  padding-right: 2.5rem;
 }
 
 /* Partial Exits Styles */

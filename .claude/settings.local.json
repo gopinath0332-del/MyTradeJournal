@@ -4,7 +4,9 @@
       "Bash(grep -r \"aria-\\\\|tabindex\\\\|role=\" /Users/admin/Projects/MyTradeJournal/src/components --include=*.vue)",
       "Bash(grep -r \"v-if\\\\|catch\\\\|try\" /Users/admin/Projects/MyTradeJournal/src/components/dashboard --include=*.vue)",
       "Bash(grep -r \"retry\\\\|Retry\" /Users/admin/Projects/MyTradeJournal/src --include=*.ts --include=*.vue)",
-      "Bash(grep -r \"try\\\\|catch\" /Users/admin/Projects/MyTradeJournal/src/firebase --include=*.ts)"
+      "Bash(grep -r \"try\\\\|catch\" /Users/admin/Projects/MyTradeJournal/src/firebase --include=*.ts)",
+      "Bash(npm run *)",
+      "Bash(node *)"
     ]
   }
 }

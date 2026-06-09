@@ -1,6 +1,6 @@
 /**
  * MTF Leverage Data Service
- * Parses and manages Zerodha MTF approved securities leverage mapping
+ * Manages Zerodha MTF approved securities leverage mapping using pre-processed JSON data
  */
 
 export interface MTFSecurity {
@@ -15,47 +15,7 @@ let mtfSecurities: Map<string, MTFSecurity> = new Map()
 let isLoaded = false
 
 /**
- * Parse CSV content from Zerodha MTF approved securities file
- */
-const parseCSV = (csvContent: string): MTFSecurity[] => {
-  const lines = csvContent.split('\n')
-  const securities: MTFSecurity[] = []
-
-  // Skip header row
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i]?.trim()
-    if (!line) continue
-
-    const parts = line.split(',')
-    if (parts.length < 5) continue
-
-    const isin = parts[0]?.trim()
-    const symbol = parts[1]?.trim()
-    const category = parts[2]?.trim()
-    const marginStr = parts[3]?.trim()
-    const leverageStr = parts[4]?.trim()
-
-    if (!symbol || !marginStr || !leverageStr) continue
-
-    const margin = parseFloat(marginStr)
-    const leverage = parseFloat(leverageStr)
-
-    if (!isNaN(leverage)) {
-      securities.push({
-        isin: isin || '',
-        symbol: symbol.toUpperCase(),
-        category: category || '',
-        margin,
-        leverage
-      })
-    }
-  }
-
-  return securities
-}
-
-/**
- * Load MTF data from CSV file in public folder
+ * Load MTF data from JSON file in public folder
  */
 export const loadMTFData = async (): Promise<boolean> => {
   if (isLoaded && mtfSecurities.size > 0) {
@@ -63,24 +23,30 @@ export const loadMTFData = async (): Promise<boolean> => {
   }
 
   try {
-    const response = await fetch(`${import.meta.env.BASE_URL}Zerodha - Approved Securities for MTF.csv`)
+    const response = await fetch(`${import.meta.env.BASE_URL}mtf-securities.json`)
     if (!response.ok) {
-      console.warn('MTF CSV file not found, leverage auto-population disabled')
+      console.warn('MTF securities JSON not found, leverage auto-population disabled')
       isLoaded = true
       return false
     }
 
-    const csvContent = await response.text()
-    const securities = parseCSV(csvContent)
+    const securities: MTFSecurity[] = await response.json()
 
     // Build map for quick lookup
     mtfSecurities.clear()
     securities.forEach(security => {
-      mtfSecurities.set(security.symbol, security)
+      // Ensure symbol is uppercase for consistent lookup
+      const symbol = (security.symbol || '').toUpperCase()
+      if (symbol) {
+        mtfSecurities.set(symbol, {
+          ...security,
+          symbol
+        })
+      }
     })
 
     isLoaded = true
-    console.log(`Loaded ${mtfSecurities.size} MTF securities`)
+    console.log(`Loaded ${mtfSecurities.size} MTF securities from JSON`)
     return true
   } catch (error) {
     console.error('Error loading MTF data:', error)

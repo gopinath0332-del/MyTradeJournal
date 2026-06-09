@@ -23,6 +23,10 @@ export interface Trade {
   fundingCharge?: number
   tradingCharge?: number
   fundingType?: 'MTF' | 'CASH' | 'MARGIN' | 'MARGIN_PLUS' // Zerodha funding types
+  mtfLeverage?: number // MTF Leverage used (2x, 3x, 4x, 5x)
+  investedAmount?: number // Your own capital invested in MTF trade
+  borrowedAmount?: number // Amount borrowed from Zerodha for MTF
+  interestPaid?: number // Total interest paid on borrowed amount
   profileId?: string // Associate trade with a profile
   userId?: string // Associate trade with a user (for authentication)
   failureModes?: string[] // Array of failure mode IDs for losing trades

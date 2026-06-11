@@ -5,7 +5,8 @@
 
 export interface MTFSecurity {
   isin: string
-  symbol: string
+  tradingsymbol: string
+  symbol?: string
   category: string
   margin: number
   leverage: number
@@ -36,7 +37,7 @@ export const loadMTFData = async (): Promise<boolean> => {
     mtfSecurities.clear()
     securities.forEach(security => {
       // Ensure symbol is uppercase for consistent lookup
-      const symbol = (security.symbol || '').toUpperCase()
+      const symbol = (security.tradingsymbol || '').toUpperCase()
       if (symbol) {
         mtfSecurities.set(symbol, {
           ...security,

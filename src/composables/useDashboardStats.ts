@@ -148,6 +148,7 @@ export function useDashboardStats() {
       netPnL: Math.round(netPnL),
       avgDailyPnL: Math.round(avgDailyPnL),
       totalFunding: Math.round(currentYearTrades.value.reduce((sum, t) => sum + (t.fundingCharge || 0), 0)),
+      totalInterestPaid: Math.round(currentYearTrades.value.reduce((sum, t) => sum + (t.interestPaid || 0), 0)),
       totalTradingFees: Math.round(currentYearTrades.value.reduce((sum, t) => sum + (t.tradingCharge || 0), 0))
     }
   })

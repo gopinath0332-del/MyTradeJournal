@@ -91,6 +91,10 @@
         <div class="stat-title">Total Funding</div>
         <div class="stat-value" :class="{ 'dashboard-text-positive': stats.totalFunding > 0, 'dashboard-text-negative': stats.totalFunding < 0 }">{{ currencySymbol }}{{ stats.totalFunding }}</div>
       </div>
+      <div class="stat-card total-interest">
+        <div class="stat-title">Total Interest Paid</div>
+        <div class="stat-value dashboard-text-negative">{{ currencySymbol }}{{ stats.totalInterestPaid }}</div>
+      </div>
       <div class="stat-card total-fees">
         <div class="stat-title">Total Trading Fees</div>
         <div class="stat-value dashboard-text-negative">{{ currencySymbol }}{{ stats.totalTradingFees }}</div>
@@ -127,6 +131,7 @@ const _props = defineProps({
       netPnL: 0,
       avgDailyPnL: 0,
       totalFunding: 0,
+      totalInterestPaid: 0,
       totalTradingFees: 0
     })
   },
@@ -298,6 +303,10 @@ const _props = defineProps({
 
 .stat-card.total-funding {
   border-left: 4px solid #9C27B0;
+}
+
+.stat-card.total-interest {
+  border-left: 4px solid #E91E63;
 }
 
 .stat-card.total-fees {

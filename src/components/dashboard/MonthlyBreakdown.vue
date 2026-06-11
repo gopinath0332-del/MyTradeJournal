@@ -71,6 +71,12 @@
             </span>
           </div>
           <div class="monthly-stat">
+            <span class="stat-label">Interest Paid:</span>
+            <span class="stat-value negative">
+              {{ currencySymbol }}{{ month.totalInterestPaid.toLocaleString() }}
+            </span>
+          </div>
+          <div class="monthly-stat">
             <span class="stat-label">Trading Fees:</span>
             <span class="stat-value negative">
               {{ currencySymbol }}{{ month.totalTradingFees.toLocaleString() }}

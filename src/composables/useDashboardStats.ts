@@ -420,6 +420,7 @@ export function useDashboardStats() {
         avgPnL: Math.round(totalPnL / trades.length),
         riskRewardRatio,
         totalFunding: Math.round(trades.reduce((sum, t) => sum + (t.fundingCharge || 0), 0)),
+        totalInterestPaid: Math.round(trades.reduce((sum, t) => sum + (t.interestPaid || 0), 0)),
         totalTradingFees: Math.round(trades.reduce((sum, t) => sum + (t.tradingCharge || 0), 0)),
         remarksCount
       }

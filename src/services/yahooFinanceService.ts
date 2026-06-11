@@ -1,5 +1,7 @@
 // import { logger } from '@/utils/logger'
 
+export const YAHOO_FINANCE_ENABLED = false // Disable integration; set to true to enable
+
 export interface StockQuote {
   symbol: string
   price: number
@@ -17,7 +19,7 @@ const PROXIES = [
 
 export const yahooFinanceService = {
   async getQuotes(symbols: string[]): Promise<Record<string, StockQuote>> {
-    if (!symbols.length) return {}
+    if (!YAHOO_FINANCE_ENABLED || !symbols.length) return {}
 
     const quotes: Record<string, StockQuote> = {}
     

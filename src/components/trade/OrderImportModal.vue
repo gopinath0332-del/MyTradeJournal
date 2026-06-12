@@ -212,7 +212,9 @@ const calculateTradePnL = (trade) => {
   if (!trade.exitPrice) return { amount: 0, percentage: 0 }
 
   const multiplier = trade.type === 'SELL' ? -1 : 1
-  const pnlAmount = (trade.exitPrice - trade.entryPrice) * trade.lots * (trade.lotMultiplier || 1) * multiplier
+  const grossPnL = (trade.exitPrice - trade.entryPrice) * trade.lots * (trade.lotMultiplier || 1) * multiplier
+  const interestPaid = parseFloat((trade.interestPaid || 0).toString())
+  const pnlAmount = grossPnL - interestPaid
   const pnlPercentage = trade.capitalUsed > 0 ? (pnlAmount / trade.capitalUsed) * 100 : 0
 
   return {

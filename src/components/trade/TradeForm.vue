@@ -233,8 +233,9 @@ const calculatePnL = () => {
 
       const fundingCharge = parseFloat((trade.value.fundingCharge || 0).toString())
       const tradingCharge = parseFloat((trade.value.tradingCharge || 0).toString())
+      const interestPaid = parseFloat((trade.value.interestPaid || 0).toString())
 
-      pnl.value.amount = totalPnL + fundingCharge - tradingCharge
+      pnl.value.amount = totalPnL + fundingCharge - tradingCharge - interestPaid
       lastCalculatedPnl.value = pnl.value.amount
       updateReturnFromPnL()
     }

@@ -149,6 +149,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useCalendar } from '@/composables/useCalendar'
 import { useProfiles } from '@/composables/useProfiles'
+import { formatToISODate } from '@/utils/dateUtils'
 
 const { currencySymbol } = useProfiles()
 
@@ -198,8 +199,10 @@ const totalTrades = computed(() => {
 const totalTradingDays = computed(() => {
   const tradingDays = new Set()
   calendarData.value.forEach(trade => {
-    const tradeDate = new Date(trade.entryDate).toISOString().split('T')[0]
-    tradingDays.add(tradeDate)
+    const tradeDate = formatToISODate(trade.entryDate)
+    if (tradeDate) {
+      tradingDays.add(tradeDate)
+    }
   })
   return tradingDays.size
 })
@@ -235,7 +238,7 @@ const calendarDays = computed(() => {
   while (currentDate <= endDate) {
     const dateStr = currentDate.toISOString().split('T')[0]
     const dayTrades = calendarData.value.filter(trade => {
-      const tradeDate = new Date(trade.entryDate).toISOString().split('T')[0]
+      const tradeDate = formatToISODate(trade.entryDate)
       return tradeDate === dateStr
     })
 

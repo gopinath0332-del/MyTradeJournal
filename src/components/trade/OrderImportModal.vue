@@ -131,6 +131,7 @@ import { tradeService } from '../../firebase/tradeService'
 import { logger } from '../../utils/logger'
 import { v4 as uuidv4 } from 'uuid'
 import { loadMTFData, getLeverageBySymbol } from '@/utils/mtfLeverageData'
+import { formatToISODate } from '@/utils/dateUtils'
 
 const isOpen = ref(false)
 const isSaving = ref(false)
@@ -211,23 +212,11 @@ const applyFundingTypeToAll = () => {
 const normalizeDate = (dateStr) => {
   if (!dateStr) return ''
 
-  // 1. Already YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr
+  // Extract date part (YYYY-MM-DD or DD-MM-YYYY) if time is present
+  const datePart = dateStr.includes(' ') ? dateStr.split(' ')[0] : dateStr
+  const formatted = formatToISODate(datePart)
 
-  // 2. Handle DD-MM-YYYY or DD/MM/YYYY
-  const dmYMatch = dateStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/)
-  if (dmYMatch) {
-    const [_, day, month, year] = dmYMatch
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-  }
-
-  // 3. Fallback attempt with native Date
-  const d = new Date(dateStr)
-  if (!isNaN(d.getTime())) {
-    return d.toISOString().split('T')[0]
-  }
-
-  return dateStr // Return as-is if no format matches
+  return formatted || dateStr
 }
 
 const calculateTradePnL = (trade) => {
@@ -274,8 +263,8 @@ const processCSV = (text) => {
     const line = lines[i].trim()
     if (!line) continue
 
-    const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || []
-    const cleanParts = parts.map(p => p.replace(/^"|"$/g, ''))
+    // Use a simple comma split since Zerodha CSVs typically don't have commas in fields
+    const cleanParts = line.split(',').map(p => p.replace(/^"|"$/g, '').trim())
 
     if (cleanParts.length < 6) continue
 
@@ -323,14 +312,21 @@ const consolidateOrders = (orders) => {
 
       if (openMatch) {
         trades.push(createClosureObj(openMatch, avgSellPrice, sells[0].time))
-      } else {
-        trades.push(createTradeObj(symbol, 'SELL', totalSellQty, avgSellPrice, null, sells[0].time))
       }
+      // If no openMatch is found, we don't add a standalone SELL trade
     } else if (totalBuyQty === totalSellQty) {
       trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, avgSellPrice, buys[0].time, sells[0].time))
     } else {
-      if (totalBuyQty > 0) trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, null, buys[0].time))
-      if (totalSellQty > 0) trades.push(createTradeObj(symbol, 'SELL', totalSellQty, avgSellPrice, null, sells[0].time))
+      if (totalBuyQty > 0) {
+        trades.push(createTradeObj(symbol, 'BUY', totalBuyQty, avgBuyPrice, null, buys[0].time))
+      }
+      if (totalSellQty > 0) {
+        const openMatch = openPositions.value.find(p => p.symbol === symbol && p.status === 'OPEN')
+        if (openMatch) {
+          trades.push(createClosureObj(openMatch, avgSellPrice, sells[0].time))
+        }
+        // If no openMatch, ignore standalone SELL trades in complex scenarios
+      }
     }
   })
 
@@ -372,8 +368,8 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     lotMultiplier: 1,
     entryPrice: parseFloat(entryPrice.toFixed(4)),
     exitPrice: exitPrice ? parseFloat(exitPrice.toFixed(4)) : null,
-    entryDate: normalizeDate(entryTime ? entryTime.split(' ')[0] : new Date().toISOString().split('T')[0]),
-    exitDate: normalizeDate(exitTime ? exitTime.split(' ')[0] : ''),
+    entryDate: normalizeDate(entryTime || new Date().toISOString()),
+    exitDate: normalizeDate(exitTime || ''),
     capitalUsed,
     status: exitPrice ? 'CLOSED' : 'OPEN',
     strategy: defaultStrategy.value,
@@ -381,6 +377,7 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     notes: 'Imported from Zerodha Kite',
     isNew: true
   }
+
 
   calculateMTFDetails(trade)
 
@@ -395,7 +392,7 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
 }
 
 const createClosureObj = (existingTrade, exitPrice, exitTime) => {
-  const exitDate = normalizeDate(exitTime ? exitTime.split(' ')[0] : new Date().toISOString().split('T')[0])
+  const exitDate = normalizeDate(exitTime || new Date().toISOString())
 
   const trade = {
     ...existingTrade,
@@ -405,6 +402,7 @@ const createClosureObj = (existingTrade, exitPrice, exitTime) => {
     isClosure: true,
     notes: (existingTrade.notes || '') + '\n[Imported exit from Zerodha]'
   }
+
 
   const pnl = calculateTradePnL(trade)
   trade.pnlAmount = pnl.amount

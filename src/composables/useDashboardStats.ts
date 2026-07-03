@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
 import { logger } from '@/utils/logger'
+import { formatToISODate } from '@/utils/dateUtils'
 import type { EquityPoint, Trade } from '@/types'
 
 type EquityScope = 'profile' | 'month'
@@ -160,7 +161,12 @@ export function useDashboardStats() {
       .filter((trade: Trade) => trade.pnlAmount !== undefined && trade.pnlAmount !== null)
       .forEach((trade: Trade) => {
         const pnlDate = trade.exitDate || trade.entryDate
-        const dateStr = new Date(pnlDate).toISOString().split('T')[0] as string
+        const dateStr = formatToISODate(pnlDate)
+
+        if (!dateStr) {
+          logger.warn(`Trade ${trade.id || 'unknown'} has an invalid date: ${pnlDate}`, 'useDashboardStats')
+          return
+        }
 
         if (!dailyPnLMap[dateStr]) {
           dailyPnLMap[dateStr] = 0

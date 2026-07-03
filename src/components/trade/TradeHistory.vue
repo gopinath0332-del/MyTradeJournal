@@ -75,6 +75,7 @@
 import { ref, computed, inject, watch, onMounted } from 'vue'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '@/utils/logger'
+import { formatToISODate } from '@/utils/dateUtils'
 import { useLiveDataStore } from '@/stores'
 import { storeToRefs } from 'pinia'
 import { useProfiles } from '@/composables/useProfiles'
@@ -112,7 +113,7 @@ const sortDir = ref('desc')
 const activeTab = ref('closed') // Default to closed trades
 
 const filters = ref({
-  dateRange: 'current-month',
+  dateRange: 'all',
   startDate: '',
   endDate: '',
   symbol: 'all',
@@ -227,8 +228,8 @@ const handleEdit = (trade) => {
   // Format dates for the form inputs
   const formattedTrade = {
     ...trade,
-    entryDate: trade.entryDate ? new Date(trade.entryDate).toISOString().slice(0, 10) : '',
-    exitDate: trade.exitDate ? new Date(trade.exitDate).toISOString().slice(0, 10) : ''
+    entryDate: formatToISODate(trade.entryDate) || '',
+    exitDate: formatToISODate(trade.exitDate) || ''
   }
   startEditingTrade(formattedTrade)
 }

@@ -4,6 +4,7 @@
  */
 
 import type { Trade } from './index'
+import { formatToISODate } from '@/utils/dateUtils'
 
 // Sentiment Analysis
 export type SentimentType = 'positive' | 'negative' | 'neutral' | 'mixed'
@@ -533,7 +534,9 @@ export function calculateSentimentTrend(trades: Trade[]): SentimentTrend[] {
     const combinedNotes = getCombinedNotes(trade)
     if (!combinedNotes || combinedNotes.length < 10 || !trade.entryDate) return
 
-    const date = new Date(trade.entryDate as string).toISOString().split('T')[0] as string
+    const date = formatToISODate(trade.entryDate)
+    if (!date) return
+
     const sentiment = analyzeSentiment(combinedNotes)
     const isWin = (trade.pnl ?? 0) > 0
 

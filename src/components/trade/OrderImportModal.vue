@@ -208,6 +208,28 @@ const applyFundingTypeToAll = () => {
   })
 }
 
+const normalizeDate = (dateStr) => {
+  if (!dateStr) return ''
+
+  // 1. Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr
+
+  // 2. Handle DD-MM-YYYY or DD/MM/YYYY
+  const dmYMatch = dateStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/)
+  if (dmYMatch) {
+    const [_, day, month, year] = dmYMatch
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  }
+
+  // 3. Fallback attempt with native Date
+  const d = new Date(dateStr)
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().split('T')[0]
+  }
+
+  return dateStr // Return as-is if no format matches
+}
+
 const calculateTradePnL = (trade) => {
   if (!trade.exitPrice) return { amount: 0, percentage: 0 }
 
@@ -350,8 +372,8 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
     lotMultiplier: 1,
     entryPrice: parseFloat(entryPrice.toFixed(4)),
     exitPrice: exitPrice ? parseFloat(exitPrice.toFixed(4)) : null,
-    entryDate: entryTime ? entryTime.split(' ')[0] : new Date().toISOString().split('T')[0],
-    exitDate: exitTime ? exitTime.split(' ')[0] : '',
+    entryDate: normalizeDate(entryTime ? entryTime.split(' ')[0] : new Date().toISOString().split('T')[0]),
+    exitDate: normalizeDate(exitTime ? exitTime.split(' ')[0] : ''),
     capitalUsed,
     status: exitPrice ? 'CLOSED' : 'OPEN',
     strategy: defaultStrategy.value,
@@ -373,7 +395,7 @@ const createTradeObj = (symbol, type, lots, entryPrice, exitPrice, entryTime, ex
 }
 
 const createClosureObj = (existingTrade, exitPrice, exitTime) => {
-  const exitDate = exitTime ? exitTime.split(' ')[0] : new Date().toISOString().split('T')[0]
+  const exitDate = normalizeDate(exitTime ? exitTime.split(' ')[0] : new Date().toISOString().split('T')[0])
 
   const trade = {
     ...existingTrade,

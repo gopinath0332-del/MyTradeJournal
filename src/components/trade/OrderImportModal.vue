@@ -268,12 +268,12 @@ const processCSV = (text) => {
 
     if (cleanParts.length < 6) continue
 
-    const [time, type, instrument, product, qtyStr, avgPriceStr] = cleanParts
+    const [time, type, instrument, product, qtyStr, avgPriceStr, status] = cleanParts
     const qtyParts = qtyStr.split('/')
     const qty = parseFloat(qtyParts[qtyParts.length - 1]) || 0
     const avgPrice = parseFloat(avgPriceStr) || 0
 
-    if (qty > 0) {
+    if (qty > 0 && status === 'COMPLETE') {
       orders.push({ time, type: type.toUpperCase(), symbol: instrument, qty, avgPrice })
     }
   }

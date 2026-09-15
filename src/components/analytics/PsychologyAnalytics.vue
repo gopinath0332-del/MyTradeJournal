@@ -60,7 +60,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { provide } from 'vue'
 import type { Trade } from '@/types'
 import HorizontalBarChart from '../charts/HorizontalBarChart.vue'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'

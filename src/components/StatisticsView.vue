@@ -156,6 +156,10 @@
               </div>
             </div>
 
+            <div class="stats-section" style="margin-top: 2rem; padding: 0;">
+              <TradeDistributionHeatmap :trades="trades" />
+            </div>
+
             <!-- Weekly Performance Analysis -->
             <WeeklyBreakdown
               v-if="availableYears.length > 0"
@@ -278,6 +282,7 @@ import CohortAnalytics from './analytics/CohortAnalytics.vue'
 import EquityDriftAnalytics from './analytics/EquityDriftAnalytics.vue'
 import TradeNotesNLP from './analytics/TradeNotesNLP.vue'
 import MonthlyReturnHeatmap from './charts/MonthlyReturnHeatmap.vue'
+import TradeDistributionHeatmap from './analytics/TradeDistributionHeatmap.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'

@@ -11,6 +11,7 @@
 MyTradeJournal is a trading journal Single Page Application (SPA) for logging trades, analyzing performance, and identifying patterns. It supports multiple trading profiles (live, paper, strategy, custom) with advanced analytics.
 
 **Live demo:** Deployed at `/MyTradeJournal/` base path in production.
+**Roadmap:** See [ROADMAP.md](ROADMAP.md) for planned improvements.
 
 ---
 

@@ -3,29 +3,23 @@ import { ref, computed } from 'vue'
 
 // Input states
 const capital = ref<number>(100000)
-const baseRisk = ref<number>(1)
-const slippageBuffer = ref<number>(2)
-const entryPrice = ref<number | null>(null)
-const stoplossPrice = ref<number | null>(null)
-const marginPerLot = ref<number>(1664)
+const baseRisk = ref<number>(5)
+const atrMultiplier = ref<number>(1.5)
 const atr = ref<number | null>(50)
 
 // Computed values
-const slDistance = computed(() => {
-  if (entryPrice.value && stoplossPrice.value) {
-    return Math.abs(entryPrice.value - stoplossPrice.value)
-  }
-  return 0
+const volatilityStop = computed(() => {
+  return (atr.value || 0) * atrMultiplier.value
 })
 
 const volatilityRatio = computed(() => {
-  if (slDistance.value > 0 && atr.value) {
-    return slDistance.value / atr.value
+  if (volatilityStop.value > 0 && atr.value) {
+    return volatilityStop.value / atr.value
   }
   return 0
 })
 
-const effectiveSl = computed(() => slDistance.value + slippageBuffer.value)
+const effectiveSl = computed(() => volatilityStop.value)
 
 const suggestedRiskPct = computed(() => {
   if (volatilityRatio.value > 0 && volatilityRatio.value < 0.5) {
@@ -37,55 +31,41 @@ const suggestedRiskPct = computed(() => {
 const riskAmount = computed(() => capital.value * (baseRisk.value / 100))
 
 const lotsByRisk = computed(() => {
-  if (slDistance.value > 0 && effectiveSl.value > 0) {
+  if (volatilityStop.value > 0 && effectiveSl.value > 0) {
     return riskAmount.value / effectiveSl.value
-  }
-  return 0
-})
-
-const marginBudget = computed(() => capital.value * 0.7) // 70% utilization cap
-
-const lotsByMargin = computed(() => {
-  if (marginPerLot.value > 0) {
-    return marginBudget.value / marginPerLot.value
   }
   return 0
 })
 
 const finalLots = computed(() => {
   // Only calculate final lots if we have a valid stoploss distance
-  if (slDistance.value > 0 && lotsByRisk.value > 0 && lotsByMargin.value > 0) {
-    return Math.floor(Math.min(lotsByRisk.value, lotsByMargin.value))
+  if (volatilityStop.value > 0 && lotsByRisk.value > 0) {
+    return Math.floor(lotsByRisk.value)
   }
   return 0
 })
 
-const actualMarginUsed = computed(() => finalLots.value * marginPerLot.value)
 const actualRisk = computed(() => finalLots.value * effectiveSl.value)
 const actualRiskPct = computed(() => (actualRisk.value / capital.value) * 100)
 
-const isMarginBound = computed(() => lotsByMargin.value < lotsByRisk.value && lotsByMargin.value > 0)
-
 const constraintType = computed(() => {
   if (finalLots.value === 0) return 'None'
-  return isMarginBound.value ? 'Margin' : 'Risk'
+  return 'Risk'
 })
 
 const constraintLabel = computed(() => {
   if (constraintType.value === 'None') return 'Waiting for Inputs'
-  if (constraintType.value === 'Margin') return 'Margin (Capital Utilization)'
   return 'Risk (Risk Limit)'
 })
 
 const constraintDescription = computed(() => {
-  if (constraintType.value === 'None') return 'Please enter entry and stoploss prices.'
-  if (constraintType.value === 'Margin') return 'You have reached the 70% capital utilization cap. Margin requirements are limiting your size.'
+  if (constraintType.value === 'None') return 'Please enter ATR and ATR Multiplier.'
   return 'Your position size is capped by your maximum allowed loss per trade (Base Risk %).'
 })
 
 const constraintClass = computed(() => {
   if (constraintType.value === 'None') return 'neutral'
-  return constraintType.value === 'Margin' ? 'info' : 'success'
+  return 'success'
 })
 
 // Scaling recommendations
@@ -124,31 +104,14 @@ const scaledLots = computed(() => {
           Trade Inputs
         </h3>
         
-        <div class="input-group">
-          <label>Capital (₹)</label>
-          <input v-model.number="capital" type="number" min="0" step="1000">
-        </div>
-
         <div class="input-row">
+          <div class="input-group">
+            <label>Capital (₹)</label>
+            <input v-model.number="capital" type="number" min="0" step="1000">
+          </div>
           <div class="input-group">
             <label>Base Risk (%)</label>
             <input v-model.number="baseRisk" type="number" min="0.1" step="0.1">
-          </div>
-          <div class="input-group">
-            <label>Margin per Lot (₹)</label>
-            <input v-model.number="marginPerLot" type="number" min="1" step="1">
-          </div>
-        </div>
-
-        <div class="input-row">
-          <div class="input-group">
-            <label>Entry Price (₹)</label>
-            <input v-model.number="entryPrice" type="number" min="0" step="1" placeholder="e.g. 152576">
-          </div>
-          <div class="input-group">
-            <label>Stoploss Price (₹)</label>
-            <input v-model.number="stoplossPrice" type="number" min="0" step="1" placeholder="e.g. 152589">
-            <span class="help-text">From Pine Script ATR Trailing Stop</span>
           </div>
         </div>
 
@@ -159,8 +122,9 @@ const scaledLots = computed(() => {
             <span class="help-text">Used for Volatility Ratio</span>
           </div>
           <div class="input-group">
-            <label>Slippage Buffer (₹)</label>
-            <input v-model.number="slippageBuffer" type="number" min="0" step="1">
+            <label>ATR Multiplier</label>
+            <input v-model.number="atrMultiplier" type="number" min="0.1" step="0.1">
+            <span class="help-text">Multiplier for stop distance</span>
           </div>
         </div>
       </div>
@@ -173,8 +137,8 @@ const scaledLots = computed(() => {
 
         <div class="stats-grid">
           <div class="stat-box">
-            <span class="stat-label">SL Distance</span>
-            <span class="stat-value">₹{{ slDistance.toFixed(2) }}</span>
+            <span class="stat-label">Volatility Stop</span>
+            <span class="stat-value">₹{{ volatilityStop.toFixed(2) }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-label">Effective SL</span>
@@ -186,7 +150,7 @@ const scaledLots = computed(() => {
           </div>
           <div class="stat-box" :class="{'warning': suggestedRiskPct < baseRisk}">
             <span class="stat-label">Suggested Risk %</span>
-            <span class="stat-value">{{ slDistance > 0 ? suggestedRiskPct.toFixed(2) + '%' : '—' }}</span>
+            <span class="stat-value">{{ volatilityStop > 0 ? suggestedRiskPct.toFixed(2) + '%' : '—' }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-label">Risk Amount</span>
@@ -194,11 +158,7 @@ const scaledLots = computed(() => {
           </div>
           <div class="stat-box">
             <span class="stat-label">Lots by Risk</span>
-            <span class="stat-value">{{ slDistance > 0 ? lotsByRisk.toFixed(2) : '—' }}</span>
-          </div>
-          <div class="stat-box">
-            <span class="stat-label">Lots by Margin (70%)</span>
-            <span class="stat-value">{{ lotsByMargin.toFixed(2) }}</span>
+            <span class="stat-value">{{ volatilityStop > 0 ? lotsByRisk.toFixed(2) : '—' }}</span>
           </div>
         </div>
 
@@ -220,7 +180,6 @@ const scaledLots = computed(() => {
           </div>
           <div class="result-details">
             <p><strong>Actual Risk:</strong> ₹{{ actualRisk.toFixed(2) }} ({{ actualRiskPct.toFixed(2) }}%)</p>
-            <p><strong>Margin Used:</strong> ₹{{ actualMarginUsed.toFixed(2) }} ({{ capital > 0 ? ((actualMarginUsed / capital) * 100).toFixed(1) : 0 }}%)</p>
           </div>
         </div>
 

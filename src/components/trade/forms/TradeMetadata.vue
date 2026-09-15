@@ -46,6 +46,24 @@
       </div>
     </div>
 
+      <div class="form-group">
+        <label for="mindset">Mindset / Emotion</label>
+        <select
+          id="mindset"
+          :value="modelValue.mindset"
+          @change="updateField('mindset', $event.target.value)"
+        >
+          <option value="">Select mindset (optional)</option>
+          <option value="Disciplined">Disciplined</option>
+          <option value="Greedy">Greedy</option>
+          <option value="Anxious">Anxious</option>
+          <option value="Confident">Confident</option>
+          <option value="Hesitant">Hesitant</option>
+          <option value="Frustrated">Frustrated</option>
+          <option value="Calm">Calm</option>
+        </select>
+      </div>
+
     <div class="form-group">
       <label for="remarks">Remarks</label>
       <select

@@ -247,6 +247,11 @@
             <MonthlyReturnHeatmap :trades="trades" />
           </section>
         </div>
+
+        <!-- Psychology Analytics Tab -->
+        <div v-if="activeTab === 'psychology'" class="tab-panel">
+          <PsychologyAnalytics :trades="trades" />
+        </div>
       </div>
     </div>
 
@@ -283,6 +288,7 @@ import EquityDriftAnalytics from './analytics/EquityDriftAnalytics.vue'
 import TradeNotesNLP from './analytics/TradeNotesNLP.vue'
 import MonthlyReturnHeatmap from './charts/MonthlyReturnHeatmap.vue'
 import TradeDistributionHeatmap from './analytics/TradeDistributionHeatmap.vue'
+import PsychologyAnalytics from './analytics/PsychologyAnalytics.vue'
 import { useDashboardStats } from '@/composables/useDashboardStats'
 import { useSymbolPerformance } from '@/composables/useSymbolPerformance'
 import { useTimeAnalysis } from '@/composables/useTimeAnalysis'
@@ -312,7 +318,8 @@ const tabs = [
   { id: 'sequences', label: 'Sequences', icon: '🔄' },
   { id: 'cohort', label: 'Cohort', icon: '📊' },
   { id: 'drift', label: 'Drift', icon: '📉' },
-  { id: 'notes', label: 'Notes', icon: '💬' }
+  { id: 'notes', label: 'Notes', icon: '💬' },
+  { id: 'psychology', label: 'Psychology', icon: '🧠' }
 ]
 
 import { useProfiles } from '@/composables/useProfiles'

@@ -32,6 +32,7 @@ export interface Trade {
   failureModes?: string[] // Array of failure mode IDs for losing trades
   failureNotes?: string // Detailed notes about what went wrong
   failureConfidence?: number // Confidence in failure classification (1-5)
+  mindset?: string // Emotion/Mindset during the trade (e.g., 'Greedy', 'Disciplined')
   createdAt: string
   updatedAt: string
 }

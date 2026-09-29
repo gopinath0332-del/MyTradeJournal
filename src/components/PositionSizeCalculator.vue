@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 
 // Input states
 const capital = ref<number>(100000)
-const baseRisk = ref<number>(5)
+const baseRisk = ref<number>(2)
 const atrMultiplier = ref<number>(1.5)
 const atr = ref<number | null>(50)
 

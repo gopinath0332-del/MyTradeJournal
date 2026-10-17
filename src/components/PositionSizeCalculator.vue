@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-// Input states
+// ── Input states ────────────────────────────────────────────────────────────
 const capital = ref<number>(100000)
 const baseRisk = ref<number>(2)
+const lotMultiplier = ref<number>(1)  // units per lot: 1 for GOLDPETAL, 10 for CRUDEOIL Mini, etc.
 const atrMultiplier = ref<number>(1.5)
 const atr = ref<number | null>(50)
+const entryPrice = ref<number | null>(null)
 
-// Computed values
-const volatilityStop = computed(() => {
-  return (atr.value || 0) * atrMultiplier.value
-})
+// ── Core calculations ───────────────────────────────────────────────────────
+const volatilityStop = computed(() => (atr.value || 0) * atrMultiplier.value)
 
 const volatilityRatio = computed(() => {
-  if (volatilityStop.value > 0 && atr.value) {
-    return volatilityStop.value / atr.value
-  }
+  if (volatilityStop.value > 0 && atr.value) return volatilityStop.value / atr.value
   return 0
 })
 
@@ -23,52 +21,55 @@ const effectiveSl = computed(() => volatilityStop.value)
 
 const suggestedRiskPct = computed(() => {
   if (volatilityRatio.value > 0 && volatilityRatio.value < 0.5) {
-    return baseRisk.value * 0.5 // Suggest halving risk for very tight stops
+    return baseRisk.value * 0.5
   }
   return baseRisk.value
 })
 
 const riskAmount = computed(() => capital.value * (baseRisk.value / 100))
 
+// Risk per lot = SL distance × lot multiplier
+const riskPerLot = computed(() => effectiveSl.value * (lotMultiplier.value || 1))
+
 const lotsByRisk = computed(() => {
-  if (volatilityStop.value > 0 && effectiveSl.value > 0) {
-    return riskAmount.value / effectiveSl.value
-  }
+  if (riskPerLot.value > 0) return riskAmount.value / riskPerLot.value
   return 0
 })
 
 const finalLots = computed(() => {
-  // Only calculate final lots if we have a valid stoploss distance
-  if (volatilityStop.value > 0 && lotsByRisk.value > 0) {
-    return Math.floor(lotsByRisk.value)
-  }
+  if (lotsByRisk.value > 0) return Math.floor(lotsByRisk.value)
   return 0
 })
 
-const actualRisk = computed(() => finalLots.value * effectiveSl.value)
+const actualRisk    = computed(() => finalLots.value * riskPerLot.value)
 const actualRiskPct = computed(() => (actualRisk.value / capital.value) * 100)
 
-const constraintType = computed(() => {
-  if (finalLots.value === 0) return 'None'
-  return 'Risk'
+// Capital deployed (entry price × lots × lot multiplier)
+const capitalDeployed = computed(() => {
+  if (entryPrice.value && finalLots.value > 0) {
+    return entryPrice.value * finalLots.value * (lotMultiplier.value || 1)
+  }
+  return null
 })
 
-const constraintLabel = computed(() => {
-  if (constraintType.value === 'None') return 'Waiting for Inputs'
-  return 'Risk (Risk Limit)'
-})
+// ── Constraint display ──────────────────────────────────────────────────────
+const constraintType = computed(() => finalLots.value === 0 ? 'None' : 'Risk')
 
-const constraintDescription = computed(() => {
-  if (constraintType.value === 'None') return 'Please enter ATR and ATR Multiplier.'
-  return 'Your position size is capped by your maximum allowed loss per trade (Base Risk %).'
-})
+const constraintLabel = computed(() =>
+  constraintType.value === 'None' ? 'Waiting for Inputs' : 'Risk (Risk Limit)'
+)
 
-const constraintClass = computed(() => {
-  if (constraintType.value === 'None') return 'neutral'
-  return 'success'
-})
+const constraintDescription = computed(() =>
+  constraintType.value === 'None'
+    ? 'Please enter ATR and ATR Multiplier.'
+    : 'Your position size is capped by your maximum allowed loss per trade (Base Risk %).'
+)
 
-// Scaling recommendations
+const constraintClass = computed(() =>
+  constraintType.value === 'None' ? 'neutral' : 'success'
+)
+
+// ── Scaling recommendations ─────────────────────────────────────────────────
 const scaleRecommendationText = computed(() => {
   if (volatilityRatio.value === 0) return '-'
   if (volatilityRatio.value < 0.5) return '50% - 75% (Tight Stop, High Noise)'
@@ -85,7 +86,6 @@ const scaledLots = computed(() => {
   }
   return `${finalLots.value} lots`
 })
-
 </script>
 
 <template>
@@ -94,7 +94,7 @@ const scaledLots = computed(() => {
       Position Size Calculator
     </h2>
     <p class="page-subtitle">
-      ATR-Based Risk Model (Gold Petal MCX)
+      ATR-Based Risk Model
     </p>
 
     <div class="calculator-grid">
@@ -103,7 +103,7 @@ const scaledLots = computed(() => {
         <h3 class="card-title">
           Trade Inputs
         </h3>
-        
+
         <div class="input-row">
           <div class="input-group">
             <label>Capital (₹)</label>
@@ -127,12 +127,24 @@ const scaledLots = computed(() => {
             <span class="help-text">Multiplier for stop distance</span>
           </div>
         </div>
+
+        <div class="input-row">
+          <div class="input-group">
+            <label>Lot Multiplier</label>
+            <input v-model.number="lotMultiplier" type="number" min="1" step="1">
+            <span class="help-text">Units per lot — e.g. 1 (GOLDPETAL), 10 (CRUDEOIL Mini)</span>
+          </div>
+          <div class="input-group">
+            <label>Entry Price (₹) <span class="optional-tag">optional</span></label>
+            <input v-model.number="entryPrice" type="number" min="0" step="0.01" placeholder="for capital deployed">
+          </div>
+        </div>
       </div>
 
       <!-- Analysis Section -->
       <div class="card analysis-card">
         <h3 class="card-title">
-          Analysis & Constraints
+          Analysis &amp; Constraints
         </h3>
 
         <div class="stats-grid">
@@ -143,6 +155,11 @@ const scaledLots = computed(() => {
           <div class="stat-box">
             <span class="stat-label">Effective SL</span>
             <span class="stat-value">₹{{ effectiveSl.toFixed(2) }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Risk per Lot</span>
+            <span class="stat-value">₹{{ riskPerLot.toFixed(2) }}</span>
+            <span class="stat-sub">SL × ×{{ lotMultiplier }}</span>
           </div>
           <div class="stat-box" :class="{'warning': volatilityRatio > 0 && volatilityRatio < 0.5, 'good': volatilityRatio >= 0.5}">
             <span class="stat-label">Volatility Ratio</span>
@@ -180,6 +197,11 @@ const scaledLots = computed(() => {
           </div>
           <div class="result-details">
             <p><strong>Actual Risk:</strong> ₹{{ actualRisk.toFixed(2) }} ({{ actualRiskPct.toFixed(2) }}%)</p>
+            <p><strong>Lot Multiplier:</strong> ×{{ lotMultiplier }} units/lot</p>
+            <p v-if="capitalDeployed !== null">
+              <strong>Capital Deployed:</strong> ₹{{ capitalDeployed.toFixed(2) }}
+            </p>
+            <p v-else class="muted-text">Enter entry price to see capital deployed</p>
           </div>
         </div>
 
@@ -241,6 +263,95 @@ const scaledLots = computed(() => {
 
 .full-width {
   grid-column: 1 / -1;
+}
+
+/* Instrument selector */
+.instrument-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.inst-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.inst-btn:hover {
+  border-color: #42b883;
+  color: #42b883;
+}
+
+.inst-btn.active {
+  border-color: #42b883;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.inst-badge {
+  font-size: 0.75rem;
+  background: #e5e7eb;
+  color: #6b7280;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.inst-btn.active .inst-badge {
+  background: #bbf7d0;
+  color: #166534;
+}
+
+/* Multiplier info bar */
+.multiplier-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #166534;
+}
+
+.multiplier-info strong {
+  font-size: 1rem;
+}
+
+/* Full-row input inside a 2-col grid */
+.input-group.full-row {
+  grid-column: 1 / -1;
+}
+
+.optional-tag {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #9ca3af;
+  margin-left: 0.4rem;
+}
+
+.stat-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.15rem;
+}
+
+.muted-text {
+  color: #9ca3af;
+  font-size: 0.85rem;
 }
 
 .card-title {

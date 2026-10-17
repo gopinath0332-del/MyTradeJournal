@@ -2,6 +2,7 @@
 // This can be run to populate strategy data for existing trades
 
 import { tradeService } from '@/firebase/tradeService'
+import { STRATEGIES } from '@/constants/strategies'
 
 export async function migrateStrategyData() {
   try {
@@ -19,9 +20,7 @@ export async function migrateStrategyData() {
         continue
       }
 
-      // Add default strategy based on some logic or randomly assign
-      const strategies = ['Supertrend', 'Donchian']
-      const randomStrategy = strategies[Math.floor(Math.random() * strategies.length)]
+      const randomStrategy = STRATEGIES[Math.floor(Math.random() * STRATEGIES.length)]
 
       // Update the trade with strategy
       const updatedTrade = {

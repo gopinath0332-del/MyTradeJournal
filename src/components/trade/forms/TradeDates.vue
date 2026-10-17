@@ -40,17 +40,7 @@
           required
           @change="updateTrade({ strategy: $event.target.value })"
         >
-          <option value="Bharat Market Outperformers">Bharat Market Outperformers</option>
-          <option value="Donchian">Donchian</option>
-          <option value="Bollinger Bands">Bollinger Bands</option>
-          <option value="Swing-02">Swing-02</option>
-          <option value="RSI-Long">RSI-Long</option>
-          <option value="52-Low">52-Low</option>
-          <option value="Double dip">Double dip</option>
-          <option value="Weekly momentum">Weekly momentum</option>
-          <option value="CCI-EMA">CCI-EMA</option>
-          <option value="RSI+Supertrend">RSI+Supertrend</option>
-          <option value="Swing-01">Swing-01</option>
+          <option v-for="s in STRATEGIES" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
     </div>
@@ -59,6 +49,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { STRATEGIES } from '@/constants/strategies'
 
 const props = defineProps({
   modelValue: {

@@ -132,12 +132,13 @@ import { logger } from '../../utils/logger'
 import { v4 as uuidv4 } from 'uuid'
 import { loadMTFData, getLeverageBySymbol } from '@/utils/mtfLeverageData'
 import { formatToISODate } from '@/utils/dateUtils'
+import { STRATEGIES } from '@/constants/strategies'
 
 const isOpen = ref(false)
 const isSaving = ref(false)
 const parsedTrades = ref([])
 const openPositions = ref([])
-const defaultStrategy = ref('Donchian')
+const defaultStrategy = ref(STRATEGIES[0])
 const defaultFundingType = ref('MTF')
 const { currencySymbol, activeProfile, updateProfile } = useProfiles()
 
@@ -145,19 +146,6 @@ const startEditingTrade = inject('startEditingTrade')
 const showToast = inject('showToast')
 const refreshDashboard = inject('refreshDashboard')
 
-const strategies = [
-  'Bharat Market Outperformers',
-  'Donchian',
-  'Bollinger Bands',
-  'Swing-02',
-  'RSI-Long',
-  '52-Low',
-  'Double dip',
-  'Weekly momentum',
-  'CCI-EMA',
-  'RSI+Supertrend',
-  'Swing-01'
-]
 
 const stats = computed(() => {
   return parsedTrades.value.reduce((acc, trade) => {

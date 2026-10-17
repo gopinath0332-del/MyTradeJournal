@@ -85,6 +85,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { tradeService } from '../../firebase/tradeService'
 import { logger } from '../../utils/logger'
 import { useProfiles } from '@/composables/useProfiles'
+import { STRATEGIES } from '@/constants/strategies'
 
 // Import sub-components
 import TradeBasicInfo from './forms/TradeBasicInfo.vue'
@@ -410,7 +411,7 @@ const resetForm = () => {
     capitalUsed: null,
     fundingCharge: null,
     tradingCharge: null,
-    strategy: 'Donchian', // Default to first option since it's required
+    strategy: STRATEGIES[0], // Default to first strategy from constants
     notes: '',
     remarks: '',
     confidence: 3,

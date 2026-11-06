@@ -28,7 +28,7 @@
             v-model="localFilters.endDate"
             type="date"
             :min="localFilters.startDate"
-            :max="new Date().toISOString().slice(0, 10)"
+            :max="(() => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0') })()"
             @change="emitFilters"
           >
         </div>

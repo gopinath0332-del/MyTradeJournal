@@ -236,7 +236,11 @@ const calendarDays = computed(() => {
   const today = new Date()
 
   while (currentDate <= endDate) {
-    const dateStr = currentDate.toISOString().split('T')[0]
+    // Use local date parts to avoid UTC offset shifting the date (e.g. IST +5:30)
+    const _ly = currentDate.getFullYear()
+    const _lm = String(currentDate.getMonth() + 1).padStart(2, '0')
+    const _ld = String(currentDate.getDate()).padStart(2, '0')
+    const dateStr = _ly + '-' + _lm + '-' + _ld
     const dayTrades = calendarData.value.filter(trade => {
       const tradeDate = formatToISODate(trade.entryDate)
       return tradeDate === dateStr

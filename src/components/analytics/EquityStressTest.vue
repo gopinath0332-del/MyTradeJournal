@@ -63,32 +63,55 @@
         <div class="chart-container">
           <svg
             :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+            preserveAspectRatio="none"
             class="stress-chart"
           >
             <!-- Grid Lines -->
             <g class="grid">
               <line
-                v-for="i in 4"
-                :key="`h-${i}`"
-                :x1="chartPadding"
-                :y1="chartPadding + (chartHeight - 2 * chartPadding) / 4 * i"
-                :x2="chartWidth - chartPadding"
-                :y2="chartPadding + (chartHeight - 2 * chartPadding) / 4 * i"
-                stroke="#e5e7eb"
-                stroke-width="1"
+                v-for="(line, index) in horizontalGridLines"
+                :key="`h-${index}`"
+                :x1="margin.left"
+                :x2="chartWidth - margin.right"
+                :y1="line.y"
+                :y2="line.y"
+                :class="['grid-line', { 'is-zero': line.value === 0 }]"
               />
             </g>
 
-            <!-- Individual Simulated Paths (Low Opacity) -->
+            <!-- Zero / Starting Baseline -->
+            <line
+              :x1="margin.left"
+              :y1="zeroLineY"
+              :x2="chartWidth - margin.right"
+              :y2="zeroLineY"
+              class="zero-baseline"
+            />
+
+            <!-- Positive Probability Cone (p50 to p95) -->
+            <path
+              v-if="conePositivePath"
+              :d="conePositivePath"
+              class="cone-positive"
+            />
+
+            <!-- Negative Probability Cone (p5 to p50) -->
+            <path
+              v-if="coneNegativePath"
+              :d="coneNegativePath"
+              class="cone-negative"
+            />
+
+            <!-- Individual Simulated Paths (Subtle background paths) -->
             <g class="simulation-paths">
               <path
                 v-for="(path, index) in sampledPaths"
                 :key="`path-${index}`"
                 :d="generatePathD(path)"
                 fill="none"
-                stroke="#3b82f6"
+                stroke="#94a3b8"
                 stroke-width="1"
-                stroke-opacity="0.05"
+                stroke-opacity="0.08"
               />
             </g>
 
@@ -96,45 +119,83 @@
             <path
               :d="generatePathD(percentiles.p5)"
               fill="none"
-              stroke="#ef4444"
-              stroke-width="3"
-              class="percentile-line"
+              stroke="#dc2626"
+              stroke-width="2.2"
+              class="percentile-line p5"
             />
             <path
               :d="generatePathD(percentiles.p50)"
               fill="none"
-              stroke="#3b82f6"
-              stroke-width="3"
-              class="percentile-line"
+              stroke="#2563eb"
+              stroke-width="2.2"
+              stroke-dasharray="4,4"
+              class="percentile-line p50"
             />
             <path
               :d="generatePathD(percentiles.p95)"
               fill="none"
-              stroke="#10b981"
-              stroke-width="3"
-              class="percentile-line"
+              stroke="#16a34a"
+              stroke-width="2.2"
+              class="percentile-line p95"
             />
 
-            <!-- Axis Labels -->
-            <text
-              x="10"
-              :y="chartHeight / 2"
-              fill="#6b7280"
-              font-size="12"
-              text-anchor="start"
-              :transform="`rotate(-90, 10, ${chartHeight/2})`"
-            >
-              P&L Delta
-            </text>
-            <text
-              :x="chartWidth / 2"
-              :y="chartHeight - 5"
-              fill="#6b7280"
-              font-size="12"
-              text-anchor="middle"
-            >
-              Future Trades (1-100)
-            </text>
+            <!-- Endpoint Beaded Dots -->
+            <circle
+              v-if="percentiles.p95.length"
+              :cx="getX(TRADES_HORIZON)"
+              :cy="getY(percentiles.p95[TRADES_HORIZON] ?? 0)"
+              r="4.5"
+              fill="#16a34a"
+              stroke="#ffffff"
+              stroke-width="1.5"
+            />
+            <circle
+              v-if="percentiles.p50.length"
+              :cx="getX(TRADES_HORIZON)"
+              :cy="getY(percentiles.p50[TRADES_HORIZON] ?? 0)"
+              r="4.5"
+              fill="#2563eb"
+              stroke="#ffffff"
+              stroke-width="1.5"
+            />
+            <circle
+              v-if="percentiles.p5.length"
+              :cx="getX(TRADES_HORIZON)"
+              :cy="getY(percentiles.p5[TRADES_HORIZON] ?? 0)"
+              r="4.5"
+              fill="#dc2626"
+              stroke="#ffffff"
+              stroke-width="1.5"
+            />
+
+            <!-- Y-Axis Labels -->
+            <g class="y-axis-labels">
+              <text
+                v-for="(label, index) in yAxisLabels"
+                :key="`y-${index}`"
+                :x="margin.left - 12"
+                :y="label.y"
+                class="axis-label y-label"
+                text-anchor="end"
+                dominant-baseline="middle"
+              >
+                {{ formatAxisCurrency(label.value) }}
+              </text>
+            </g>
+
+            <!-- X-Axis Labels -->
+            <g class="x-axis-labels">
+              <text
+                v-for="step in [0, 25, 50, 75, 100]"
+                :key="step"
+                :x="getX(step)"
+                :y="chartHeight - margin.bottom + 22"
+                class="axis-label x-label"
+                text-anchor="middle"
+              >
+                +{{ step }} trades
+              </text>
+            </g>
           </svg>
         </div>
 
@@ -172,9 +233,9 @@ const props = defineProps<{
 const { currencySymbol } = useProfiles()
 
 // Chart configuration
-const chartWidth = 800
-const chartHeight = 400
-const chartPadding = 50
+const chartWidth = 900
+const chartHeight = 440
+const margin = { top: 25, right: 30, bottom: 45, left: 75 }
 
 // Simulation constants
 const NUM_SIMULATIONS = 1000
@@ -196,6 +257,98 @@ const formatCurrency = (value: number) => {
     maximumFractionDigits: 0
   }).format(value)
 }
+
+const formatAxisCurrency = (val: number) => {
+  if (val === 0) return `${currencySymbol.value || '₹'}0`
+  const abs = Math.abs(val)
+  let formatted
+  if (abs >= 10000000) formatted = (abs / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr'
+  else if (abs >= 100000) formatted = (abs / 100000).toFixed(1).replace(/\.0$/, '') + 'L'
+  else if (abs >= 1000) formatted = (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  else formatted = abs.toLocaleString('en-US')
+
+  const sym = currencySymbol.value || '₹'
+  return val < 0 ? `${sym}-${formatted}` : `${sym}${formatted}`
+}
+
+const yScaleConfig = computed(() => {
+  const allValues = [...percentiles.value.p5, ...percentiles.value.p95]
+  if (!allValues.length) {
+    return { niceMin: -100, niceMax: 100, ticks: [-100, 0, 100] }
+  }
+  const starting = simulationData.value?.startingEquity || 0
+  const minVal = Math.min(starting, ...allValues)
+  const maxVal = Math.max(starting, ...allValues)
+
+  const effectiveMin = Math.min(0, minVal)
+  const effectiveMax = Math.max(0, maxVal)
+  const rawRange = effectiveMax - effectiveMin || 100
+
+  const targetSteps = 6
+  const rawStep = rawRange / targetSteps
+  const power = Math.pow(10, Math.floor(Math.log10(rawStep || 1)))
+  const fraction = rawStep / power
+
+  let step
+  if (fraction <= 1.5) step = 1 * power
+  else if (fraction <= 3.5) step = 2 * power
+  else if (fraction <= 7.5) step = 5 * power
+  else step = 10 * power
+
+  const niceMin = Math.floor(effectiveMin / step) * step
+  const niceMax = Math.ceil(effectiveMax / step) * step
+
+  const ticks: number[] = []
+  for (let val = niceMin; val <= niceMax + step * 0.1; val += step) {
+    ticks.push(Math.round(val * 1000) / 1000)
+  }
+
+  return { niceMin, niceMax, ticks }
+})
+
+const getX = (i: number) => {
+  const dataWidth = chartWidth - margin.left - margin.right
+  return margin.left + (i / TRADES_HORIZON) * dataWidth
+}
+
+const getY = (val: number) => {
+  const { niceMin, niceMax } = yScaleConfig.value
+  const dataHeight = chartHeight - margin.top - margin.bottom
+  const range = niceMax - niceMin || 1
+  return chartHeight - margin.bottom - ((val - niceMin) / range) * dataHeight
+}
+
+const zeroLineY = computed(() => {
+  const starting = simulationData.value?.startingEquity || 0
+  return getY(starting)
+})
+
+const horizontalGridLines = computed(() => {
+  return yScaleConfig.value.ticks.map(val => ({
+    y: getY(val),
+    value: val
+  }))
+})
+
+const yAxisLabels = computed(() => {
+  return horizontalGridLines.value
+})
+
+const conePositivePath = computed(() => {
+  const { p50, p95 } = percentiles.value
+  if (!p50.length || !p95.length) return ''
+  const upper = p95.map((val, i) => `${getX(i)} ${getY(val)}`)
+  const lower = p50.map((val, i) => `${getX(i)} ${getY(val)}`).reverse()
+  return `M ${upper[0]} L ${upper.slice(1).join(' L ')} L ${lower.join(' L ')} Z`
+})
+
+const coneNegativePath = computed(() => {
+  const { p5, p50 } = percentiles.value
+  if (!p5.length || !p50.length) return ''
+  const upper = p50.map((val, i) => `${getX(i)} ${getY(val)}`)
+  const lower = p5.map((val, i) => `${getX(i)} ${getY(val)}`).reverse()
+  return `M ${upper[0]} L ${upper.slice(1).join(' L ')} L ${lower.join(' L ')} Z`
+})
 
 const simulationData = computed(() => {
   if (props.trades.length === 0) return null
@@ -303,15 +456,9 @@ const sampledPaths = computed(() => {
 const generatePathD = (path: number[]) => {
   if (!path || path.length === 0) return ''
 
-  const allValues = [...percentiles.value.p5, ...percentiles.value.p95]
-  const minVal = Math.min(...allValues)
-  const maxVal = Math.max(...allValues)
-  const range = maxVal - minVal || 1
-
   return path.map((val, i) => {
-    const x = chartPadding + (i / TRADES_HORIZON) * (chartWidth - 2 * chartPadding)
-    const normalized = (val - minVal) / range
-    const y = chartHeight - chartPadding - (normalized * (chartHeight - 2 * chartPadding))
+    const x = getX(i)
+    const y = getY(val)
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 }
@@ -437,15 +584,66 @@ const generatePathD = (path: number[]) => {
 
 .chart-container {
   width: 100%;
-  overflow-x: auto;
-  display: flex;
-  justify-content: center;
+  height: 440px;
+  position: relative;
 }
 
 .stress-chart {
   width: 100%;
-  max-width: 800px;
-  height: auto;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Grid & Baseline */
+.grid-line {
+  stroke: #f1f5f9;
+  stroke-width: 1;
+}
+
+.grid-line.is-zero {
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
+}
+
+.zero-baseline {
+  stroke: #cbd5e1;
+  stroke-width: 1.5;
+}
+
+/* Probability Cones */
+.cone-positive {
+  fill: #c6f6d5;
+  opacity: 0.65;
+}
+
+.cone-negative {
+  fill: #fecaca;
+  opacity: 0.6;
+}
+
+/* Percentile Lines */
+.percentile-line.p95 {
+  stroke: #16a34a;
+  stroke-width: 2.2;
+}
+
+.percentile-line.p50 {
+  stroke: #2563eb;
+  stroke-width: 2.2;
+}
+
+.percentile-line.p5 {
+  stroke: #dc2626;
+  stroke-width: 2.2;
+}
+
+/* Axis Labels */
+.axis-label {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11.5px;
+  fill: #94a3b8;
+  font-weight: 500;
+  user-select: none;
 }
 
 .chart-legend {
@@ -463,18 +661,19 @@ const generatePathD = (path: number[]) => {
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .legend-line {
-  width: 30px;
+  width: 20px;
   height: 3px;
   border-radius: 2px;
 }
 
-.legend-line.p5 { background: #ef4444; }
-.legend-line.p50 { background: #3b82f6; }
-.legend-line.p95 { background: #10b981; }
+.legend-line.p5 { background: #dc2626; }
+.legend-line.p50 { background: #2563eb; }
+.legend-line.p95 { background: #16a34a; }
 
 @media (max-width: 768px) {
   .metrics-grid {

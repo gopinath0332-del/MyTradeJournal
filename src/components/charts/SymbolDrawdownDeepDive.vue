@@ -38,6 +38,44 @@ const generateSparkline = (equityHistory: SymbolDrawdownMetrics['equityHistory']
     return `M ${points.join(' L ')}`
 }
 
+// Generate area fill path under sparkline
+const generateSparklineArea = (equityHistory: SymbolDrawdownMetrics['equityHistory']) => {
+    if (equityHistory.length < 2) return ''
+
+    const width = 100
+    const height = 30
+    const padding = 2
+
+    const minEquity = Math.min(...equityHistory.map(p => p.equity))
+    const maxEquity = Math.max(...equityHistory.map(p => p.equity))
+    const range = maxEquity - minEquity || 1
+
+    const points = equityHistory.map((point, i) => {
+        const x = (i / (equityHistory.length - 1)) * width
+        const y = height - ((point.equity - minEquity) / range) * (height - padding * 2) - padding
+        return `${x},${y}`
+    })
+
+    return `M 0,${height} L ${points.join(' L ')} L ${width},${height} Z`
+}
+
+// Get last point coordinate for beaded end dot
+const getSparklineLastPoint = (equityHistory: SymbolDrawdownMetrics['equityHistory']) => {
+    if (!equityHistory.length) return { x: 0, y: 0 }
+    const width = 100
+    const height = 30
+    const padding = 2
+    const minEquity = Math.min(...equityHistory.map(p => p.equity))
+    const maxEquity = Math.max(...equityHistory.map(p => p.equity))
+    const range = maxEquity - minEquity || 1
+
+    const last = equityHistory[equityHistory.length - 1]
+    if (!last) return { x: 0, y: 0 }
+    const x = width
+    const y = height - ((last.equity - minEquity) / range) * (height - padding * 2) - padding
+    return { x, y }
+}
+
 // Generate shaded drawdown areas
 const generateDrawdownAreas = (equityHistory: SymbolDrawdownMetrics['equityHistory']) => {
     if (equityHistory.length < 2) return []
@@ -229,22 +267,37 @@ const getEfficiencyColor = (score: number) => {
               </td>
               <td class="px-4 py-3">
                 <svg viewBox="0 0 100 30" class="w-24 h-8" preserveAspectRatio="none">
+                  <!-- Area fill under sparkline -->
+                  <path
+                    :d="generateSparklineArea(metric.equityHistory)"
+                    :fill="metric.isInDrawdown ? '#fecaca' : '#c6f6d5'"
+                    :opacity="0.65"
+                  />
                   <!-- Drawdown shaded areas -->
                   <path
                     v-for="(area, i) in generateDrawdownAreas(metric.equityHistory)"
                     :key="i"
                     :d="area.path"
-                    fill="currentColor"
+                    fill="#ef4444"
                     :opacity="area.opacity"
-                    class="text-red-500"
                   />
                   <!-- Equity curve -->
                   <path
                     :d="generateSparkline(metric.equityHistory)"
                     fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                    :class="metric.isInDrawdown ? 'text-red-500' : 'text-blue-500'"
+                    :stroke="metric.isInDrawdown ? '#dc2626' : '#16a34a'"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <!-- End Beaded Point -->
+                  <circle
+                    :cx="getSparklineLastPoint(metric.equityHistory).x - 1"
+                    :cy="getSparklineLastPoint(metric.equityHistory).y"
+                    r="2.5"
+                    :fill="metric.isInDrawdown ? '#dc2626' : '#16a34a'"
+                    stroke="#ffffff"
+                    stroke-width="1"
                   />
                 </svg>
               </td>
@@ -319,22 +372,37 @@ const getEfficiencyColor = (score: number) => {
         <!-- Sparkline -->
         <div class="mb-3">
           <svg viewBox="0 0 100 30" class="w-full h-16" preserveAspectRatio="none">
+            <!-- Area fill under sparkline -->
+            <path
+              :d="generateSparklineArea(metric.equityHistory)"
+              :fill="metric.isInDrawdown ? '#fecaca' : '#c6f6d5'"
+              :opacity="0.65"
+            />
             <!-- Drawdown shaded areas -->
             <path
               v-for="(area, i) in generateDrawdownAreas(metric.equityHistory)"
               :key="i"
               :d="area.path"
-              fill="currentColor"
+              fill="#ef4444"
               :opacity="area.opacity"
-              class="text-red-500"
             />
             <!-- Equity curve -->
             <path
               :d="generateSparkline(metric.equityHistory)"
               fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              :class="metric.isInDrawdown ? 'text-red-500' : 'text-blue-500'"
+              :stroke="metric.isInDrawdown ? '#dc2626' : '#16a34a'"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <!-- End Beaded Point -->
+            <circle
+              :cx="getSparklineLastPoint(metric.equityHistory).x - 1"
+              :cy="getSparklineLastPoint(metric.equityHistory).y"
+              r="2.5"
+              :fill="metric.isInDrawdown ? '#dc2626' : '#16a34a'"
+              stroke="#ffffff"
+              stroke-width="1"
             />
           </svg>
         </div>

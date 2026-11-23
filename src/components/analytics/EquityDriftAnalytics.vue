@@ -65,93 +65,223 @@
 
       <!-- Equity Curve with Drift Zones -->
       <div class="chart-section">
-        <h4>Equity Curve with Drift Detection</h4>
-        <div class="chart-container">
-          <svg
-            ref="chartSvg"
-            class="equity-chart"
-            :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
-          >
-            <!-- Background grid -->
-            <g class="grid">
-              <line
-                v-for="i in 5"
-                :key="`h-${i}`"
-                :x1="chartPadding"
-                :y1="chartPadding + (chartHeight - 2 * chartPadding) / 4 * (i - 1)"
-                :x2="chartWidth - chartPadding"
-                :y2="chartPadding + (chartHeight - 2 * chartPadding) / 4 * (i - 1)"
-                stroke="#e5e7eb"
-                stroke-width="1"
-              />
-            </g>
-
-            <!-- Drift zones -->
-            <g class="drift-zones">
-              <rect
-                v-for="(event, index) in analysis.driftEvents"
-                :key="`drift-${index}`"
-                :x="getChartX(event.startIndex)"
-                :y="chartPadding"
-                :width="getChartX(event.endIndex) - getChartX(event.startIndex)"
-                :height="chartHeight - 2 * chartPadding"
-                :fill="getDriftColor(event.type)"
-                :opacity="event.severity === 'high' ? 0.2 : 0.1"
-              />
-            </g>
-
-            <!-- Equity line -->
-            <path
-              :d="equityPath"
-              fill="none"
-              stroke="#3b82f6"
-              stroke-width="3"
-            />
-
-            <!-- Regime change markers -->
-            <g class="regime-markers">
-              <circle
-                v-for="(change, index) in analysis.regimeChanges"
-                :key="`change-${index}`"
-                :cx="getChartX(change.changeIndex)"
-                :cy="getChartY(getPointAt(change.changeIndex)?.cumulativePnL || 0)"
-                r="6"
-                :fill="getRegimeColor(change.newRegime)"
-                stroke="white"
-                stroke-width="2"
-              />
-            </g>
-
-            <!-- Axis labels -->
-            <text
-              x="10"
-              :y="chartHeight / 2"
-              fill="#6b7280"
-              font-size="12"
-              text-anchor="start"
-            >
-              Cumulative P&L
-            </text>
-          </svg>
+        <div class="chart-header">
+          <h4>Equity Curve with Drift Detection</h4>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-color equity" />
+              <span>Equity Curve</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-marker positive-drift" />
+              <span>Positive Drift</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-marker negative-drift" />
+              <span>Negative Drift</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-marker regime-change" />
+              <span>Regime Change</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Chart Legend -->
-        <div class="chart-legend">
-          <div class="legend-item">
-            <span class="legend-line" />
-            <span>Equity Curve</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-marker positive-drift" />
-            <span>Positive Drift</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-marker negative-drift" />
-            <span>Negative Drift</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-marker regime-change" />
-            <span>Regime Change</span>
+        <div class="chart-container" @mouseleave="hideTooltip">
+          <div class="chart-wrapper">
+            <svg
+              ref="chartSvg"
+              class="equity-chart"
+              :viewBox="`0 0 ${chartWidth} ${chartHeight}`"
+              preserveAspectRatio="none"
+              @mousemove="onChartMouseMove"
+            >
+              <!-- Dual-zone clip paths -->
+              <defs>
+                <clipPath id="drift-clip-positive">
+                  <rect
+                    :x="margin.left"
+                    :y="margin.top"
+                    :width="chartWidth - margin.left - margin.right"
+                    :height="Math.max(0, zeroLineY - margin.top)"
+                  />
+                </clipPath>
+                <clipPath id="drift-clip-negative">
+                  <rect
+                    :x="margin.left"
+                    :y="zeroLineY"
+                    :width="chartWidth - margin.left - margin.right"
+                    :height="Math.max(0, chartHeight - margin.bottom - zeroLineY)"
+                  />
+                </clipPath>
+              </defs>
+
+              <!-- Background horizontal grid -->
+              <g class="grid">
+                <line
+                  v-for="(line, index) in horizontalGridLines"
+                  :key="`h-${index}`"
+                  :x1="margin.left"
+                  :y1="line.y"
+                  :x2="chartWidth - margin.right"
+                  :y2="line.y"
+                  :class="['grid-line', { 'is-zero': line.value === 0 }]"
+                />
+              </g>
+
+              <!-- Zero baseline -->
+              <line
+                :x1="margin.left"
+                :y1="zeroLineY"
+                :x2="chartWidth - margin.right"
+                :y2="zeroLineY"
+                class="zero-baseline"
+              />
+
+              <!-- Dual-zone Area Fills under Equity Curve -->
+              <path
+                :d="equityAreaPath"
+                class="area-positive"
+                clip-path="url(#drift-clip-positive)"
+              />
+              <path
+                :d="equityAreaPath"
+                class="area-negative"
+                clip-path="url(#drift-clip-negative)"
+              />
+
+              <!-- Drift zones -->
+              <g class="drift-zones">
+                <rect
+                  v-for="(event, index) in analysis.driftEvents"
+                  :key="`drift-${index}`"
+                  :x="getChartX(event.startIndex)"
+                  :y="margin.top"
+                  :width="Math.max(2, getChartX(event.endIndex) - getChartX(event.startIndex))"
+                  :height="chartHeight - margin.top - margin.bottom"
+                  :fill="getDriftColor(event.type)"
+                  :opacity="event.severity === 'high' ? 0.28 : 0.15"
+                />
+              </g>
+
+              <!-- Equity Lines (Green above zero, Red below) -->
+              <path
+                :d="equityPath"
+                class="line-positive"
+                fill="none"
+                clip-path="url(#drift-clip-positive)"
+              />
+              <path
+                :d="equityPath"
+                class="line-negative"
+                fill="none"
+                clip-path="url(#drift-clip-negative)"
+              />
+
+              <!-- Beaded Data Points -->
+              <g class="data-points">
+                <circle
+                  v-for="(point, index) in analysis.equityPoints"
+                  :key="index"
+                  :cx="getChartX(index)"
+                  :cy="getChartY(point.cumulativePnL)"
+                  :r="hoveredIndex === index ? 5.5 : 3.5"
+                  :class="['data-point', point.cumulativePnL >= 0 ? 'profit' : 'loss', { 'is-hovered': hoveredIndex === index }]"
+                />
+              </g>
+
+              <!-- Regime change markers -->
+              <g class="regime-markers">
+                <circle
+                  v-for="(change, index) in analysis.regimeChanges"
+                  :key="`change-${index}`"
+                  :cx="getChartX(change.changeIndex)"
+                  :cy="getChartY(getPointAt(change.changeIndex)?.cumulativePnL || 0)"
+                  r="7"
+                  :fill="getRegimeColor(change.newRegime)"
+                  stroke="#ffffff"
+                  stroke-width="2.5"
+                  class="regime-marker"
+                />
+              </g>
+
+              <!-- Vertical Crosshair Line -->
+              <line
+                v-if="hoveredIndex !== null && hoveredPoint"
+                :x1="getChartX(hoveredIndex)"
+                :y1="margin.top"
+                :x2="getChartX(hoveredIndex)"
+                :y2="chartHeight - margin.bottom"
+                class="crosshair-line"
+              />
+
+              <!-- Hovered Point Halo -->
+              <circle
+                v-if="hoveredIndex !== null && hoveredPoint"
+                :cx="getChartX(hoveredIndex)"
+                :cy="getChartY(hoveredPoint.cumulativePnL)"
+                :r="6.5"
+                :class="['hover-halo', hoveredPoint.cumulativePnL >= 0 ? 'profit' : 'loss']"
+              />
+
+              <!-- Y-axis labels -->
+              <g class="y-axis-labels">
+                <text
+                  v-for="(label, index) in yAxisLabels"
+                  :key="`y-${index}`"
+                  :x="margin.left - 12"
+                  :y="label.y"
+                  class="axis-label y-label"
+                  text-anchor="end"
+                  dominant-baseline="middle"
+                >
+                  {{ formatAxisCurrency(label.value) }}
+                </text>
+              </g>
+
+              <!-- X-axis labels -->
+              <g class="x-axis-labels">
+                <text
+                  v-for="(label, index) in xAxisLabels"
+                  :key="`x-${index}`"
+                  :x="label.x"
+                  :y="chartHeight - margin.bottom + 22"
+                  class="axis-label x-label"
+                  text-anchor="middle"
+                >
+                  {{ label.text }}
+                </text>
+              </g>
+
+              <!-- Interaction Overlay -->
+              <rect
+                :x="margin.left"
+                :y="margin.top"
+                :width="chartWidth - margin.left - margin.right"
+                :height="chartHeight - margin.top - margin.bottom"
+                fill="transparent"
+                class="interaction-overlay"
+              />
+            </svg>
+
+            <!-- Floating Tooltip -->
+            <div
+              v-if="tooltip.visible"
+              class="tooltip"
+              :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+            >
+              <div class="tooltip-header">{{ tooltip.date }}</div>
+              <div class="tooltip-row">
+                <span class="tooltip-label">Cumulative P&L:</span>
+                <span class="tooltip-val" :class="tooltip.pnl >= 0 ? 'profit' : 'loss'">
+                  {{ tooltip.pnl >= 0 ? '+' : '' }}{{ formatCurrency(tooltip.pnl) }}
+                </span>
+              </div>
+              <div class="tooltip-row" v-if="tooltip.regime">
+                <span class="tooltip-label">Regime:</span>
+                <span class="tooltip-val">{{ getRegimeName(tooltip.regime) }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -334,7 +464,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { tradeService } from '@/firebase/tradeService'
 import { analyzeDrift } from '@/types/drift'
+import { useProfiles } from '@/composables/useProfiles'
 import LoadingSpinner from '../ui/LoadingSpinner.vue'
+
+const { currencySymbol } = useProfiles()
 
 const isLoading = ref(true)
 const trades = ref([])
@@ -346,9 +479,24 @@ const driftConfig = {
   cusumDrift: 0.5
 }
 
-const chartWidth = 800
-const chartHeight = 400
-const chartPadding = 40
+const chartWidth = 950
+const chartHeight = 440
+const margin = { top: 25, right: 30, bottom: 50, left: 75 }
+
+const hoveredIndex = ref(null)
+const hoveredPoint = computed(() => {
+  if (hoveredIndex.value === null || !analysis.value) return null
+  return analysis.value.equityPoints[hoveredIndex.value] || null
+})
+
+const tooltip = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  date: '',
+  pnl: 0,
+  regime: ''
+})
 
 const hasData = computed(() => trades.value.length >= driftConfig.zScoreWindow)
 
@@ -357,16 +505,81 @@ const analysis = computed(() => {
   return analyzeDrift(trades.value, driftConfig)
 })
 
+// Nice Y-scale generator with clean round multiples and 0 baseline
+const yScaleConfig = computed(() => {
+  if (!analysis.value || !analysis.value.equityPoints.length) {
+    return { niceMin: -100, niceMax: 100, ticks: [-100, 0, 100] }
+  }
+  const points = analysis.value.equityPoints
+  const minVal = Math.min(...points.map(p => p.cumulativePnL))
+  const maxVal = Math.max(...points.map(p => p.cumulativePnL))
+  const effectiveMin = Math.min(0, minVal)
+  const effectiveMax = Math.max(0, maxVal)
+  const rawRange = effectiveMax - effectiveMin || 100
+
+  const targetSteps = 6
+  const rawStep = rawRange / targetSteps
+  const power = Math.pow(10, Math.floor(Math.log10(rawStep || 1)))
+  const fraction = rawStep / power
+
+  let step
+  if (fraction <= 1.5) step = 1 * power
+  else if (fraction <= 3.5) step = 2 * power
+  else if (fraction <= 7.5) step = 5 * power
+  else step = 10 * power
+
+  const niceMin = Math.floor(effectiveMin / step) * step
+  const niceMax = Math.ceil(effectiveMax / step) * step
+
+  const ticks = []
+  for (let val = niceMin; val <= niceMax + step * 0.1; val += step) {
+    ticks.push(Math.round(val * 1000) / 1000)
+  }
+
+  return { niceMin, niceMax, ticks }
+})
+
+// Chart coordinates
+const getChartX = (index) => {
+  if (!analysis.value) return 0
+  const total = analysis.value.equityPoints.length - 1 || 1
+  const dataWidth = chartWidth - margin.left - margin.right
+  return margin.left + (index / total) * dataWidth
+}
+
+const getChartY = (value) => {
+  if (!analysis.value) return 0
+  const { niceMin, niceMax } = yScaleConfig.value
+  const dataHeight = chartHeight - margin.top - margin.bottom
+  const range = niceMax - niceMin || 1
+  return chartHeight - margin.bottom - ((value - niceMin) / range) * dataHeight
+}
+
+const zeroLineY = computed(() => {
+  return getChartY(0)
+})
+
+// Closed area path under equity curve down/up to zero line
+const equityAreaPath = computed(() => {
+  if (!analysis.value || !analysis.value.equityPoints.length) return ''
+  const points = analysis.value.equityPoints
+  const firstX = getChartX(0)
+  const lastX = getChartX(points.length - 1)
+  const zeroY = zeroLineY.value
+
+  let path = `M ${firstX} ${zeroY}`
+  for (let i = 0; i < points.length; i++) {
+    path += ` L ${getChartX(i)} ${getChartY(points[i].cumulativePnL)}`
+  }
+  path += ` L ${lastX} ${zeroY} Z`
+  return path
+})
+
 // Chart paths
 const equityPath = computed(() => {
   if (!analysis.value) return ''
-
   const points = analysis.value.equityPoints
   if (points.length === 0) return ''
-
-  const minPnL = Math.min(...points.map(p => p.cumulativePnL))
-  const maxPnL = Math.max(...points.map(p => p.cumulativePnL))
-  const range = maxPnL - minPnL || 1
 
   return points.map((point, i) => {
     const x = getChartX(i)
@@ -374,6 +587,102 @@ const equityPath = computed(() => {
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 })
+
+const horizontalGridLines = computed(() => {
+  return yScaleConfig.value.ticks.map(val => ({
+    y: getChartY(val),
+    value: val
+  }))
+})
+
+const yAxisLabels = computed(() => {
+  return horizontalGridLines.value
+})
+
+const formatXDate = (dateStr) => {
+  if (!dateStr) return ''
+  const parts = String(dateStr).split('T')[0].split('-')
+  if (parts.length === 3) {
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+const xAxisLabels = computed(() => {
+  if (!analysis.value || !analysis.value.equityPoints.length) return []
+  const points = analysis.value.equityPoints
+  const maxLabels = 9
+  const step = Math.max(1, Math.floor((points.length - 1) / (maxLabels - 1)))
+  const labels = []
+
+  for (let i = 0; i < points.length; i += step) {
+    labels.push({
+      text: formatXDate(points[i].date),
+      x: getChartX(i)
+    })
+  }
+
+  const lastIdx = points.length - 1
+  if (labels[labels.length - 1].x < getChartX(lastIdx) - 45) {
+    labels.push({
+      text: formatXDate(points[lastIdx].date),
+      x: getChartX(lastIdx)
+    })
+  }
+
+  return labels
+})
+
+const formatAxisCurrency = (val) => {
+  if (val === 0) return `${currencySymbol.value || '₹'}0`
+  const abs = Math.abs(val)
+  let formatted
+  if (abs >= 10000000) formatted = (abs / 10000000).toFixed(1).replace(/\.0$/, '') + 'Cr'
+  else if (abs >= 100000) formatted = (abs / 100000).toFixed(1).replace(/\.0$/, '') + 'L'
+  else if (abs >= 1000) formatted = (abs / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  else formatted = abs.toLocaleString('en-US')
+
+  const sym = currencySymbol.value || '₹'
+  return val < 0 ? `${sym}-${formatted}` : `${sym}${formatted}`
+}
+
+const onChartMouseMove = (event) => {
+  if (!analysis.value || !analysis.value.equityPoints.length) return
+  const points = analysis.value.equityPoints
+
+  const svg = event.currentTarget
+  const rect = svg.getBoundingClientRect()
+  const mouseSvgX = ((event.clientX - rect.left) / rect.width) * chartWidth
+
+  const dataWidth = chartWidth - margin.left - margin.right
+  const normalizedX = (mouseSvgX - margin.left) / dataWidth
+  let index = Math.round(normalizedX * (points.length - 1))
+  index = Math.max(0, Math.min(points.length - 1, index))
+
+  hoveredIndex.value = index
+  const point = points[index]
+
+  const container = svg.closest('.chart-container').getBoundingClientRect()
+  const pointSvgX = getChartX(index)
+  const pointSvgY = getChartY(point.cumulativePnL)
+  const pointScreenX = rect.left + (pointSvgX / chartWidth) * rect.width
+  const pointScreenY = rect.top + (pointSvgY / chartHeight) * rect.height
+
+  tooltip.value = {
+    visible: true,
+    x: pointScreenX - container.left,
+    y: pointScreenY - container.top - 12,
+    date: formatDate(point.date),
+    pnl: point.cumulativePnL,
+    regime: point.regime
+  }
+}
+
+const hideTooltip = () => {
+  tooltip.value.visible = false
+  hoveredIndex.value = null
+}
 
 const cusumPositivePath = computed(() => {
   if (!analysis.value) return ''
@@ -392,30 +701,12 @@ const zScorePath = computed(() => {
   const maxAbsZ = Math.max(...zScores.map(z => Math.abs(z)), driftConfig.zScoreThreshold * 1.5)
 
   return analysis.value.equityPoints.map((point, i) => {
-    const x = chartPadding + (i / (analysis.value.equityPoints.length - 1 || 1)) * (chartWidth - 2 * chartPadding)
+    const x = margin.left + (i / (analysis.value.equityPoints.length - 1 || 1)) * (chartWidth - margin.left - margin.right)
     const normalizedZ = (point.zScore + maxAbsZ) / (2 * maxAbsZ)
     const y = 150 - (normalizedZ * 120) - 15
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 })
-
-// Helper functions
-const getChartX = (index) => {
-  if (!analysis.value) return 0
-  const total = analysis.value.equityPoints.length - 1 || 1
-  return chartPadding + (index / total) * (chartWidth - 2 * chartPadding)
-}
-
-const getChartY = (value) => {
-  if (!analysis.value) return 0
-  const points = analysis.value.equityPoints
-  const minPnL = Math.min(...points.map(p => p.cumulativePnL))
-  const maxPnL = Math.max(...points.map(p => p.cumulativePnL))
-  const range = maxPnL - minPnL || 1
-
-  const normalized = (value - minPnL) / range
-  return chartHeight - chartPadding - (normalized * (chartHeight - 2 * chartPadding))
-}
 
 const getPointAt = (index) => {
   return analysis.value?.equityPoints[index]
@@ -427,7 +718,7 @@ const generateMiniChartPath = (values) => {
   const maxVal = Math.max(...values, driftConfig.cusumThreshold * 1.2)
 
   return values.map((val, i) => {
-    const x = chartPadding + (i / (values.length - 1 || 1)) * (chartWidth - 2 * chartPadding)
+    const x = margin.left + (i / (values.length - 1 || 1)) * (chartWidth - margin.left - margin.right)
     const normalized = val / maxVal
     const y = 150 - (normalized * 120) - 15
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`
@@ -693,52 +984,228 @@ onMounted(async() => {
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
 }
 
-.chart-section h4 {
-  margin: 0 0 1rem 0;
-  color: #1f2937;
-  font-size: 1.125rem;
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .chart-container {
   width: 100%;
-  overflow-x: auto;
+  height: 440px;
+  position: relative;
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
 .equity-chart {
   width: 100%;
-  height: auto;
+  height: 100%;
+  overflow: visible;
+  cursor: crosshair;
+}
+
+/* Grid & Baseline */
+.grid-line {
+  stroke: #f1f5f9;
+  stroke-width: 1;
+}
+
+.grid-line.is-zero {
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
+}
+
+.zero-baseline {
+  stroke: #cbd5e1;
+  stroke-width: 1.5;
+}
+
+/* Dual-zone Equity Area Fills */
+.area-positive {
+  fill: #c6f6d5;
+  opacity: 0.7;
+}
+
+.area-negative {
+  fill: #fecaca;
+  opacity: 0.75;
+}
+
+/* Equity Line Strokes */
+.line-positive {
+  stroke: #16a34a;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.line-negative {
+  stroke: #dc2626;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Beaded Data Points */
+.data-point {
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  transition: r 0.15s ease, stroke-width 0.15s ease;
+}
+
+.data-point.profit {
+  fill: #16a34a;
+}
+
+.data-point.loss {
+  fill: #dc2626;
+}
+
+.data-point.is-hovered {
+  r: 5.5;
+  stroke-width: 2;
+}
+
+/* Regime Markers */
+.regime-marker {
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* Crosshair & Halo */
+.crosshair-line {
+  stroke: #94a3b8;
+  stroke-width: 1.5;
+  stroke-dasharray: 4,4;
+  pointer-events: none;
+}
+
+.hover-halo {
+  fill: #ffffff;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.hover-halo.profit {
+  stroke: #16a34a;
+}
+
+.hover-halo.loss {
+  stroke: #dc2626;
+}
+
+/* Axis Labels */
+.axis-label {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11.5px;
+  fill: #94a3b8;
+  font-weight: 500;
+  user-select: none;
+}
+
+.interaction-overlay {
+  pointer-events: all;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-100%);
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.tooltip-header {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.1rem;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tooltip-label {
+  color: #cbd5e1;
+  font-weight: 400;
+}
+
+.tooltip-val {
+  font-weight: 700;
+}
+
+.tooltip-val.profit {
+  color: #4ade80;
+}
+
+.tooltip-val.loss {
+  color: #f87171;
 }
 
 .chart-legend {
   display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #6b7280;
+  gap: 0.4rem;
 }
 
-.legend-line {
-  width: 30px;
-  height: 3px;
-  background: #3b82f6;
-  border-radius: 2px;
+.legend-color.equity {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 0 1.5px #ffffff, 0 0 0 2.5px #16a34a;
 }
 
 .legend-marker {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
